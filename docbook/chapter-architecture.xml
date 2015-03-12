@@ -1,0 +1,694 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ====================================================================== -->
+<!-- Copyright 2000-2012 Vaadin Ltd                                         -->
+<!-- All Rights Reserved                                                    -->
+<!-- This work is licensed under a Creative Commons Attribution-NoDerivs    -->
+<!-- License (CC-BY-ND) Version 3.0. Full license text is available at:     -->
+<!-- http://creativecommons.org/licenses/by-nd/3.0/legalcode                -->
+<!-- ====================================================================== -->
+
+<chapter xml:id="architecture">
+	<title>Architecture</title>
+
+	<para>
+        In <xref linkend="intro"/>, we gave a short introduction to the general
+        architecture of Vaadin. This chapter looks deeper into the architecture at a more
+        technical level.
+	</para>
+
+	<section xml:id="architecture.overview">
+		<title>Overview</title>
+
+        <para>
+            Vaadin provides two development models for web applications: for the
+            client-side (the browser) and for the server-side. The server-driven
+            development model is the more powerful one, allowing application development
+            solely on the server-side, by utilizing an AJAX-based Vaadin Client-Side
+            Engine that renders the user interface in the browser. The client-side model
+            allows developing widgets and applications in Java, which are compiled to
+            JavaScript and executed in the browser. The two models can share their UI
+            widgets, themes, and back-end code and services, and can be mixed together
+            easily.
+        </para>
+
+		<figure xml:id="figure.architecture.detailed" float="center" floatstyle="before">
+			<title>Vaadin Runtime Architecture</title>
+			<mediaobject>
+				<imageobject role="html">
+					<imagedata align="center" fileref="img/arch/architecture-detailed-lo.png"/>
+				</imageobject>
+				<imageobject role="fo">
+					<imagedata scale="60" smallscale="100%" align="center" fileref="img/arch/architecture-detailed-hi.png"/>
+				</imageobject>
+			</mediaobject>
+		</figure>
+
+        <para>
+            <xref linkend="figure.architecture.detailed"/> gives a basic illustration of
+            the client-side and server-side communications, in a running situation where
+            the page with the client-side code (engine or application) has been initially
+            loaded in the browser.
+		</para>
+
+		<para>
+			Vaadin Framework consists of a <emphasis>server-side API</emphasis>, a
+			<emphasis>client-side API</emphasis>, a horde of <emphasis>user interface
+			components/widgets</emphasis> on the both sides, <emphasis>themes</emphasis>
+			for controlling the appearance, and a <emphasis>data model</emphasis> that
+			allows binding the server-side components directly to data. For client-side
+			development, it includes the Vaadin Compiler, which allows compiling Java to
+			JavaScript.
+		</para>
+
+		<para>
+			A server-side Vaadin application runs as a servlet in a Java web server,
+			serving HTTP requests. The <classname>VaadinServlet</classname> is normally
+			used as the servlet class. The servlet receives client requests and inteprets
+			them as events for a particular user session. Events are associated with user
+			interface components and delivered to the event listeners defined in the
+			application. If the UI logic makes changes to the server-side user interface
+			components, the servlet renders them in the web browser by generating a
+			response. The client-side engine running in the browser receives the responses
+			and uses them to make any necessary changes to the page in the browser.
+		</para>
+
+		<para>
+			The major parts of the server-driven development architecture and their
+			function are as follows:
+		</para>
+
+		<!-- Spacing must be compact for small format book. -->
+		<variablelist>
+			<varlistentry>
+				<term>User Interface</term>
+				<listitem>
+                    <para>
+                        Vaadin applications provide a user interface for the user to
+                        interface with the business logic and data of the application. At
+                        technical level, the UI is realized as a
+                        <emphasis>&ui;</emphasis> class that extends
+                        <classname>com.vaadin.ui.&uiclass;</classname>. Its main task is
+                        to create the initial user interface out of UI components and set
+                        up event listeners to handle user input. The &ui; can then be
+                        loaded in the browser using an URL, or can be embedded to any HTML
+                        page. For detailed information about implementing a
+                        <classname>&uiclass;</classname>, see <xref
+                        linkend="application"/>.
+                    </para>
+
+                    <para>
+                        Please note that the term "UI" is used throughout this book to
+                        refer both to the general UI concept as well as the technical UI
+                        class concept.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+			<varlistentry>
+				<term>User Interface Components/Widgets</term>
+				<listitem>
+					<para>
+                        <indexterm><primary>component</primary></indexterm>
+                        <indexterm><primary>widget</primary></indexterm>
+                        <indexterm><primary>field</primary></indexterm>
+
+						The user interface of a Vaadin application consists of components
+						that are created and laid out by the application. Each server-side
+						component has a client-side counterpart, a
+						"<emphasis>widget</emphasis>", by which it is rendered in the
+						browser and with which the user interacts. The client-side widgets
+						can also be used by client-side applications. The server-side
+						components relay these events to the application logic. Field
+						components that have a value, which the user can view or edit, can
+						be bound to a data source (see below). For a more detailed
+						description of the UI component architecture, see <xref
+						linkend="components"/>.
+					</para>
+				</listitem>
+			</varlistentry>
+
+			<varlistentry>
+				<term>Client-Side Engine</term>
+				<listitem>
+					<para>
+                        <indexterm><primary>Client-Side Engine</primary></indexterm>
+                        <indexterm><primary>Google Web Toolkit</primary></indexterm>
+                        <indexterm><primary>HTTP</primary></indexterm>
+
+						The Client-Side Engine of Vaadin manages the rendering of the UI
+						in the web browser by employing various client-side
+						<emphasis>widgets</emphasis>, counterparts of the server-side
+						components. It communicates user interaction to the server-side,
+						and then again renders the changes in the UI. The communications
+						are made using asynchronous HTTP or HTTPS requests. See <xref
+						linkend="architecture.client-side"/>.
+					</para>
+				</listitem>
+			</varlistentry>
+			
+			<varlistentry>
+				<term>Vaadin Servlet</term>
+				<listitem>
+					<para>
+                        <indexterm><primary>VaadinServlet</primary></indexterm>
+
+                        Server-side Vaadin applications work on top of the Java Servlet
+                        API (see <xref linkend="architecture.technology.servlet"/>). The
+                        Vaadin servlet, or more exactly the
+                        <classname>VaadinServlet</classname> class, receives requests from
+                        different clients, determines which user session they belong to by
+                        tracking the sessions with cookies, and delegates the requests to
+                        their corresponding sessions. You can customize the Vaadin servlet
+                        by extending it.
+					</para>
+				</listitem>
+			</varlistentry>
+
+			<varlistentry>
+				<term>Themes</term>
+				<listitem>
+					<para>
+                        <indexterm><primary>theme</primary></indexterm>
+                        <indexterm><primary>CSS</primary></indexterm>
+                        <indexterm><primary>Sass</primary></indexterm>
+                        <indexterm><primary>HTML templates</primary></indexterm>
+
+						Vaadin makes a separation between the appearance and component
+						structure of the user interface. While the UI logic is handled as
+						Java code, the presentation is defined in
+						<emphasis>themes</emphasis> as CSS or Sass. Vaadin provides a
+						number of default themes. User themes can, in addition to style
+						sheets, include HTML templates that define custom layouts and
+						other resources, such as images and fonts. Themes are discussed in
+						detail in <xref linkend="themes"/>.
+					</para>
+				</listitem>
+			</varlistentry>
+
+			<varlistentry>
+				<term>Events</term>
+				<listitem>
+					<para>
+                        <indexterm><primary>events</primary></indexterm>
+
+						Interaction with user interface components creates events, which
+						are first processed on the client-side by the widgets, then passed
+						all the way through the HTTP server, Vaadin servlet, and the user
+						interface components to the event listeners defined in the
+						application. See <xref linkend="architecture.events"/>.
+					</para>
+				</listitem>
+			</varlistentry>
+
+			<varlistentry>
+				<term>Server Push</term>
+				<listitem>
+					<para>
+                        <indexterm><primary>server push</primary></indexterm>
+
+                        In addition to the event-driven programming model, Vaadin supports
+                        server push, where the UI changes are pushed directly from the
+                        server to the client without a client request or an event. This
+                        makes it possible to update UIs immediately from other threads and
+                        other UIs, without having to wait for a request.  See <xref
+                        linkend="advanced.push"/>.
+					</para>
+				</listitem>
+			</varlistentry>
+
+			<varlistentry>
+				<term>Data Binding</term>
+				<listitem>
+					<para>
+                        <indexterm><primary>Data Model</primary></indexterm>
+                        <indexterm><primary>Data Binding</primary></indexterm>
+
+						In addition to the user interface model, Vaadin provides a
+						<emphasis>data model</emphasis> for binding data presented in
+						field components, such as text fields, check boxes and selection
+						components, to a data source. Using the data model, the user
+						interface components can update the application data directly,
+						often without the need for any control code. All the field
+						components in Vaadin use this data model internally, but any of
+						them can be bound to a separate data source as well.
+
+                        <indexterm><primary>SQL</primary></indexterm>
+
+                        For example, you can bind a table component to an SQL query
+                        response. For a complete overview of the Vaadin Data Model, please
+                        refer to <xref linkend="datamodel"/>.
+					</para>
+				</listitem>
+			</varlistentry>
+
+			<varlistentry>
+				<term>Client-Side Applications</term>
+				<listitem>
+                    <para>
+                        In addition to server-side web applications, Vaadin supports
+                        client-side application modules, which run in the browser.
+
+                        Client-side modules can use the same widgets, themes, and back-end
+                        services as server-side Vaadin applications. They are useful when
+                        you have a need for highly responsive UI logic, such as for games
+                        or for serving a large number of clients with possibly stateless
+                        server-side code, and for various other purposes, such as offering
+                        an off-line mode for server-side applications. Please see <xref
+                        linkend="clientsideapp"/> for further details.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+			<varlistentry>
+				<term>Back-end</term>
+				<listitem>
+					<para>
+                        Vaadin is meant for building user interfaces, and it is
+                        recommended that other application layers should be kept separate
+                        from the UI. The business logic can run in the same servlet as the
+                        UI code, usually separated at least by a Java API, possibly as
+                        EJBs, or distributed to a remote back-end service. The data
+                        storage is usually distributed to a database management system,
+                        and is typically accessed through a persistence solution, such as
+                        JPA.
+                    </para>
+                </listitem>
+            </varlistentry>
+		</variablelist>
+
+	</section>
+
+	<section xml:id="architecture.technology">
+		<title>Technological Background</title>
+
+		<para>
+            <indexterm><primary>Google Web Toolkit</primary></indexterm>
+            <indexterm><primary>Google Web Toolkit</primary></indexterm>
+
+			This section provides an introduction to the various technologies and designs,
+			which Vaadin is based on. This knowledge is not necessary for using Vaadin,
+			but provides some background if you need to make low-level extensions to
+			Vaadin.
+		</para>
+
+		<section xml:id="architecture.technology.html">
+			<title>HTML and JavaScript</title>
+
+            <indexterm zone="architecture.technology.html">
+                <primary>HTML</primary>
+            </indexterm>
+            <indexterm zone="architecture.technology.html">
+                <primary>JavaScript</primary>
+            </indexterm>
+
+			<para>
+                The World Wide Web, with all its websites and most of the web
+                applications, is based on the use of the Hypertext Markup Language
+                (HTML). HTML defines the structure and formatting of web pages, and allows
+                inclusion of graphics and other resources.  It is based on a hierarchy of
+                elements marked with start and end tags, such as <literal>&lt;div&gt;
+                ... &lt;/div&gt;</literal>. Vaadin uses HTML version 5, although
+                conservatively, to the extent supported by the major browsers, and their
+                currently most widely used versions.
+            </para>
+
+			<para>
+                <indexterm><primary>DOM</primary></indexterm>
+
+                JavaScript, on the other hand, is a programming language for embedding
+                programs in HTML pages. JavaScript programs can manipulate a HTML page
+                through the Document Object Model (DOM) of the page. They can also handle
+                user interaction events. The Client-Side Engine of Vaadin and its
+                client-side widgets do exactly this, although it is actually programmed in
+                Java, which is compiled to JavaScript with the Vaadin Client Compiler.
+            </para>
+
+			<para>
+                Vaadin largely hides the use of HTML, allowing you to concentrate on the
+                UI component structure and logic. In server-side development, the UI is
+                developed in Java using UI components and rendered by the client-side
+                engine as HTML, but it is possible to use HTML templates for defining the
+                layout, as well as HTML formatting in many text elements. Also when
+                developing client-side widgets and UIs, the built-in widgets in the
+                framework hide most of HTML DOM manipulation.
+            </para>
+        </section>
+
+		<section xml:id="architecture.technology.styling">
+			<title>Styling with CSS and Sass</title>
+
+            <indexterm zone="architecture.technology.styling">
+                <primary>CSS</primary>
+            </indexterm>
+            <indexterm zone="architecture.technology.styling">
+                <primary>Sass</primary>
+            </indexterm>
+
+			<para>
+                While HTML defines the content and structure of a web page,
+                <emphasis>Cascading Style Sheet</emphasis> (CSS) is a language for
+                defining the visual style, such as colors, text sizes, and margins. CSS is
+                based on a set of rules that are matched with the HTML structure by the
+                browser. The properties defined in the rules determine the visual
+                appearance of the matching HTML elements.
+            </para>
+
+			<programlisting><![CDATA[/* Define the color of labels in my view */
+.myview .v-label {
+  color: blue;
+}]]></programlisting>
+
+			<para>
+                <indexterm><primary>SCSS</primary></indexterm>
+                <indexterm><primary>CSS3</primary></indexterm>
+
+                <emphasis>Sass</emphasis>, or <emphasis>Syntactically Awesome
+                Stylesheets</emphasis>, is an extension of the CSS language, which allows
+                the use of variables, nesting, and many other syntactic features that make
+                the use of CSS easier and clearer. Sass has two alternative formats, SCSS,
+                which is a superset of the syntax of CSS3, and an older indented syntax,
+                which is more concise. The Vaadin Sass compiler supports the SCSS syntax.
+            </para>
+
+            <para>
+                <indexterm><primary>themes</primary></indexterm>
+
+                Vaadin handles styling with <emphasis>themes</emphasis> defined with CSS
+                or Sass, and associated images, fonts, and other resources. Vaadin themes
+                are specifically written in Sass. In development mode, Sass files are
+                compiled automatically to CSS. For production use, you compile the Sass
+                files to CSS with the included compiler. The use of themes is documented
+                in detail in <xref linkend="themes"/>, which also gives an introduction to
+                CSS and Sass.
+            </para>
+        </section>
+
+		<section xml:id="architecture.technology.ajax">
+			<title>AJAX</title>
+			<para>
+                <indexterm significance="preferred"><primary>AJAX</primary></indexterm>
+                <indexterm><primary>XML</primary></indexterm>
+                <indexterm><primary>JavaScript</primary></indexterm>
+                <indexterm><primary>HTML 5</primary></indexterm>
+                <indexterm><primary>CSS</primary></indexterm>
+                <indexterm><primary>DOM</primary></indexterm>
+                <indexterm><primary>XMLHttpRequest</primary></indexterm>
+
+				AJAX, short for Asynchronous JavaScript and XML, is a technique for
+				developing web applications with responsive user interaction, similar to
+				traditional desktop applications. Conventional web applications, be they
+				JavaScript-enabled or not, can get new page content from the server only
+				by loading an entire new page. AJAX-enabled pages, on the other hand,
+				handle the user interaction in JavaScript, send a request to the server
+				asynchronously (without reloading the page), receive updated content in
+				the response, and modify the page accordingly. This way, only small parts
+				of the page data need to be loaded.
+
+                This goal is archieved by the use of a certain set of technologies: HTML,
+                CSS, DOM, JavaScript, and the XMLHttpRequest API in JavaScript. XML is
+                just one way to serialize data between the client and the server, and in
+                Vaadin it is serialized with the more efficient JSON.
+			</para>
+
+			<para>
+				The asynchronous requests used in AJAX are made possible by the
+				<methodname>XMLHttpRequest</methodname> class in JavaScript. The API
+				feature is available in all major browsers and is under way to become a
+				W3C standard.
+			</para>
+
+			<para>
+				The communication of complex data between the browser and the server requires
+				some sort of <emphasis>serialization</emphasis> (or
+				<emphasis>marshalling</emphasis>) of data objects. The Vaadin servlet and
+				the client-side engine handle the serialization of shared state objects
+				from the server-side components to the client-side widgets, as well as
+				serialization of RPC calls between the widgets and the server-side
+				components.
+			</para>
+		</section>
+
+		<section xml:id="architecture.technology.gwt">
+			<title>Google Web Toolkit</title>
+
+			<para>
+                <indexterm significance="preferred"><primary>Google Web Toolkit</primary></indexterm>
+
+                The client-side framework of Vaadin is based on the Google Web Toolkit
+                (GWT). Its purpose is to make it possible to develop web user interfaces
+                that run in the browser easily with Java instead of
+                JavaScript. Client-side modules are developed with Java and compiled into
+                JavaScript with the Vaadin Compiler, which is an extension of the GWT
+                Compiler. The client-side framework also hides much of the HTML DOM
+                manipulation and enables handling browser events in Java.
+			</para>
+
+			<para>
+				GWT is essentially a client-side technology, normally used to develop user
+				interface logic in the web browser. Pure client-side modules still need to
+				communicate with a server using RPC calls and by serializing any data. The
+				server-driven development mode in Vaadin effectively hides all the
+				client-server communications and allows handling user interaction logic in
+				a server-side application. This makes the architecture of an AJAX-based
+				web application much simpler. Nevertheless, Vaadin also allows developing
+				pure client-side applications, as described in <xref
+				linkend="clientsideapp"/>.
+			</para>
+
+			<para>
+				See <xref linkend="architecture.client-side"/> for a description of how
+				the client-side framework based on GWT is used in the Client-Side Engine
+				of Vaadin. <xref linkend="clientside"/> provides information about the
+				client-side development, and <xref linkend="gwt"/> about the integration
+				of client-side widgets with the server-side components.
+			</para>
+		</section>
+
+		<section xml:id="architecture.technology.servlet">
+			<title>Java Servlets</title>
+
+            <para>
+                A Java Servlet is a class that is executed in a Java web server (a
+                <emphasis>Servlet container</emphasis>) to extend the capabilities of the
+                server. In practice, it is normally a part of a <emphasis>web
+                application</emphasis>, which can contain HTML pages to provide static
+                content, and JavaServer Pages (JSP) and Java Servlets to provide dynamic
+                content. This is illustrated in <xref
+                linkend="figure.architecture.technology.servlet"/>.
+            </para>
+
+            <figure xml:id="figure.architecture.technology.servlet" float="center" floatstyle="before">
+			<title>Java Web Applications and Servlets</title>
+                <mediaobject>
+                    <imageobject role="html">
+                        <imagedata align="center" fileref="img/arch/java-servlet-lo.png"/>
+                    </imageobject>
+                    <imageobject role="fo">
+                        <imagedata scale="75"  smallscale="80%" align="center" fileref="img/arch/java-servlet-hi.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+
+            <para>
+                Web applications are usually packaged and deployed to a server as
+                <emphasis>WAR</emphasis> (<emphasis>Web application ARchive</emphasis>)
+                files, which are Java JAR packages, which in turn are ZIP compressed
+                packages. The web application is defined in a
+                <filename>WEB-INF/web.xml</filename> deployment descriptor, which defines
+                the servlet classes and also the mappings from request URL paths to the
+                servlets. This is described in more detail in <xref
+                linkend="application.environment.web-xml"/>. The class path for the
+                servlets and their dependencies includes the
+                <filename>WEB-INF/classes</filename> and <filename>WEB-INF/lib</filename>
+                folders. The <filename>WEB-INF</filename> is a special hidden folder that
+                can not be accessed by its URL path.
+            </para>
+
+            <para>
+                The servlets are Java classes that handle HTTP requests passed to them by
+                the server through the <emphasis>Java Servlet API</emphasis>. They can
+                generate HTML or other content as a response. JSP pages, on the other
+                hand, are HTML pages, which allow including Java source code embedded in
+                the pages. They are actually translated to Java source files by the
+                container and then compiled to servlets.
+            </para>
+
+            <para>
+                The UIs of server-side Vaadin applications run as servlets. They are
+                wrapped inside a <classname>VaadinServlet</classname> servlet class, which
+                handles session tracking and other tasks. On the initial request, it
+                returns an HTML loader page and then mostly JSON responses to synchronize
+                the widgets and their server-side counterparts. It also serves various
+                resources, such as themes. The server-side UIs are implemented as classes
+                extending the <classname>UI</classname> class, as described in <xref
+                linkend="application"/>. The class is given as a parameter to the Vaadin
+                Servlet in the <filename>web.xml</filename> deployment descriptor.
+            </para>
+
+            <para>
+                The Vaadin Client-Side Engine as well as client-side Vaadin applications
+                are loaded to the browser as static JavaScript files. The client-side
+                engine, or widget set in technical terms, needs to be located under the
+                <filename>VAADIN/widgetsets</filename> path in the web application. The
+                precompiled default widget set is served from the
+                <filename>vaadin-client-compiled</filename> JAR by the Vaadin Servlet.
+            </para>
+        </section>
+	</section>
+
+	<section xml:id="architecture.client-side">
+		<title>Client-Side Engine</title>
+
+		<para>
+            <indexterm significance="preferred"><primary>Client-Side Engine</primary></indexterm>
+
+            The user interface of a server-side Vaadin application is rendered in the
+            browser by the Vaadin Client-Side Engine. It is loaded in the browser when the
+            page with the Vaadin UI is opened. The server-side UI components are rendered
+            using <emphasis>widgets</emphasis> (as they are called in Google Web Toolkit)
+            on the client-side. The client-side engine is illustrated in <xref
+            linkend="figure.architecture.client-side"/>.
+        </para>
+           
+		<figure xml:id="figure.architecture.client-side"> <!--  float="center" floatstyle="before" -->
+			<title>Vaadin Client-Side Engine</title>
+			<mediaobject>
+				<imageobject role="html">
+					<imagedata align="center" fileref="img/arch/clientside-arch-lo.png"/>
+				</imageobject>
+				<imageobject role="fo">
+					<imagedata scale="75"  smallscale="100%" align="center" fileref="img/arch/clientside-arch-hi.png"/>
+				</imageobject>
+			</mediaobject>
+		</figure>
+
+        <para>
+            The client-side framework includes two kinds of built-in widgets: GWT widgets
+            and Vaadin-specific widgets. The two widget collections have significant
+            overlap, where the Vaadin widgets provide a bit different features than the
+            GWT widgets. In addition, many add-on widgets and their server-side
+            counterparts exist, and you can easily download and install them, as
+            described in <xref linkend="addons"/>. You can also develop your own widgets,
+            as described in <xref linkend="clientside"/>.
+        </para>
+
+        <para>
+            The rendering with widgets, as well as the communication to the server-side, is
+            handled in the <classname>ApplicationConnection</classname>. Connecting the
+            widgets with their server-side counterparts is done in
+            <emphasis>connectors</emphasis>, and there is one for each widget that has a
+            server-side counterpart. The framework handles serialization of component
+            state transparently, and includes an RPC mechanism between the two
+            sides. Integration of widgets with their server-side counterpart components is
+            described in <xref linkend="gwt"/>.
+        </para>
+	</section>
+
+	<section xml:id="architecture.events">
+		<title>Events and Listeners</title>
+
+		<para>
+            Vaadin offers an event-driven programming model for handling user interaction.
+            When a user does something in the user interface, such as clicks a button or
+            selects an item, the application needs to know about it. Many Java-based user
+            interface frameworks follow the <emphasis>Event-Listener pattern</emphasis>
+            (also known as the Observer design pattern) to communicate user input to the
+            application logic.  So does Vaadin. The design pattern involves two kinds of
+            elements: an object that generates ("fires" or "emits") events and a number of
+            listeners that listen for the events. When such an event occurs, the object
+            sends a notification about it to all the listeners. In a typical case, there
+            is only one listener.
+		</para>
+
+		<para>
+            Events can serve many kinds of purposes. In Vaadin, the usual purpose of
+            events is handling user interaction in a user interface. Session management
+            can require special events, such as time-out, in which case the event
+            would actually be the lack of user interaction. Time-out is a special case of
+            timed or scheduled events, where an event occurs at a specific date and time
+            or when a set time has passed.
+		</para>
+
+		<para>
+            To receive events of a particular type, an application must register a
+            listener object with the event source. The listeners are registered in the
+            components with an <methodname>add*Listener()</methodname> method (with a
+            method name specific to the listener).
+		</para>
+
+		<para>
+			Most components that have related events define their own event class and the
+			corresponding listener class. For example, the <classname>Button</classname>
+			has <classname>Button.ClickEvent</classname> events, which can be listened to
+			through the <classname>Button.ClickListener</classname> interface.
+        </para>
+
+        <para>
+            In the following, we handle button clicks with a listener implemented as an
+            anonymous class:
+        </para>
+
+		<programlisting><![CDATA[final Button button = new Button("Push it!");
+
+button.addClickListener(new Button.ClickListener() {
+    public void buttonClick(ClickEvent event) {
+        button.setCaption("You pushed it!");
+    }
+});]]></programlisting>
+
+		<para>
+			<xref linkend="figure.eventlistenerdiagram"/> illustrates the case where an
+			application-specific class inherits the
+			<classname>Button.ClickListener</classname> interface to be able to listen for
+			button click events. The application must instantiate the listener class and
+			register it with <methodname>addClickListener()</methodname>. It can be an
+			anonymous class, such as the one above. When an event occurs, an event object
+ 			is instantiated, in this case a <classname>Button.ClickEvent</classname>. The
+			event object knows the related UI component, in this case the
+			<classname>Button</classname>.
+		</para>
+
+        <!-- TODO: No SVG file for this drawing. -->
+		<figure xml:id="figure.eventlistenerdiagram">
+			<title>Class Diagram of a Button Click Listener</title>
+			<mediaobject>
+				<imageobject role="html">
+					<imagedata align="center" fileref="img/arch/events-classdiagram-lo.png"/>
+				</imageobject>
+				<imageobject role="fo">
+					<imagedata scale="75"  smallscale="80%" align="center" fileref="img/arch/events-classdiagram-hi.png"/>
+				</imageobject>
+			</mediaobject>
+		</figure>
+
+		<para>
+			In the ancient times of C programming, <emphasis>callback functions</emphasis>
+			filled largely the same need as listeners do now. In object-oriented
+			languages, we usually only have classes and methods, not functions, so the application
+			has to give a class interface instead of a callback function pointer to the
+			framework.
+		</para>
+
+        <para>
+            <xref linkend="application.events"/> goes into details of handling events in
+            practice.
+        </para>
+	</section>
+</chapter>
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: xml
+sgml-omittag:nil
+sgml-shorttag:nil
+sgml-namecase-general:nil
+sgml-general-insert-case:lower
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:4
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-exposed-tags:nil
+sgml-local-catalogs:("/etc/sgml/catalog" "/usr/share/xemacs21/xemacs-packages/etc/psgml-dtds/CATALOG")
+sgml-local-ecat-files:("ECAT" "~/sgml/ECAT" "/usr/share/sgml/ECAT" "/usr/local/share/sgml/ECAT" "/usr/local/lib/sgml/ECAT")
+End:
+-->

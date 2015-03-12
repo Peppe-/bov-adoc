@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ====================================================================== -->
+<!-- Copyright 2000-2012 Vaadin Ltd                                         -->
+<!-- All Rights Reserved                                                    -->
+<!-- This work is licensed under a Creative Commons Attribution-NoDerivs    -->
+<!-- License (CC-BY-ND) Version 3.0. Full license text is available at:     -->
+<!-- http://creativecommons.org/licenses/by-nd/3.0/legalcode                -->
+<!-- ====================================================================== -->
+
+<!--    <part xml:id="part-intro" label="I">
+        <title>Introduction</title>
+
+        <partintro>
+            <para>
+                This part comes in three chapters, which present the basic ideas behind
+                Vaadin and its two programming models, server-side and client-side,
+                describe its installation, and give an overview of its architecture.
+            </para>
+        </partintro>
+-->
+        &book.chapter.introduction;
+        &book.chapter.getting-started;
+        &book.chapter.architecture;
+<!--    </part>-->
+
+<!--  <part xml:id="part-serverside" label="II">
+        <title>Server-Side Framework</title>
+        
+        <partintro>
+            <para>
+                Of the two sides of Vaadin, the server-side code runs in a Java web server
+                as a servlet, or a portlet in a portal. It offers a server-side API with
+                dozens of user interface components for developing user interfaces, and
+                employs a client-side engine to render them in the browser. User
+                interaction is communicated transparently to the server-side
+                application. The user interface can be styled with themes, and bound to
+                data through the Vaadin Data Model.
+            </para>
+        </partintro>
+-->            
+        &book.chapter.application;
+        &book.chapter.components;
+        &book.chapter.layout;
+<!--    </part> -->
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: xml
+sgml-omittag:nil
+sgml-shorttag:nil
+sgml-namecase-general:nil
+sgml-general-insert-case:lower
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:4
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-exposed-tags:nil
+sgml-local-catalogs:("/etc/sgml/catalog" "/usr/share/xemacs21/xemacs-packages/etc/psgml-dtds/CATALOG")
+sgml-local-ecat-files:("ECAT" "~/sgml/ECAT" "/usr/share/sgml/ECAT" "/usr/local/share/sgml/ECAT" "/usr/local/lib/sgml/ECAT")
+End:
+-->

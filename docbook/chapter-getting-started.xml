@@ -1,0 +1,2534 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ====================================================================== -->
+<!-- Copyright 2000-2012 Vaadin Ltd                                         -->
+<!-- All Rights Reserved                                                    -->
+<!-- This work is licensed under a Creative Commons Attribution-NoDerivs    -->
+<!-- License (CC-BY-ND) Version 3.0. Full license text is available at:     -->
+<!-- http://creativecommons.org/licenses/by-nd/3.0/legalcode                -->
+<!-- ====================================================================== -->
+
+<chapter xml:id="getting-started">
+	<title>Getting Started with Vaadin</title>
+
+	<para>
+		This chapter gives practical instructions for installing the recommended
+		toolchain, the Vaadin libraries and its dependencies, and creating a new Vaadin
+		project.
+	</para>
+
+	<section xml:id="getting-started.overview">
+		<title>Overview</title>
+
+        <para>
+            You can develop Vaadin applications in essentially any development environment
+            that has the Java SDK and a Java Servlet container. Vaadin has special support
+            for the Eclipse and NetBeans IDEs, but community support exists also for 
+            IntelliJ IDEA. You can use it with any Java IDE or no IDE at all.
+        </para>
+
+        <para>
+            Managing Vaadin and other Java libraries can get tedious to do manually, so
+            using a build system that manages dependencies automatically is
+            adviced. Vaadin is distributed in the Maven central repository, and can be
+            used with any build or dependency management system that can access Maven
+            repository, such as Ivy or Gradle, in addition to Maven.
+        </para>
+
+        <para>
+            Vaadin has a multitude of installation options for different IDEs, dependency
+            managers, and you can also install it from an installation package:
+        </para>
+        
+        <itemizedlist>
+            <listitem>With the Eclipse IDE, use the Vaadin Plugin for Eclipse, as described in
+            <xref linkend="getting-started.eclipse"/></listitem>
+
+            <listitem>With the Vaadin plugin for NetBeans IDE (<xref
+            linkend="getting-started.netbeans"/>) or IntelliJ IDEA</listitem>
+
+            <listitem>With Maven, Ivy, Gradle, or other Maven-compatible dependency
+            manager, under Eclipse, NetBeans, IDEA, or using command-line, as described in
+            <xref linkend="getting-started.maven"/></listitem>
+
+            <listitem>From installation package without dependency management, as
+            described in <xref linkend="getting-started.package"/></listitem>
+        </itemizedlist>
+    </section>
+
+	<section xml:id="getting-started.environment">
+		<title>Setting up the Development Environment</title>
+		
+		<para>
+			This section guides you step-by-step in setting up a reference development
+			environment. Vaadin supports a wide variety of tools, so you can use any IDE
+			for writing the code, almost any Java web server for deploying the
+			application, most web browsers for using it, and any operating system platform
+			supported by Java.
+		</para>
+
+		<para>
+			In this example, we use the following toolchain:
+        </para>
+
+        <itemizedlist>
+            <listitem>Windows, Linux, or Mac OS X</listitem>
+            <listitem><link xlink:href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">Oracle Java SE 8</link> (Java 6 or newer is required)</listitem>
+            <listitem><link xlink:href="http://www.eclipse.org/downloads/">Eclipse IDE for Java EE Developers</link></listitem>
+            <listitem><link xlink:href="http://tomcat.apache.org/">Apache Tomcat 8.0 (Core)</link></listitem>
+            <listitem><link xlink:href="http://www.getfirefox.com/">Mozilla Firefox</link> browser</listitem>
+            <listitem><link xlink:href="http://www.getfirebug.com/">Firebug</link> debug tool (optional)</listitem>
+            <listitem><link xlink:href="http://vaadin.com/download/">Vaadin Framework</link></listitem>
+        </itemizedlist>
+
+        <para>
+            The above reference toolchain is a good choice of tools, but you can use
+            almost any tools you are comfortable with.
+        </para>
+
+        <para>
+            We recommend using Java 8 for Vaadin development, but you need to make sure
+            that your entire toolchain supports it.
+
+            A server supporting Servlet 3.0 is recommended. It is required for using
+            Vaadin CDI, for which also a CDI container is required, a standard feature in
+            Java EE 6 or newer servers. Server push can benefit from using communication
+            modes, such as WebSocket, enabled by features in some latest servers. For Java
+            EE containers, at least Wildfly, Glassfish, and Apache TomEE Web Profile are
+            recommended.
+        </para>
+
+		<figure xml:id="figure.toolchain">
+			<title>Development Toolchain and Process</title>
+			<mediaobject>
+				<imageobject role="html">
+					<imagedata align="center" fileref="img/intro/toolchain-lo.png"/>
+				</imageobject>
+				<imageobject role="fo">
+					<imagedata scale="75" smallscale="100%" align="center" fileref="img/intro/toolchain-hi.png"/>
+				</imageobject>
+			</mediaobject>
+		</figure>
+
+		<para>
+			<xref linkend="figure.toolchain"/> illustrates the development toolchain. You
+			develop your application as an Eclipse project. The project must include, in
+			addition to your source code, the Vaadin libraries. It can also include
+			project-specific themes.
+		</para>
+
+		<para>
+			You need to compile and deploy a project to a web container before you can use
+			it. You can deploy a project through the Web Tools Platform (WTP) for Eclipse
+			(included in the Eclipse EE package), which allows automatic deployment of web
+			applications from Eclipse. You can also deploy a project manually, by creating
+			a web application archive (WAR) and deploying it to the web container.
+		</para>
+
+		<section xml:id="getting-started.environment.java">
+			<title>Installing Java SDK</title>
+
+			<para>
+				Java SDK is required by Vaadin and also by the Eclipse IDE.  Vaadin is
+				compatible with Java 1.6 and later editions. Java EE 7 is required for
+				proper server push support with WebSockets.
+			</para>
+
+			<section xml:id="getting-started.environment.java.windows">
+				<title>Windows</title>
+
+				<orderedlist>
+					<listitem>
+						<para>
+							Download Oracle Java SE 8.0 from 
+							<link xlink:href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">
+							http://www.oracle.com/technetwork/java/javase/downloads/index.html</link>
+						</para>
+					</listitem>
+					
+					<listitem>
+						<para>
+							Install the Java SDK by running the installer. The default options 
+							are fine.
+						</para>
+					</listitem>
+				</orderedlist>			 
+			</section>
+
+			<section xml:id="getting-started.environment.linux">
+				<title>Linux / UNIX</title>
+
+                <para>
+                    Most Linux systems either have JDK preinstalled or allow installing it
+                    through a package management system. Notice however that they have
+                    OpenJDK as the default Java implementation. While it is known to have
+                    worked with Vaadin and possibly also with the development toolchain,
+                    we do not especially support it.
+                </para>
+
+                <para>
+                    Regarding OS X, notice that JDK 1.6 or newer is included in OS X 10.6
+                    and newer.
+                </para>
+
+                <para>
+                    Otherwise:
+                </para>
+
+				<orderedlist>
+					<listitem>
+						<para>
+                            Download Oracle Java SE 8.0 from <link
+                            xlink:href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">
+                            http://www.oracle.com/technetwork/java/javase/downloads/</link>
+						</para>
+					</listitem>
+					<listitem>
+						<para>
+                            Decompress it under a suitable base directory, such as
+                            <filename>/opt</filename>. For example, for Java SDK, enter
+                            (either as root or with <command>sudo</command> in Linux):
+
+                            <screen><prompt>#</prompt> <command>cd</command> <replaceable>/opt</replaceable>
+<prompt>#</prompt> <command>sh</command> <replaceable>(path-to-installation-package)/jdk-8u20-linux-x64.bin</replaceable></screen>
+
+                            and follow the instructions in the installer.
+						</para>
+                    </listitem>
+					<listitem>
+						<para>
+                            Set up the <literal>JAVA_HOME</literal> environment variable
+                            to point to the Java installation directory. Also, include the
+                            <literal>$JAVA_HOME/bin</literal> in the
+                            <literal>PATH</literal>. How you do that varies by the UNIX
+                            variant. For example, in Linux and using the Bash shell, you
+                            would add lines such as the following to the
+                            <filename>.bashrc</filename> or <filename>.profile</filename>
+                            script in your home directory:
+
+                            <screen>export JAVA_HOME=/opt/jdk1.8.0_20
+export PATH=$PATH:$HOME/bin:$JAVA_HOME/bin</screen>
+
+                            You could also make the setting system-wide in a file such as
+                            <filename>/etc/bash.bashrc</filename>,
+                            <filename>/etc/profile</filename>, or an equivalent file. If
+                            you install Apache Ant or Maven, you may also want to set up
+                            those in the path.
+                        </para>
+
+                        <para>
+                            Settings done in a <filename>bashrc</filename> file require
+                            that you open a new shell window. Settings done in a
+                            <filename>profile</filename> file require that you log in into
+                            the system. You can, of course, also give the commands in the
+                            current shell.
+                        </para>
+                    </listitem>
+                </orderedlist>
+			</section>
+		</section>
+		
+		<section xml:id="getting-started.environment.eclipse">
+			<title>Installing Eclipse IDE</title>
+
+			<section>
+				<title>Windows</title>
+
+				<orderedlist>
+					<listitem>
+						<para>
+							Download the Eclipse IDE for Java EE Developers from 
+							<link xlink:href="http://www.eclipse.org/downloads/">
+							http://www.eclipse.org/downloads/</link>
+						</para>
+					</listitem>
+					
+					<listitem>
+						<para>
+							Decompress the Eclipse IDE package to a suitable
+							directory. You are free to select any directory and to use any
+							ZIP decompressor, but in this example we decompress the ZIP
+							file by just double-clicking it and selecting "Extract all
+							files" task from Windows compressed folder task. In our
+							installation example, we use <filename>C:\dev</filename> as
+							the target directory.
+						</para>
+					</listitem>
+				</orderedlist>
+										
+                <para>
+                    Eclipse is now installed in <filename>C:\dev\eclipse</filename> and
+                    can be started from there (by double clicking eclipse.exe).
+                </para>
+			</section>
+
+			<section>
+				<title>Linux / OS X / UNIX</title>
+
+				<para>
+					We recommend that you install Eclipse manually in Linux and other UNIX
+					variants as follows.
+				</para>
+
+                <orderedlist>
+					<listitem>
+						<para>
+                            Download Eclipse IDE for Java EE Developers from  
+							<link xlink:href="http://www.eclipse.org/downloads/">
+								http://www.eclipse.org/downloads/</link>
+                        </para>
+					</listitem>
+					<listitem>
+                        <para>
+                            Decompress the Eclipse package into a suitable base directory.
+                            It is important to make sure that there is no old Eclipse
+                            installation in the target directory. Installing a new version
+                            on top of an old one probably renders Eclipse unusable.
+                        </para>
+					</listitem>
+					<listitem>
+                        <para>
+                            Eclipse should normally be installed as a regular user, as
+                            this makes installation of plugins easier. Eclipse also stores
+                            some user settings in the installation directory. To install
+                            the package, enter:
+
+                            <screen><prompt>$</prompt> <command>tar</command> zxf <replaceable>(path-to-installation-package)/eclipse-jee-ganymede-SR2-linux-gtk.tar.gz</replaceable></screen>
+
+                            This will extract the package to a subdirectory with the name
+                            <filename>eclipse</filename>.
+                        </para>
+					</listitem>
+
+                    <listitem>
+                        <para>
+                            If you wish to enable starting Eclipse from command-line, you
+                            need to add the Eclipse installation directory to your system
+                            or user PATH, or make a symbolic link or script to point to
+                            the executable.
+                        </para>
+                    </listitem>
+				</orderedlist>
+
+				<para>
+                    An alternative to the above procedure would be to use an Eclipse
+                    version available through the package management system of your
+                    operating system. It is, however, <emphasis>not
+                    recommended</emphasis>, because you will need write access to the
+                    Eclipse installation directory to install Eclipse plugins, and you may
+                    face incompatibility issues with Eclipse plugins installed by the
+                    package management of the operating system.
+				</para>
+
+			</section>
+		</section>
+
+		<section xml:id="getting-started.environment.tomcat">
+			<title>Installing Apache Tomcat</title>
+
+			<para>
+				Apache Tomcat is a lightweight Java web server suitable for both
+				development and production. There are many ways to install it, but here we
+				simply decompress the installation package.
+			</para>
+
+			<para>
+				<emphasis>Apache Tomcat should be installed with user
+				permissions.</emphasis> During development, you will be running 
+				Eclipse or some other IDE with user permissions, but deploying 
+				web applications to a Tomcat server that is installed system-wide 
+				requires administrator or root permissions.
+			</para>
+
+			<orderedlist>
+				<listitem>
+					<para>
+						Download the installation package:
+					</para>
+					<para>
+						Apache Tomcat 8.0 (Core Binary Distribution) from
+						<uri>http://tomcat.apache.org/</uri>
+					</para>
+				</listitem>
+	
+				<listitem>
+					<para>
+						Decompress Apache Tomcat package to a suitable target directory,
+						such as <filename>C:\dev</filename> (Windows) or
+						<filename>/opt</filename> (Linux or Mac OS X). The Apache Tomcat
+						home directory will be
+						<filename>C:\dev\apache-tomcat-8.0.x</filename> or
+						<filename>/opt/apache-tomcat-8.0.x</filename>,
+						respectively.
+					</para>
+				</listitem>
+										
+			</orderedlist>			 
+		</section>
+
+		<section xml:id="getting-started.environment.firefox">
+			<title>Firefox and Firebug</title>
+
+			<para>
+				Vaadin supports many web browsers and you can use any of them for
+				development. If you plan to create a custom theme, customized layouts, or
+				create new components, we recommend that you use either Firefox together
+				with Firebug or Google Chrome, which has built-in developer tools similar
+				to Firebug.
+			</para>
+			
+            <section xml:id="getting-started.environment.firefox.firebug">
+                <title>Using Firebug with Vaadin</title>
+
+                <para>
+                    After installing Firefox, use it to open <link
+                    xlink:href="http://www.getfirebug.com/">
+                    http://www.getfirebug.com/</link>. Follow the instructions on the site
+                    to install the latest stable version of Firebug available for the
+                    browser. You may need to allow Firefox to install the plugin by
+                    clicking the yellow warning bar at the top of the browser window.
+                </para>
+			
+                <para>
+                    After Firebug is installed, it can be enabled at any time from the
+                    Firefox toolbar. <xref linkend="figure.firebug.calc"/> shows Firebug
+                    in action.
+                </para>
+
+                <figure xml:id="figure.firebug.calc">
+                    <title>Firebug Debugger for Firefox</title>
+                    <mediaobject>
+                        <imageobject role="html">
+                            <imagedata align="center" fileref="img/intro/firebug.png"/>
+                        </imageobject>
+                        <imageobject role="fo">
+                            <imagedata scale="90" smallscale="100%" align="center" fileref="img/intro/firebug.png"/>
+                        </imageobject>
+                    </mediaobject>
+                </figure>
+
+                <para>
+                    The most important feature in Firebug is inspecting HTML
+                    elements. Right-click on an element and select <guilabel>Inspect
+                    Element with Firebug</guilabel> to inspect it. In addition to HTML
+                    tree, it also shows the CSS rules matching the element, which you can
+                    use for building themes. You can even edit the CSS styles live, to
+                    experiment with styling.
+                </para>
+            </section>
+		</section>
+    </section>
+
+    <section xml:id="getting-started.libraries">
+        <title>Overview of Vaadin Libraries</title>
+
+        <para>
+            Vaadin comes as a set of library JARs, of which some are optional or
+            alternative ones, depending on whether you are developing server-side or
+            client-side applications, whether you use add-on components, or use CSS or
+            Sass themes.
+        </para>
+
+        <variablelist>
+            <varlistentry>
+                <term><filename>vaadin-server-&version.vaadin;.jar</filename></term>
+                <listitem>
+                    <para>
+                        The main library for developing server-side Vaadin applications,
+                        as described in <xref linkend="application"/>. It requires the
+                        <filename>vaadin-shared</filename> and the
+                        <filename>vaadin-themes</filename> libraries. You can use the
+                        prebuilt <filename>vaadin-client-compiled</filename> for
+                        server-side development, unless you need add-on components or
+                        custom widgets.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><filename>vaadin-shared-&version.vaadin;.jar</filename></term>
+                <listitem>
+                    <para>
+                        A shared library for server-side and client-side development. It
+                        is always needed.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><filename>vaadin-client-&version.vaadin;.jar</filename></term>
+                <listitem>
+                    <para>
+                        The client-side Vaadin framework, including the basic GWT API and
+                        Vaadin-specific widgets and other additions. It is required when
+                        using the <filename>vaadin-client-compiler</filename> to compile
+                        client-side modules. It is not needed if you just use the
+                        server-side framework with the precompiled Client-Side Engine. You
+                        should not deploy it with a web application.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><filename>vaadin-client-compiler-&version.vaadin;.jar</filename></term>
+                <listitem>
+                    <para>
+                        The Vaadin Client Compiler is a Java-to-JavaScript compiler
+                        that allows building client-side modules, such as the
+                        Client-Side Engine (widget set) required for server-side
+                        applications. The compiler is needed, for example, for
+                        compiling add-on components to the application widget set, as
+                        described in <xref linkend="addons"/>. <!-- TODO There's a need for such section. -->
+
+                        For detailed information regarding the compiler, see <xref
+                        linkend="clientside.compiling"/>. Note that you should not deploy
+                        this library with a web application.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><filename>vaadin-client-compiled-&version.vaadin;.jar</filename></term>
+                <listitem>
+                    <para>
+                        A precompiled Vaadin Client-Side Engine (widget set) that
+                        includes all the basic built-in widgets in Vaadin. This
+                        library is not needed if you compile the application widget
+                        set with the Vaadin Client Compiler.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><filename>vaadin-themes-&version.vaadin;.jar</filename></term>
+                <listitem>
+                    <para>
+                        Vaadin built-in themes both as SCSS source files and
+                        precompiled CSS files. The library is required both for basic
+                        use with CSS themes and for compiling custom Sass themes.
+                    </para>
+                </listitem>
+            </varlistentry>
+                <varlistentry>
+                <term><filename>vaadin-sass-compiler-1.x.x.jar</filename></term>
+                <listitem>
+                    <para>
+                        The Vaadin Sass Compiler compiles Sass themes to CSS, as
+                        described in <xref linkend="themes.sass"/>. It requires the
+                        <filename>vaadin-themes-&version.vaadin;.jar</filename> library,
+                        which contains the Sass sources for the built-in themes. The
+                        library needs to be included in deployment in development mode to
+                        allow on-the-fly compilation of themes, but it is not needed in
+                        production deployment, when the themes are compiled before
+                        deployment.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+
+        <para>
+            Some of the libraries depend on each other as well as on the dependency
+            libraries provided in the <filename>lib</filename> folder of the installation
+            package, especially the <filename>lib/vaadin-shared-deps.jar</filename>.
+        </para>
+
+        <para>
+            The different ways to install the libraries are described in the subsequent sections.
+        </para>
+
+        <para>
+            Note that the <filename>vaadin-client-compiler</filename> and
+            <filename>vaadin-client</filename> JARs should not be deployed with the web
+            application by including them in <filename>WEB-INF/lib</filename>. Some other
+            libraries, such as <filename>vaadin-sass-compiler</filename>, are not needed
+            in production deployment.
+        </para>
+    </section>
+
+	<section xml:id="getting-started.eclipse">
+        <title>Installing Vaadin Plugin for Eclipse</title>
+
+        <para>
+            If you are using the Eclipse IDE, using the Vaadin Plugin for Eclipse helps
+            greatly. Notice that you can also create Vaadin projects as Maven projects in
+            Eclipse.
+        </para>
+
+        <para>
+            The plugin includes:
+        </para>
+
+        <itemizedlist>
+            <listitem>
+                <para><emphasis>Wizards</emphasis> for creating new Vaadin-based projects,
+                themes, and client-side widgets and widget sets.</para>
+            </listitem>
+            <listitem>
+                <para>A <emphasis>visual editor</emphasis> for creating composite user
+                interface components in a WYSIWYG fashion. With full round-trip support
+                from source code to visual model and back, the editor integrates
+                seamlessly with your development process.</para>
+            </listitem>
+        </itemizedlist>
+
+        <section xml:id="getting-started.eclipse.ivyde">
+            <title>Installing the IvyDE Plugin</title>
+
+            <para>
+                The Vaadin Plugin for Eclipse requires the Apache IvyDE plugin, which
+                needs to be installed manually in Eclipse before the Vaadin plugin.
+            </para>
+
+            <orderedlist>
+                <listitem>
+                    <para>Select <menuchoice><guimenu>Help</guimenu><guimenuitem>Install New Software...</guimenuitem></menuchoice>.</para>
+                </listitem>
+
+                <listitem>
+                    <para>Add the IvyDE update site by clicking the
+                    <guibutton>Add...</guibutton> button.</para>
+                    
+                    <para>
+                        Enter a name such as "Apache Ivy Update Site" and the URL of the update
+                        site:
+
+                        <screen>http://www.apache.org/dist/ant/ivyde/updatesite</screen>
+
+                        Then click <guibutton>OK</guibutton>. The update site should now
+                        appear in the <guilabel>Available Software</guilabel> window.
+                    </para>
+                </listitem>
+
+                <listitem>
+                    <para>
+                        Select the new "Apache Ivy Update Site" from the <guilabel>Work
+                        with</guilabel> list.
+                    </para>
+                </listitem>                
+            
+                <listitem>
+                    <para>Select the <guilabel>Apache Ivy</guilabel>, <guilabel>Apache Ivy
+                    Ant Tasks</guilabel>, and <guilabel>Apache IvyDE</guilabel>
+                    plugins.</para>
+                
+                    <screenshot>
+                        <mediaobject>
+                            <imageobject>
+                                <imagedata scale="70" smallscale="100%" align="center" fileref="img/eclipse/ivyde-install-available.png"/>
+                            </imageobject>
+                        </mediaobject>
+                    </screenshot>
+
+                    <para>
+                        The <guilabel>Apache IvyDE Resolve Visualizer</guilabel> is
+                        optional, and would require additional dependency plugins to be
+                        installed.
+                    </para>
+                
+                    <para>Then, click <guibutton>Next</guibutton>.</para>
+                </listitem>
+                
+                <listitem>
+                    <para>Review the installation details and click <guibutton>Next</guibutton>.</para>
+                </listitem>
+
+                <listitem>
+                    <para>Accept or unaccept the license. Finally, click
+                    <guibutton>Finish</guibutton>.</para>
+                </listitem>
+
+                <listitem>
+                    <para>
+                        Eclipse may warn about unsigned content. If you feel safe, click
+                        <guibutton>OK</guibutton>.
+                    </para>
+                </listitem>
+
+                <listitem>
+                    <para>
+                        After the plugin is installed, Eclipse will ask to restart
+                        itself. You can proceed to install the Vaadin plugin before the
+                        restart, as described in the following section, so you can answer
+                        <guibutton>Apply Changes Now</guibutton>.
+                    </para>
+                </listitem>
+            </orderedlist>
+        </section>
+
+        <section xml:id="getting-started.eclipse.vaadin-plugin">
+            <title>Installing the Vaadin Plugin</title>
+
+            <para>
+                You can install the plugin as follows:
+            </para>
+        
+            <orderedlist>
+                <listitem>
+                    <para>Select <menuchoice><guimenu>Help</guimenu><guimenuitem>Install New Software...</guimenuitem></menuchoice>.</para>
+                </listitem>
+                <listitem>
+                    <para>Add the Vaadin plugin update site by clicking
+                        <guibutton>Add...</guibutton> button.</para>
+                    
+                    <screenshot>
+                    <mediaobject>
+                            <imageobject role="html">
+                                <imagedata align="center" fileref="img/eclipse/plugin-install-addsite.png"/>
+                            </imageobject>
+                            <imageobject role="fo">
+                                <imagedata scale="70" smallscale="100%" align="center" fileref="img/eclipse/plugin-install-addsite.png"/>
+                            </imageobject>
+                        </mediaobject>
+                    </screenshot>
+                
+                    <para>
+                        Enter a name such as "Vaadin Update Site" and the URL of the
+                        update site: <uri>http://vaadin.com/eclipse</uri>. If you want or
+                        need to use the latest unstable plugin, which is usually more
+                        compatible with development and beta releases of Vaadin, you can
+                        use <uri>http://vaadin.com/eclipse/experimental</uri> and give it
+                        a distinctive name such as "Vaadin Experimental Site". Then click
+                        <guibutton>OK</guibutton>. The Vaadin site should now appear in
+                        the <guilabel>Available Software</guilabel> window.
+                    </para>
+                </listitem>
+
+                <listitem>
+                    Currently, if using the stable plugin, the <guilabel>Group items by
+                    category</guilabel> should be enabled. If using the experimental
+                    plugin, it should be disabled. This may change in future.
+                </listitem>
+            
+                <listitem>
+                    <para>Select all the Vaadin plugins in the tree.</para>
+                
+                    <screenshot>
+                        <mediaobject>
+                            <imageobject role="html">
+                                <imagedata align="center" fileref="img/eclipse/plugin-install-available.png"/>
+                            </imageobject>
+                            <imageobject role="fo">
+                                <imagedata scale="70" smallscale="100%" align="center" fileref="img/eclipse/plugin-install-available.png"/>
+                            </imageobject>
+                        </mediaobject>
+                    </screenshot>
+                
+                    <para>Then, click <guibutton>Next</guibutton>.</para>
+                </listitem>
+                
+                <listitem>
+                    <para>Review the installation details and click
+                    <guibutton>Next</guibutton>.</para>
+                </listitem>
+
+                <listitem>
+                    <para>Accept or unaccept the license. Finally, click
+                    <guibutton>Finish</guibutton>.</para>
+                </listitem>
+
+                <listitem>
+                    <para>
+                        After the plugin is installed, Eclipse will ask to restart
+                        itself. Click <guibutton>Restart</guibutton>.
+                    </para>
+                </listitem>
+            </orderedlist>
+
+            <para>
+                If you use the visual editor, Eclipse must have the internal browser
+                enabled. Most operating system distributions include a suitable browser
+                engine, but if not, you may need to install one as described in <xref
+                linkend="eclipse"/>.
+            </para>
+	
+            <para>
+                More installation instructions for the Eclipse plugin can be found at
+                <link xlink:href="http://vaadin.com/eclipse">http://vaadin.com/eclipse</link>.
+            </para>
+        </section>
+			
+        <section xml:id="getting-started.eclipse.update">
+            <title>Updating the Plugins</title>
+            
+            <para>
+                If you have automatic updates enabled in Eclipse (see
+                <menuchoice><guimenu>Window</guimenu> <guisubmenu>Preferences</guisubmenu>
+                <guisubmenu>Install/Update</guisubmenu><guimenuitem>Automatic
+                Updates</guimenuitem></menuchoice>), the Vaadin plugin will be updated
+                automatically along with other plugins. Otherwise, you can update the
+                Vaadin plugin manually as follows:
+            </para>
+            
+            <orderedlist>
+                <listitem>
+                    <para>
+                        Select <menuchoice><guimenu>Help</guimenu><guimenuitem>Check for
+                        Updates</guimenuitem></menuchoice>. Eclipse will contact the
+                        update sites of the installed software.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        After the updates are installed, Eclipse will ask to restart
+                        itself. Click <guibutton>Restart</guibutton>.
+                    </para>
+                </listitem>
+            </orderedlist>
+            
+            <para>
+                Notice that updating the Vaadin plugin updates only the plugin and
+                <emphasis>not</emphasis> the Vaadin libraries, which are project
+                specific. See below for instructions for updating the libraries.
+            </para>
+        </section>
+	
+        <section xml:id="getting-started.eclipse.libraryupdate">
+            <title>Updating the Vaadin Libraries</title>
+
+            <para>
+                Updating the Vaadin plugin does not update Vaadin libraries. The libraries
+                are project specific, as a different version might be required for
+                different projects, so you have to update them separately for each
+                project.
+            </para>
+            
+            <orderedlist>
+                <listitem>
+                    <para>
+                        Open the <filename>ivy.xml</filename> in an editor Eclipse.
+                    </para>
+                </listitem>
+
+                <listitem>
+                    <para>
+                        Edit the entity definition at the beginning of the file to set the
+                        Vaadin version.
+                    </para>
+
+                    <programlisting>&lt;!ENTITY vaadin.version "<emphasis role="bold">7.3.1</emphasis>"&gt;</programlisting>
+
+                    <para>
+                        You can specify either a fixed version number, as shown in the
+                        above example, or a dynamic revision tag such as
+                        <literal>latest.release</literal>. You can find more information
+                        about the dependency declarations in Ivy documentation.
+                    </para>
+                </listitem>
+
+                <listitem>
+                    <para>
+                        Right-click the project and select
+                        <menuchoice><guimenu>Ivy</guimenu><guimenuitem>Resolve</guimenuitem></menuchoice>.
+                    </para>
+
+                    <para>
+                        Updating the libraries can take several minutes. You can see the
+                        progress in the Eclipse status bar. You can get more details about
+                        the progress by clicking the indicator.
+                    </para>
+                </listitem>
+
+                <listitem>
+                    <para>
+                        If you have compiled the widget set for your project, recompile it
+                        by clicking the <guibutton>Compile Vaadin widgets</guibutton>
+                        button in Eclipse toolbar.
+                    </para>
+                </listitem>
+
+                <listitem>
+                    <para>
+                        Stop the integrated Tomcat (or other server) in Eclipse, clear its
+                        caches by right-clicking the server and selecting
+                        <guimenuitem>Clean</guimenuitem> as well as <guimenuitem>Clean
+                        Tomcat Work Directory</guimenuitem>, and restart it.
+                    </para>
+                </listitem>
+            </orderedlist>
+
+            <para>
+                If you experience problems after updating the libraries, you can try
+                clearing the Ivy resolution caches by right-clicking the project and
+                selecting <menuchoice><guimenu>Ivy</guimenu><guimenuitem>Clean all
+                caches</guimenuitem></menuchoice>. Then, do the
+                <menuchoice><guimenu>Ivy</guimenu><guimenuitem>Resolve</guimenuitem></menuchoice>
+                and other tasks again.
+            </para>
+        </section>
+    </section>
+
+	<section xml:id="getting-started.first-project">
+		<title>Creating and Running a Project with Eclipse</title>
+
+		<para>
+			This section gives instructions for creating a new Eclipse project using the
+			Vaadin Plugin. The task will include the following steps:
+		</para>
+
+		<orderedlist>
+			<listitem>
+				<para>Create a new project</para>
+			</listitem>
+			<listitem>
+				<para>Write the source code</para>
+			</listitem>
+			<listitem>
+				<para>Configure and start Tomcat (or some other web server)</para>
+			</listitem>
+			<listitem>
+				<para>Open a web browser to use the web application</para>
+			</listitem>
+		</orderedlist>
+
+		<para>
+			We also show how you can debug the application in the debug mode in Eclipse.
+		</para>
+		
+		<para>
+			This walkthrough assumes that you have already installed the Vaadin Plugin for
+			Eclipse and set up your development environment, as instructed in <xref
+			linkend="getting-started.environment"/>.
+		</para>
+
+		<section xml:id="getting-started.first-project.creation">
+			<title>Creating the Project</title>
+
+			<para>
+				Let us create the first application project with the tools installed in
+				the previous section. First, launch Eclipse and follow the following
+				steps:
+			</para>
+
+			<orderedlist>
+				<listitem>
+					Start creating a new project by selecting from the menu
+					<menuchoice><guimenu>File</guimenu><guisubmenu>New</guisubmenu><guimenuitem>Project...</guimenuitem></menuchoice>.
+				</listitem>
+
+				<?dbfo-need height="8cm" ?>
+				<listitem>
+                    <para>
+                        In the <guilabel>New Project</guilabel> window that opens, select
+                        <menuchoice><guimenu>Vaadin</guimenu><guimenuitem>Vaadin 7
+                        Project</guimenuitem></menuchoice> and click
+                        <guibutton>Next</guibutton>.
+                    </para>
+
+					<screenshot>
+						<mediaobject>
+							<imageobject role="html">
+								<imagedata align="center" fileref="img/intro/myproject-new-vaadin.png"/>
+							</imageobject>
+							<imageobject role="fo">
+								<imagedata scale="70" smallscale="100%" align="center" fileref="img/intro/myproject-new-vaadin.png"/>
+							</imageobject>
+						</mediaobject>
+					</screenshot>
+
+				</listitem>
+
+				<?dbfo-need height="8cm" ?>
+				<listitem>
+					<para>
+                        In the <guilabel>Vaadin Project</guilabel> step, you need to set
+                        the basic web project settings. You need to give at least the
+                        <emphasis>project name</emphasis> and the runtime; the default
+                        values should be good for the other settings.
+					</para>
+
+					<screenshot>
+						<mediaobject>
+							<imageobject role="html">
+								<imagedata align="center" fileref="img/intro/myproject-settings.png"/>
+							</imageobject>
+							<imageobject role="fo">
+								<imagedata scale="70" smallscale="100%" align="center" fileref="img/intro/myproject-settings.png"/>
+							</imageobject>
+						</mediaobject>
+					</screenshot>
+
+                    <variablelist>
+                        <varlistentry>
+                            <term><guilabel>Project name</guilabel></term>
+                            <listitem>
+                                <para>
+                                    Give the project a name. The name should be a valid
+                                    identifier usable cross-platform as a filename and
+                                    inside a URL, so using only lower-case alphanumerics,
+                                    underscore, and minus sign is recommended.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><guilabel>Use default location</guilabel></term>
+                            <listitem>
+                                <para>
+                                    Define the directory under which the project is
+                                    created. The default is under your workspace folder,
+                                    and you should normally leave it as it is. You may
+                                    need to set the directory, for example, if you are
+                                    creating an Eclipse project on top of a
+                                    version-controlled source tree.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><guilabel>Target runtime</guilabel></term>
+                            <listitem>
+                                <para>
+                                    Define the application server to use for deploying
+                                    the application. The server that you have installed,
+                                    for example Apache Tomcat, should be selected
+                                    automatically. If not, click
+                                    <guibutton>New</guibutton> to configure a new server under Eclipse.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><guilabel>Configuration</guilabel></term>
+                            <listitem>
+                                <para>
+                                    Select the configuration to use; you should normally
+                                    use the default configuration for the application
+                                    server. If you need to modify the project facets,
+                                    click <guibutton>Modify</guibutton>. The recommended
+                                    Servlet 3.0 configuration uses the @WebServlet
+                                    deployment, while Servlet 2.4 uses the old
+                                    <filename>web.xml</filename> deployment.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><guilabel>Deployment configuration</guilabel></term>
+                            <listitem>
+                                <para>
+									This setting defines the environment to which the
+									application will be deployed, to generate the
+									appropriate project directory layout and configuration
+									files. The choises are:
+								</para>
+
+								<itemizedlist>
+									<listitem><guilabel>Servlet</guilabel> (default)</listitem>
+									<listitem><guilabel>Google App Engine Servlet</guilabel></listitem>
+									<listitem><guilabel>Generic Portlet (Portlet 2.0)</guilabel></listitem>
+								</itemizedlist>
+
+								<para>
+									The further steps in the New Project Wizard depend on
+									the selected deployment configuration; the steps
+									listed in this section are for the default servlet
+									configuration.
+
+                                    <phrase condition="web">See <xref
+                                    linkend="advanced.gae"/> and <xref linkend="portal"/>
+                                    for instructions regarding the use of Vaadin in the
+                                    alternative environments.</phrase>
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><guilabel>Vaadin version</guilabel></term>
+                            <listitem>
+                                <para>
+                                    Select the Vaadin version to use. The drop-down list
+                                    shows, by default, the latest available version of
+                                    Vaadin. The selection includes nightly
+                                    <literal>SNAPSHOT</literal> builds, if you want to
+                                    keep up with the absolutely latest unstable versions.
+                                </para>
+
+                                <para>
+                                    You can change the version later in the
+                                    <filename>ivy.xml</filename>.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><guilabel>Create TestBench test</guilabel></term>
+                            <listitem>
+                                <para>
+                                    When enabled, the application stub will include a test
+                                    case for testing the UI with Vaadin TestBench, as
+                                    described in <xref linkend="testbench"/>. Vaadin
+                                    TestBench API library will be included in
+                                    <filename>ivy.xml</filename> as a dependency. Vaadin
+                                    version 7.3 or later is required to create the stub.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                    </variablelist>
+
+					<para>You can click <guibutton>Finish</guibutton> here to use the
+					defaults for the rest of the settings, or click
+					<guibutton>Next</guibutton>.</para>
+
+				</listitem>
+
+				<?dbfo-need height="8cm" ?>
+				<listitem>
+                    <para>
+                        The settings in the <guilabel>Web Module</guilabel> step define
+                        the basic web application (WAR) deployment settings and the
+                        structure of the web application project. All the settings are
+                        pre-filled, and you should normally accept them as they are.
+                    </para>
+
+					<screenshot>
+						<mediaobject>
+							<imageobject role="html">
+								<imagedata align="center" fileref="img/intro/myproject-web.png"/>
+							</imageobject>
+							<imageobject role="fo">
+								<imagedata scale="70" smallscale="100%" align="center" fileref="img/intro/myproject-web.png"/>
+							</imageobject>
+						</mediaobject>
+					</screenshot>
+
+                    <variablelist>
+                        <varlistentry>
+                            <term><guilabel>Context Root</guilabel></term>
+                            <listitem>
+                                <para>
+                                    The context root (of the application) identifies the
+                                    application in the URL used for accessing it. For
+                                    example, if the project has a
+                                    <literal>myproject</literal> context and a single UI
+                                    at the context root, the URL would be
+                                    <uri>http://example.com/myproject</uri>. The
+                                    wizard will suggest the project name given in the
+                                    first step as the context name. You can change the
+                                    context root later in the Eclipse project properties.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><guilabel>Content Directory</guilabel></term>
+                            <listitem>
+                                <para>
+                                    The directory containing all the content to be
+                                    included in the web application (WAR) that is deployed
+                                    to the web server. The directory is relative to the
+                                    root directory of the project.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                    </variablelist>
+
+					<para>
+						You can just accept the defaults and click
+						<guibutton>Next</guibutton>.
+					</para>
+				</listitem>
+
+				<?dbfo-need height="8cm" ?>
+				<listitem>
+					<para>
+						The <guilabel>Vaadin project</guilabel> step page has various
+						Vaadin-specific application settings. If you are trying out Vaadin
+						for the first time, you should not need to change anything. You
+						can set most of the settings afterwards, except the creation of
+						the portlet configuration.
+					</para>
+				
+					<screenshot>
+						<mediaobject>
+							<imageobject role="html">
+								<imagedata align="center" fileref="img/intro/myproject-vaadin.png"/>
+							</imageobject>
+							<imageobject role="fo">
+								<imagedata scale="50" smallscale="100%" align="center" fileref="img/intro/myproject-vaadin.png"/>
+							</imageobject>
+						</mediaobject>
+					</screenshot>
+
+                    <variablelist>
+                        <varlistentry>
+                            <term><guilabel>Create project template</guilabel></term>
+                            <listitem>
+                                <para>
+                                    Make the wizard create an UI class stub.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><guilabel>Application Name</guilabel></term>
+                            <listitem>
+                                <para>
+                                    A name for the application UI, shown in the title bar
+                                    of the browser window.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><guilabel>Base package name</guilabel></term>
+                            <listitem>
+                                <para>
+                                    The name of the Java package under which the UI class
+                                    of the application is to be placed.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><guilabel>Application/UI class name</guilabel></term>
+                            <listitem>
+                                <para>
+                                    The name of the UI class for the application, in which
+                                    the user interface is developed.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term><guilabel>Portlet version</guilabel></term>
+                            <listitem>
+                                <para>
+                                    When a portlet version is selected (only Portlet 2.0
+                                    is supported), the wizard will create the files needed
+                                    for running the application in a portal. See <xref
+                                    linkend="portal"/> for more information on portlets.
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                    </variablelist>
+
+                    <para>
+                        Finally, click <guibutton>Finish</guibutton> to create the project.
+                    </para>
+				</listitem>
+			</orderedlist>
+		</section>
+
+		<section xml:id="getting-started.first-project.exploring">
+			<title>Exploring the Project</title>
+
+			<para>
+				After the <guilabel>New Project</guilabel> wizard exits, it has done all
+				the work for you: an UI class skeleton has been written to
+				<filename>src</filename> directory and the
+				<filename>WebContent/WEB-INF/web.xml</filename> contains a deployment
+				descriptor. The project hierarchy shown in the Project Explorer is shown
+				in <xref linkend="figure.getting-started.first-project.exploring"/>.
+			</para>
+
+			<figure xml:id="figure.getting-started.first-project.exploring" float="center" floatstyle="before">
+				<title>A New Vaadin Project</title>
+				<mediaobject>
+					<imageobject>
+						<imagedata scale="65" smallscale="80%" align="center" fileref="img/intro/myproject-created.png"/>
+					</imageobject>
+				</mediaobject>
+			</figure>
+
+            <para>
+                The Vaadin libraries and other dependencies are managed by Ivy. Notice
+                that the libraries are not stored under the project folder, even though
+                they are listed in the <menuchoice><guimenu>Java
+                Resources</guimenu><guisubmenu>Libraries</guisubmenu><guimenuitem>ivy.xml</guimenuitem></menuchoice>
+                virtual folder.
+            </para>
+
+            <section xml:id="getting-started.first-project.exploring.ui">
+                <title>The UI Class</title>
+
+                <para>
+                    The UI class created by the plugin contains the following code:
+                </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[package com.example.myproject;
+
+import com.vaadin.ui.UI;
+...
+
+@SuppressWarnings("serial")
+@Theme("myproject")
+public class MyprojectUI extends UI {
+
+    @WebServlet(value = "/*", asyncSupported = true)
+    @VaadinServletConfiguration(
+            productionMode = false,
+            ui = MyprojectUI.class)
+    public static class Servlet extends VaadinServlet {
+    }
+
+    @Override
+    protected void init(VaadinRequest request) {
+        final VerticalLayout layout = new VerticalLayout();
+        layout.setMargin(true);
+        setContent(layout);
+
+        Button button = new Button("Click Me");
+        button.addClickListener(new Button.ClickListener() {
+            public void buttonClick(ClickEvent event) {
+                layout.addComponent(
+                    new Label("Thank you for clicking"));
+            }
+        });
+        layout.addComponent(button);
+    }
+}]]></programlisting>
+
+                <para>
+                    In a Servlet 3.0 project, the deployment is configured with servlet
+                    class and a <literal>@WebServlet</literal> annotation. The stub
+                    includes the servlet class as a static inner class. You may want to
+                    refactor it to a separate normal class.
+                </para>
+
+                <para>
+                    In a Servlet 2.3 project, you would have a
+                    <filename>web.xml</filename> deployment descriptor.
+                </para>
+
+                <para>
+                    For a more detailed treatment of the deployment, see <xref
+                    linkend="application.environment.web-xml"/>.
+                </para>
+            </section>
+        </section>
+
+		<section xml:id="getting-started.first-project.coding">
+            <title>Coding Tips for Eclipse</title>
+
+            <para>
+                One of the most useful features in Eclipse is <emphasis>code
+                completion</emphasis>. Pressing
+                <keycombo><keycap>Ctrl</keycap><keycap>Space</keycap></keycombo> in the
+                editor will display a popup list of possible class name and method name
+                completions, as shown in <xref
+                linkend="figure.getting-started.first-project.coding.codecompletion"/>,
+                depending on the context of the cursor position.
+            </para>
+
+            <figure xml:id="figure.getting-started.first-project.coding.codecompletion">
+                <title>Java Code Completion in Eclipse</title>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata scale="65" smallscale="100%" align="center" fileref="img/intro/codingtips-codecompletion.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+
+            <para>
+                To add an <literal>import</literal> statement for a class, such as
+                <classname>Button</classname>, simply press
+                <keycombo><keycap>Ctrl</keycap><keycap>Shift</keycap><keycap>O</keycap></keycombo>
+                or click the red error indicator on the left side of the editor window. If
+                the class is available in multiple packages, a list of the alternatives is
+                displayed, as shown in <xref
+                linkend="figure.getting-started.first-project.coding.import"/>. For
+                server-side development, you should normally use the classes under the
+                <package>com.vaadin.ui</package> or <package>com.vaadin.server</package>
+                packages. You can not use client-side classes (under
+                <package>com.vaadin.client</package>) or GWT classes for server-side
+                development.
+            </para>
+
+            <figure xml:id="figure.getting-started.first-project.coding.import">
+                <title>Importing Classes Automatically</title>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata scale="65" smallscale="100%" align="center" fileref="img/intro/codingtips-automaticimports.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+        </section>
+
+		<section xml:id="getting-started.first-project.server">
+			<title>Setting Up and Starting the Web Server</title>
+
+			<para>
+				Eclipse IDE for Java EE Developers has the Web Standard Tools package
+				installed, which supports control of various web servers and automatic
+				deployment of web content to the server when changes are made to a
+				project.
+			</para>
+
+			<para>
+				Make sure that Tomcat was installed with user permissions. Configuration
+				of the web server in Eclipse will fail if the user does not have write
+				permissions to the configuration and deployment directories under the
+				Tomcat installation directory.
+			</para>
+
+			<para>
+				Follow the following steps.
+			</para>
+
+			<orderedlist>
+				<listitem>
+					Switch to the <guimenuitem>Servers</guimenuitem> tab in the lower panel in
+					Eclipse. List of servers should be empty after Eclipse is
+					installed. Right-click on the empty area in the panel and select
+					<menuchoice><guimenu>New</guimenu><guimenuitem>Server</guimenuitem></menuchoice>.
+
+					<screenshot>
+						<mediaobject>
+							<imageobject role="html">
+								<imagedata align="center" fileref="img/intro/tomcat-startserver-1.png"/>
+							</imageobject>
+							<imageobject role="fo">
+								<imagedata scale="65" smallscale="100%" align="center" fileref="img/intro/tomcat-startserver-1.png"/>
+							</imageobject>
+						</mediaobject>
+					</screenshot>
+				</listitem>
+
+				<listitem>
+					Select <menuchoice><guimenu>Apache</guimenu><guimenuitem>Tomcat v7.0
+					Server</guimenuitem></menuchoice> and set <guilabel>Server's host
+					name</guilabel> as <literal>localhost</literal>, which should be the
+					default. If you have only one Tomcat installed, <guilabel>Server
+					runtime</guilabel> has only one choice. Click
+					<guibutton>Next</guibutton>.
+
+					<screenshot>
+						<mediaobject>
+							<imageobject role="html">
+								<imagedata align="center" fileref="img/intro/tomcat-startserver-2.png"/>
+							</imageobject>
+							<imageobject role="fo">
+								<imagedata scale="50" smallscale="100%" align="center" fileref="img/intro/tomcat-startserver-2.png"/>
+							</imageobject>
+						</mediaobject>
+					</screenshot>
+					
+				</listitem>
+
+				<listitem>
+					Add your project to the server by selecting it on the left and
+					clicking <guibutton>Add</guibutton> to add it to the configured
+					projects on the right. Click <guibutton>Finish</guibutton>.
+
+					<screenshot>
+						<mediaobject>
+							<imageobject role="html">
+								<imagedata align="center" fileref="img/intro/tomcat-startserver-3.png"/>
+							</imageobject>
+							<imageobject role="fo">
+								<imagedata scale="50" smallscale="100%" align="center" fileref="img/intro/tomcat-startserver-3.png"/>
+							</imageobject>
+						</mediaobject>
+					</screenshot>
+				</listitem>
+
+				<listitem>
+					The server and the project are now installed in Eclipse and are shown
+					in the <guilabel>Servers</guilabel> tab. To start the server,
+					right-click on the server and select
+					<guimenuitem>Debug</guimenuitem>. To start the server in non-debug
+					mode, select <guimenuitem>Start</guimenuitem>.
+
+					<screenshot>
+						<mediaobject>
+							<imageobject role="html">
+								<imagedata align="center" fileref="img/intro/tomcat-startserver-4.png"/>
+							</imageobject>
+							<imageobject role="fo">
+								<imagedata scale="65" smallscale="100%" align="center" fileref="img/intro/tomcat-startserver-4.png"/>
+							</imageobject>
+						</mediaobject>
+					</screenshot>
+				</listitem>
+
+				<listitem>
+					The server starts and the WebContent directory of the project is
+					published to the server on <uri>http://localhost:8080/myproject/</uri>.
+
+					<screenshot>
+						<mediaobject>
+							<imageobject role="html">
+								<imagedata align="center" fileref="img/intro/tomcat-startserver-5.png"/>
+							</imageobject>
+							<imageobject role="fo">
+								<imagedata scale="65" smallscale="100%" align="center" fileref="img/intro/tomcat-startserver-5.png"/>
+							</imageobject>
+						</mediaobject>
+					</screenshot>
+				</listitem>
+			</orderedlist>
+		</section>
+
+		<section xml:id="getting-started.first-project.run">
+			<title>Running and Debugging</title>
+	
+			<para>
+				Starting your application is as easy as selecting <guilabel>myproject</guilabel> from the 
+				<guilabel>Project Explorer</guilabel> and then <menuchoice><guimenu>Run</guimenu>
+				<guimenuitem>Debug As</guimenuitem><guimenuitem>Debug on Server</guimenuitem></menuchoice>. 
+				Eclipse then opens the application in built-in web browser.
+			</para>
+			
+			<figure>
+				<title>Running a Vaadin Application</title>
+				<mediaobject>
+					<imageobject role="html">
+						<imagedata align="center" fileref="img/intro/runningMyProject.png"/>
+					</imageobject>
+					<imageobject role="fo">
+						<imagedata scale="50" smallscale="100%" align="center" fileref="img/intro/runningMyProject.png"/>
+					</imageobject>
+				</mediaobject>
+			</figure>
+			
+			<para>
+				You can insert break points in the
+				Java code by double-clicking on the left margin bar of the source code
+				window. For example, if you
+				insert a breakpoint in the <methodname>buttonClick()</methodname> method
+				and click the <guibutton>What is the time?</guibutton> button, Eclipse will ask
+				to switch to the Debug perspective. Debug perspective will show where the execution stopped at the
+				breakpoint. You can examine and change the state of the application. To continue execution, select <guimenuitem>Resume</guimenuitem> from
+				<guimenu>Run</guimenu> menu.
+			</para>
+			
+			<figure>
+				<title>Debugging a Vaadin Application</title>
+				<mediaobject>
+					<imageobject role="html">
+						<imagedata align="center" fileref="img/intro/debuggingMyProject.png"/>
+					</imageobject>
+					<imageobject role="fo">
+						<imagedata scale="40" smallscale="100%" align="center" fileref="img/intro/debuggingMyProject.png"/>
+					</imageobject>
+				</mediaobject>
+			</figure>
+
+			<para>
+				Above, we described how to debug a server-side application. Debugging
+				client-side applications and widgets is described in <xref
+				linkend="clientside.debugging"/>.
+			</para>
+		</section>
+	</section>
+
+	<section xml:id="getting-started.maven">
+		<title>Using Vaadin with Maven</title>
+
+        <indexterm xml:id="term.maven.creating" class="startofrange">
+            <primary>Maven</primary>
+            <secondary>creating a project</secondary>
+        </indexterm>
+
+        <para>
+            Maven is a commonly used build and dependency management system.
+
+            The Vaadin core library and all Vaadin add-ons are available through
+            Maven. You can use a Maven with a front-end from Eclipse or NetBeans, or by
+            using the command-line as described in this section.
+        </para>
+
+        <para>
+            In addition to regular Maven, you can use any Maven-compatible build or
+            dependency management system, such as Ivy or Gradle. For Gradle, see the <link
+            xlink:href="https://github.com/johndevs/gradle-vaadin-plugin">Gradle Vaadin
+            Plugin</link>. Vaadin Plugin for Eclipse uses Ivy for resolving dependencies
+            in Vaadin projects, and it should provide you with the basic Ivy
+            configuration.
+        </para>
+        
+        <section xml:id="getting-started.maven.command-line">
+            <title>Working from Command-Line</title>
+
+            <para>
+                You can create a new Maven project with the following command (given in
+                one line):
+            </para>
+
+            <screen><prompt>$</prompt> <command>mvn</command> archetype:generate
+   -DarchetypeGroupId=com.vaadin
+   -DarchetypeArtifactId=<parameter>vaadin-archetype-application</parameter>
+   -DarchetypeVersion=<parameter>&version.vaadin;</parameter>
+   -DgroupId=<parameter>your.company</parameter>
+   -DartifactId=<parameter>project-name</parameter>
+   -Dversion=<parameter>1.0</parameter>
+   -Dpackaging=war</screen>
+
+            <para>
+                The parameters are as follows:
+            </para>
+
+            <variablelist>
+                <varlistentry>
+                    <term><parameter>archetypeGroupId</parameter></term>
+                    <listitem>
+                        <para>
+                            The group ID of the archetype is <literal>com.vaadin</literal> for
+                            Vaadin archetypes.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><parameter>archetypeArtifactId</parameter></term>
+                    <listitem>
+                        <para>
+                            The archetype ID. Vaadin 7 currently supports
+                            <literal>vaadin-archetype-application</literal> archetype for
+                            server-side applications and
+                            <literal>vaadin-archetype-widget</literal> for client-side
+                            widget development projects.
+                        </para>
+                        <!-- TODO Vaadin 7: Not all these archetypes are supported -->
+                        <!--
+                        <itemizedlist>
+                            <listitem>
+                                <literal>vaadin-archetype-clean</literal> is a new
+                                project with a barebone skeleton for a regular Vaadin
+                                application. The <filename>pom.xml</filename> includes
+                                out-commented definitions for additional widgets.
+                            </listitem>
+                        </itemizedlist>
+                        <itemizedlist>
+                            <listitem>
+                                <literal>vaadin-archetype-widget</literal> is a skeleton
+                                for a project with custom widgets.
+                            </listitem>
+                        </itemizedlist>
+                        <itemizedlist>
+                            <listitem>
+                                <literal>vaadin-archetype-sample</literal> is also for
+                                a project with custom widgets, but the skeleton includes
+                                the Color Picker example used in <xref linkend="gwt"/>.
+                            </listitem>
+                        </itemizedlist>
+                        <itemizedlist>
+                            <listitem>
+                                <literal>vaadin-archetype-addon</literal> is for Vaadin add-on
+                                projects. It packages the add-on so that it can be published
+                                in Vaadin Directory. The archetype is for server-side add-ons
+                                and does not include definitions needed for building a widget
+                                set. If your add-on includes or requires other than the
+                                widgets in the Vaadin core library, you need to copy the
+                                required definitions from a POM of a
+                                <literal>vaadin-archetype-clean</literal> project.
+                            </listitem>
+                        </itemizedlist>
+                        <itemizedlist>
+                            <listitem>
+                                <literal>vaadin-archetype-touchkit</literal> is for
+                                projects using Vaadin TouchKit, described in <xref
+                                    linkend="mobile"/>. Notice that this archetype uses the
+                                AGPL-licensed version of TouchKit, which requires that
+                                your project must also be licensed under the AGPL
+                                license.
+                            </listitem>
+                        </itemizedlist>-->
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><parameter>archetypeVersion</parameter></term>
+                    <listitem>
+                        <para>
+                            Version of the archetype to use. This should be
+                            <literal>LATEST</literal> for normal Vaadin releases. For
+                            prerelease versions it should be the exact version number,
+                            such as <literal>7.3.1</literal>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><parameter>groupId</parameter></term>
+                    <listitem>
+                        <para>
+                            A Maven group ID for your project. It is normally your
+                            organization domain name in reverse order, such as
+                            <uri>com.example</uri>. The group ID is also used as a prefix
+                            for the Java package in the sources, so it should be Java
+                            compatible - only alphanumerics and an underscore.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><parameter>artifactId</parameter></term>
+                    <listitem>
+                        <para>
+                            Identifier of the artifact, that is, your project. The
+                            identifier may contain alphanumerics, minus, and
+                            underscore. It is appended to the group ID to obtain the Java
+                            package name for the sources. For example, if the group ID is
+                            <uri>com.example</uri> and artifact ID is
+                            <uri>myproject</uri>, the project sources would be placed in
+                            <uri>com.example.myproject</uri> package.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><parameter>version</parameter></term>
+                    <listitem>
+                        <para>
+                            Initial version number of your application. The number must
+                            obey the Maven version numbering format.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><parameter>packaging</parameter></term>
+                    <listitem>
+                        <para>
+                            How will the project be packaged. It is normally
+                            <literal>war</literal>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+
+            <para>
+                Creating a project can take a while as Maven fetches all the
+                dependencies. The created project structure is shown in <xref
+                    linkend="figure.getting-started.maven.archetype.created"/>.
+            </para>
+
+            <figure xml:id="figure.getting-started.maven.archetype.created">
+                <title>A New Vaadin Project with Maven</title>
+                <mediaobject>
+                    <imageobject role="html">
+                        <imagedata align="center" fileref="img/intro/maven-project-created.png"/>
+                    </imageobject>
+                    <imageobject role="fo">
+                        <imagedata scale="75" smallscale="75%" align="center" fileref="img/intro/maven-project-created.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+        </section>
+
+        <section xml:id="getting-started.maven.compiling">
+            <title>Compiling and Running the Application</title>
+
+            <indexterm xml:id="term.maven.compiling" class="startofrange">
+                <primary>Maven</primary>
+                <secondary>compiling</secondary>
+            </indexterm>
+
+            <para>
+                Before the application can be deployed, it must be compiled and packaged
+                as a WAR package. You can do this with the <literal>package</literal> goal
+                as follows:
+            </para>
+
+            <screen><prompt>$</prompt> <command>mvn</command> package</screen>
+
+            <para>
+                The location of the resulting WAR package should be displayed in the
+                command output. You can then deploy it to your favorite application
+                server.
+            </para>
+
+            <para>
+                The easiest way to run Vaadin applications with Maven is to use the
+                light-weight Jetty web server. After compiling the package, all you need
+                to do is type:
+            </para>
+
+            <screen><prompt>$</prompt> <command>mvn</command> jetty:run</screen>
+
+            <para>
+                The special goal starts the Jetty server in port 8080 and deploys the
+                application. You can then open it in a web browser at
+                <uri>http://localhost:8080/project-name</uri>.
+            </para>
+
+            <indexterm startref="term.maven.compiling" class="endofrange"/>
+        </section>
+
+        <section xml:id="getting-started.maven.addons">
+            <title>Using Add-ons and Custom Widget Sets</title>
+
+            <indexterm xml:id="term.maven.addons" class="startofrange">
+                <primary>Maven</primary>
+                <secondary>using add-ons</secondary>
+            </indexterm>
+
+            <para>
+                If you use Vaadin add-ons that include a widget set or make your custom
+                widgets, you need to enable widget set compilation in the POM. The
+                required configuration is described in <xref linkend="addons.maven"/>.
+            </para>
+        </section>
+
+        <indexterm startref="term.maven.addons" class="endofrange"/>
+        <indexterm startref="term.maven.creating" class="endofrange"/>
+    </section>
+
+    <section xml:id="getting-started.netbeans">
+		<title>Creating a Project with NetBeans IDE</title>
+
+        <para>
+            The easiest way to develop Vaadin application with the NetBeans IDE is to use
+            the Vaadin Plugin for NetBeans. It allows you to create new Vaadin projects
+            easily and provides many features for working on a project. You can download
+            the plugin at <link
+            xlink:href="http://plugins.netbeans.org/plugin/50531/vaadin-plug-in-for-netbeans">http://plugins.netbeans.org/plugin/50531/vaadin-plug-in-for-netbeans</link>. The
+            download page contains a link to a plugin features overview in NetBeans Wiki.
+        </para>
+
+        <para>
+            Without the plugin, you can most easily create a Vaadin project as a Maven
+            project using a Vaadin archetype. You can also create a Vaadin project as a
+            regular web application project, but it requires many manual steps to install
+            all the Vaadin libraries, create the UI class, configure the servlet, create
+            theme, and so on.
+        </para>
+
+        <section xml:id="getting-started.netbeans.maven">
+            <title>Maven Project from a Vaadin Archetype</title>
+            
+            <para>
+                Creating a Maven project with a Vaadin archetype creates an application
+                skeleton with a UI class and project theme, defines the
+                <filename>web.xml</filename> deployment descriptor, and also retrieves the
+                latest Vaadin library automatically.
+            </para>
+
+            <orderedlist>
+                <listitem>
+                    <para>
+                        Select <menuchoice><guimenu>File</guimenu><guimenuitem>New Project</guimenuitem></menuchoice>.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Select <menuchoice><guimenu>Maven</guimenu><guimenuitem>Project
+                        from Archetype</guimenuitem></menuchoice> and click
+                        <guibutton>Next</guibutton>.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Find <literal>vaadin-archetype-application</literal>, select
+                        it, and click <guilabel>Next</guilabel>.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        In the <guilabel>Name and Location</guilabel> step, enter
+                        <guilabel>Project Name</guilabel>, which is recommended to be only
+                        lower-case alphabetics, as it is used also as a suggestion for the
+                        Java package name of the project. Modify the other parameters for
+                        your project and click <guibutton>Finish</guibutton>.
+                    </para>
+
+                    <figure xml:id="figure.getting-started.netbeans.maven.new-project">
+                        <title>Adding a New Maven Project in NetBeans</title>
+                        <mediaobject>
+                            <imageobject role="html">
+                                <imagedata align="center" fileref="img/intro/netbeans-maven-newproject-name.png"/>
+                            </imageobject>
+                            <imageobject role="fo">
+                                <imagedata scale="75" smallscale="100%" align="center" fileref="img/intro/netbeans-maven-newproject-name.png"/>
+                            </imageobject>
+                        </mediaobject>
+                    </figure>
+                </listitem>
+            </orderedlist>
+
+            <para>
+                Creating the project can take a while as Maven loads all the needed
+                dependencies. Once created, you can run it by right-clicking on the
+                project in the <guilabel>Projects</guilabel> view and selecting
+                <guilabel>Run</guilabel>. In the <guilabel>Select deployment
+                server</guilabel> window that opens, select <guilabel>Glassfish</guilabel>
+                or <guilabel>Apache Tomcat</guilabel>, and click
+                <guibutton>OK</guibutton>. If all goes well, NetBeans starts the server in
+                port 8080 and, depending on your system configuration, launches the
+                default browser to display the web application. If not, you can open it
+                manually, for example, at <uri>http://localhost:8080/myproject</uri>. The
+                project name is used by default as the context path of the application.
+            </para>
+        </section>
+    </section>
+
+    <section xml:id="getting-started.idea">
+		<title>Creating a Project with IntelliJ IDEA</title>
+
+        <para>
+            The Ultimate Edition of IntelliJ IDEA includes support for creating Vaadin
+            applications and running or debugging them in an integrated application
+            server. With the Community Edition, you can create a Vaadin application most
+            easily with a Maven archetype and deploy it to a server with a Maven run/debug
+            configuration.
+        </para>
+
+        <para condition="web">
+            For more information, see the article "<link
+            xlink:href="http://wiki.jetbrains.net/intellij/Creating_a_simple_Web_application_and_deploying_it_to_Tomcat">Creating
+            a simple Web application and deploying it to Tomcat</link>" in the IntelliJ
+            IDEA Encyclopedia wiki.
+        </para>
+
+        <section xml:id="getting-started.idea.server">
+            <title>Configuring an Application Server</title>
+
+            <para>
+                To run the application during development in the Ultimate Edition of
+                IntelliJ IDEA, you first need to install and configure an application
+                server that is integrated with the IDE. The edition includes integration
+                with many commonly used application servers.
+            </para>
+
+            <para>
+                In the following, we configure Apache Tomcat:
+            </para>
+
+            <orderedlist>
+                <listitem>
+                    <para>
+                        Download and extract Tomcat installation package to a local
+                        directory, as instructed in <xref
+                        linkend="getting-started.environment.tomcat"/>.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Select <menuchoice><guimenu>Configure</guimenu><guimenuitem>Settings</guimenuitem></menuchoice>.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Select <menuchoice><guimenu>IDE
+                        Settings</guimenu><guimenuitem>Application
+                        Servers</guimenuitem></menuchoice>.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Select <menuchoice><guimenu>+</guimenu><guimenuitem>Tomcat
+                        Server</guimenuitem></menuchoice> to add a Tomcat server, or any
+                        of the other supported servers. A WebSocket-enabled server, such
+                        as Glassfish or TomEE, is required for server push.
+                    </para>
+                </listitem>
+
+                <listitem>
+                    <para>
+                        In the Tomcat Server dialog, specify the home directory for the
+                        server.
+                    </para>
+
+					<screenshot>
+						<mediaobject>
+							<imageobject>
+								<imagedata scale="70" smallscale="100%" align="center" fileref="img/intro/idea-server-1.png"/>
+							</imageobject>
+						</mediaobject>
+					</screenshot>
+
+                    <para>
+                        Click <guibutton>OK</guibutton>.
+                    </para>
+                </listitem>
+
+                <?dbfo-need height="8cm" ?>
+                <listitem>
+                    <para>
+                        Review the application server settings page to check that it is
+                        OK.
+                    </para>
+
+					<screenshot>
+						<mediaobject>
+							<imageobject>
+								<imagedata scale="70" smallscale="100%" align="center" fileref="img/intro/idea-server-2.png"/>
+							</imageobject>
+						</mediaobject>
+					</screenshot>
+
+                    <para>
+                        Then, click <guibutton>OK</guibutton>.
+                    </para>
+                </listitem>
+            </orderedlist>
+        </section>
+
+        <section xml:id="getting-started.idea.project">
+            <title>Creating a Vaadin Web Application Project</title>
+
+            <para>
+                In the welcome page, do the following:
+            </para>
+
+            <orderedlist>
+                <listitem>
+                    <para>
+                        Download and exctract the Vaadin installation package to a local
+                        folder, as instructed in <xref linkend="getting-started.package"/>.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Select <menuchoice><guimenu>New Project</guimenu></menuchoice>
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        In the <guilabel>New Project</guilabel> window, select
+                        <menuchoice><guimenu>Java</guimenu></menuchoice>
+                    </para>
+                </listitem>
+
+                <?dbfo-need height="8cm" ?>
+                <listitem>
+                    <para>
+                        Enter a <guilabel>Project name</guilabel> and <guilabel>Project
+                        location</guilabel>, and select the <guilabel>Java SDK</guilabel>
+                        to be used for the project. Vaadin requires at least Java 6. If
+                        you have not configured a Java SDK previously, you can configure
+                        it here.
+                    </para>
+
+					<screenshot>
+						<mediaobject>
+							<imageobject>
+								<imagedata scale="70" smallscale="100%" align="center" fileref="img/intro/idea-newproject-1.png"/>
+							</imageobject>
+						</mediaobject>
+					</screenshot>
+
+                    <para>
+                        Click <guibutton>Next</guibutton>.
+                    </para>
+                </listitem>
+
+                <listitem>
+                    <para>
+                        Select <menuchoice><guimenu>Web
+                        Application</guimenu><guimenuitem>Vaadin</guimenuitem></menuchoice>
+                        to add Vaadin technology to the project.
+                    </para>
+                </listitem>
+
+                <?dbfo-need height="8cm" ?>
+                <listitem>
+                    <para>
+                        Select Vaadin <guilabel>Version</guilabel> and
+                        <guilabel>Distribution</guilabel> installation path. You probably also want an application stub, so select <guilabel>Create sample application</guilabel> and give a name for the generated UI class.
+                    </para>
+
+					<screenshot>
+						<mediaobject>
+							<imageobject>
+								<imagedata scale="70" smallscale="100%" align="center" fileref="img/intro/idea-newproject-2.png"/>
+							</imageobject>
+						</mediaobject>
+					</screenshot>
+
+                    <para>
+                        Do <emphasis>not</emphasis> click <guibutton>Finish</guibutton> yet.
+                    </para>
+                </listitem>
+
+                <?dbfo-need height="8cm" ?>
+                <listitem>
+                    <para>
+                        Select <guilabel>Application Server</guilabel> in the same
+                        window. Set it as an integrated server that you have configured in
+                        IntelliJ IDEA, as described previously in <xref
+                        linkend="getting-started.idea.server"/>.
+                    </para>
+
+					<screenshot condition="web">
+						<mediaobject>
+							<imageobject>
+								<imagedata scale="70" smallscale="100%" align="center" fileref="img/intro/idea-newproject-3.png"/>
+							</imageobject>
+						</mediaobject>
+					</screenshot>
+                </listitem>
+
+                <listitem>
+                    <para>
+                        Click <guibutton>Finish</guibutton>.
+                    </para>
+                </listitem>
+            </orderedlist>
+
+            <para>
+                The project is created with the UI class stub and a
+                <filename>web.xml</filename> deployment descriptor.
+            </para>
+
+            <screenshot>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata scale="70" smallscale="100%" align="center" fileref="img/intro/idea-newproject-4.png"/>
+                    </imageobject>
+                </mediaobject>
+            </screenshot>
+
+            <para>
+                The wizard does not currently create a servlet class automatically, and
+                uses Servlet 2.4 compatible deployment with a <filename>web.xml</filename>
+                deployment descriptor.
+            </para>
+
+            <section xml:id="getting-started.idea.project.running">
+                <title>Deploying the Project</title>
+
+                <para>
+                    To deploy the application to the integrated web server, right-click
+                    the <filename>index.jsp</filename> file in the project and select
+                    <menuchoice><guimenuitem>Run
+                    'index.jsp'</guimenuitem></menuchoice>. This starts the integrated
+                    server, if it was not already running, and launches the default
+                    browser with the application page.
+                </para>
+            </section>
+        </section>
+
+        <section xml:id="getting-started.idea.maven">
+            <title>Creating a Maven Project</title>
+
+            <para>
+                You can choose to create a Maven project in IntelliJ IDEA. This is the
+                recommended way when using the Community Edition. You will not have the
+                application server integration, but can deploy the application to an
+                application server using a run/debug configuration.
+            </para>
+
+            <orderedlist>
+                <listitem>
+                    <para>
+                        Select <menuchoice><guimenu>New Project</guimenu></menuchoice>
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        In the <guilabel>New Project</guilabel> window, select
+                        <menuchoice><guimenu>Maven</guimenu></menuchoice>
+                    </para>
+                </listitem>
+
+                <!-- <?dbfo-need height="8cm" ?> -->
+                <listitem>
+                    <para>
+                        Enter a project name, location, and the Java SDK to be used for the
+                        project. Vaadin requires at least Java 6. Click
+                        <guibutton>Next</guibutton>.
+                    </para>
+
+                    <screenshot>
+                        <mediaobject>
+                            <imageobject>
+                                <imagedata scale="70" smallscale="100%" align="center" fileref="img/intro/idea-maven-newproject-1.png"/>
+                            </imageobject>
+                        </mediaobject>
+                    </screenshot>
+                </listitem>
+
+                <!-- <?dbfo-need height="6cm" ?> -->
+                <listitem>
+                    <para>
+                        Give a Maven <guilabel>GroupID</guilabel>,
+                        <guilabel>ArtifactID</guilabel>, and a
+                        <guilabel>Version</guilabel> for the project, or use the defaults.
+                    </para>
+
+                    <screenshot>
+                        <mediaobject>
+                            <imageobject>
+                                <imagedata scale="70" smallscale="100%" align="center" fileref="img/intro/idea-maven-newproject-2.png"/>
+                            </imageobject>
+                        </mediaobject>
+                    </screenshot>
+                </listitem>
+
+                <listitem>
+                    <para>
+                        Check <guilabel>Create from archetype</guilabel>
+                    </para>
+                </listitem>
+
+                <!-- <?dbfo-need height="6cm" ?> -->
+                <listitem>
+                    <para>
+                        If the Vaadin archetype is not in the list, click <guibutton>Add
+                        archetype</guibutton>, enter <guilabel>GroupId</guilabel>
+                        <literal>com.vaadin</literal>, <guilabel>ArtifactId</guilabel>
+                        <literal>vaadin-archetype-application</literal>, and
+                        <guilabel>Version</guilabel> <literal>LATEST</literal> (or a
+                        specific version number).
+                    </para>
+
+                    <screenshot condition="web">
+                        <mediaobject>
+                            <imageobject>
+                                <imagedata scale="70" smallscale="80%" align="center" fileref="img/intro/idea-maven-newproject-3.png"/>
+                            </imageobject>
+                        </mediaobject>
+                    </screenshot>
+
+                    <para>
+                        Click <guibutton>OK</guibutton> in the dialog.
+                    </para>
+                </listitem>
+
+                <!-- <?dbfo-need height="8cm" ?> -->
+                <listitem>
+                    <para>
+                        Select the <literal>com.vaadin:vaadin-archetype-application</literal>.
+                    </para>
+
+                    <screenshot condition="web">
+                        <mediaobject>
+                            <imageobject>
+                                <imagedata scale="70" smallscale="100%" align="center" fileref="img/intro/idea-maven-newproject-4.png"/>
+                            </imageobject>
+                        </mediaobject>
+                    </screenshot>
+
+                    <para>
+                        Click <guibutton>Next</guibutton>.
+                    </para>
+                </listitem>
+
+                <!-- <?dbfo-need height="8cm" ?> -->
+                <listitem>
+                    <para>
+                        Review the general Maven settings and settings for the new
+                        project. You may need to override the settings, especially if you
+                        are creating a Maven project for the first time. Click
+                        <guibutton>Finish</guibutton>.
+                    </para>
+
+                    <screenshot condition="web">
+                        <mediaobject>
+                            <imageobject>
+                                <imagedata scale="70" smallscale="100%" align="center" fileref="img/intro/idea-maven-newproject-5.png"/>
+                            </imageobject>
+                        </mediaobject>
+                    </screenshot>
+                </listitem>
+            </orderedlist>
+
+            <para>
+                Creating the Maven project takes some time as Maven fetches the
+                dependencies. Once done, the project is created and the Maven POM is
+                opened in the editor.
+            </para>
+
+            <section xml:id="getting-started.idea.maven.compiling">
+                <title>Compiling the Project</title>
+
+                <para>
+                    To compile a Vaadin application using Maven, you can define a
+                    run/debug configuration to execute a goal such as
+                    <literal>package</literal> to build the deployable WAR package. It
+                    will also compile the widget set and theme, if necessary. See <xref
+                    linkend="getting-started.maven.compiling"/> for more details.
+                </para>
+
+                <para>
+                    Compilation is included in the following instructions for deploying
+                    the application.
+                </para>
+            </section>
+
+            <section xml:id="getting-started.idea.maven.deploying">
+                <title>Deploying to a Server</title>
+
+                <para>
+                    There exists Maven plugins for deploying to various application
+                    servers. For example, to deploy to Apache Tomcat, you can to configure
+                    the <literal>tomcat-maven-plugin</literal> and then execute the
+                    <literal>tomcat:deploy</literal> goal. See the documentation of the
+                    plugin that you use for more details. If no Maven plugin exists for a
+                    particular server, you can always use some lower-level method to
+                    deploy the application, such as running an Ant task.
+                </para>
+
+                <para>
+                    In the following, we create a run/debug configuration to build,
+                    deploy, and launch a Vaadin Maven application on the light-weight
+                    Jetty web server.
+                </para>
+
+                <orderedlist>
+                    <listitem>
+                        <para>
+                            Select <menuchoice><guimenu>Run</guimenu><guimenuitem>Edit
+                            Configurations</guimenuitem></menuchoice>.
+                        </para>
+                    </listitem>
+
+                    <listitem>
+                        <para>
+                            Select
+                            <menuchoice><guimenu>+</guimenu><guimenuitem>Maven</guimenuitem></menuchoice> to create a new Maven run/debug configuration.
+                        </para>
+                    </listitem>
+
+                    <listitem>
+                        <para>
+                            Enter a <guilabel>Name</guilabel> for the run
+                            configuration. For the <guilabel>Command line</guilabel>,
+                            enter "<literal>package jetty:run</literal> to first compile
+                            and package the project, and then launch Jetty to run it.
+                        </para>
+
+                        <screenshot condition="web">
+                            <mediaobject>
+                                <imageobject>
+                                    <imagedata scale="70" smallscale="100%" align="center" fileref="img/intro/idea-maven-run-1.png"/>
+                                </imageobject>
+                            </mediaobject>
+                        </screenshot>
+
+                        <para>
+                            Click <guibutton>OK</guibutton>.
+                        </para>
+                    </listitem>
+
+                    <listitem>
+                        <para>
+                            Select the run configuration in the toolbar and click the
+                            <guibutton>Run</guibutton> button beside it.
+                        </para>
+
+                        <screenshot condition="web">
+                            <mediaobject>
+                                <imageobject>
+                                    <imagedata scale="70" smallscale="60%" align="center" fileref="img/intro/idea-maven-run-2.png"/>
+                                </imageobject>
+                            </mediaobject>
+                        </screenshot>
+                    </listitem>
+                </orderedlist>
+
+                <para>
+                    Compiling the project takes some time on the first time, as it
+                    compiles the widget set and theme. Once the run console pane informs
+                    that Jetty Server has been started, you can open the browser at the
+                    default URL <uri>http://localhost:8080/</uri>.
+                </para>
+            </section>
+        </section>
+
+    </section>
+
+	<section xml:id="getting-started.package">
+		<title>Vaadin Installation Package</title>
+
+		<para>
+            While the recommended way to install Vaadin is to use the Eclipse plugin, one
+            of the other IDE plugins, or a dependency management system, such as Maven,
+            Vaadin is also available as a ZIP distribution package.
+		</para>
+
+        <para>
+            You can download the newest Vaadin installation package from the download page
+            at <link
+            xlink:href="http://vaadin.com/download/">http://vaadin.com/download/</link>. Please
+            use a ZIP decompression utility available in your operating system to extract
+            the files from the ZIP package.
+        </para>
+
+		<section xml:id="getting-started.package.contents">
+			<title>Package Contents</title>
+
+            <variablelist>
+                <varlistentry>
+                    <term><filename>README.TXT</filename></term>
+                    <listitem>
+                        <para>
+                            This Readme file gives simple instructions for installing
+                            Vaadin in your project.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><filename>release-notes.html</filename></term>
+                    <listitem>
+                        <para>
+                            The Release Notes contain information about the new features
+                            in the particular release, give upgrade instructions, describe
+                            compatibility, etc. Please open the HTML file with a web browser.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><filename>license.html</filename></term>
+                    <listitem>
+                        <para>
+                            Apache License version 2.0. Please open the HTML file with a
+                            web browser.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><filename>lib</filename> folder</term>
+                    <listitem>
+                        <para>
+                            All dependency libraries required by Vaadin are contained
+                            within the <filename>lib</filename> folder.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><filename>*.jar</filename></term>
+                    <listitem>
+                        <para>
+                            Vaadin libraries, as described in <xref linkend="getting-started.libraries"/>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </section>
+
+		<section xml:id="getting-started.package.install">
+			<title>Installing the Libraries</title>
+
+			<para>
+				You can install the Vaadin ZIP package in a few simple steps:
+			</para>
+
+			<orderedlist>
+				<listitem>
+					<para>
+						Copy the JAR files at the package root folder to the
+						<filename>WEB-APP/lib</filename> web library folder in the
+						project. Some of the libraries are optional, as explained in <xref
+						linkend="getting-started.libraries"/>.
+					</para>
+                </listitem>
+				<listitem>
+					<para>
+						Also copy the dependency JAR files at the <filename>lib</filename>
+						folder to the <filename>WEB-APP/lib</filename> web library folder
+						in the project.
+					</para>
+				</listitem>
+			</orderedlist>
+
+            <para>
+                 The location of the <filename>WEB-APP/lib</filename> folder depends on
+                 the project organization, which depends on the development environment.
+            </para>
+
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        In Eclipse Dynamic Web Application projects: <filename>WebContent/WEB-INF/lib</filename>.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        In Maven projects: <filename>src/main/webapp/WEB-INF/lib</filename>.
+                    </para>
+                </listitem>
+            </itemizedlist>
+		</section>
+	</section>
+
+	<section xml:id="getting-started.scala">
+		<title>Using Vaadin with Scala</title>
+
+        <para>
+            You can use Vaadin with any JVM compatible language, such as Scala or
+            Groovy. There are, however, some caveats related to libraries and project
+            set-up. In the following, we give instructions for creating a Scala UI in
+            Eclipse, with the Scala IDE for Eclipse and the Vaadin Plugin for Eclipse.
+        </para>
+
+        <orderedlist>
+            <listitem>
+                <para>
+                    Install the <link xlink:href="http://scala-ide.org/">Scala IDE for
+                    Eclipse</link>, either from an Eclipse update site or as a bundled
+                    Eclipse distribution.
+                </para>
+            </listitem>
+
+            <listitem>
+                <para>
+                    Open an existing Vaadin Java project or create a new one as outlined
+                    in <xref linkend="getting-started.first-project"/>. You can delete the
+                    UI class created by the wizard.
+                </para>
+            </listitem>
+
+            <listitem>
+                <para>
+                    Switch to the Scala perspective by clicking the perspective in the
+                    upper-right corner of the Eclipse window.
+                </para>
+            </listitem>
+
+            <listitem>
+                <para>
+                    Right-click on the project folder in <guilabel>Project
+                    Explorer</guilabel> and select
+                    <menuchoice><guimenu>Configure</guimenu><guimenuitem>Add Scala
+                    Nature</guimenuitem></menuchoice>.
+                </para>
+            </listitem>
+            <listitem>
+                <para>
+                    The web application needs <filename>scala-library.jar</filename> in
+                    its class path. If using Scala IDE, you can copy it from somewhere
+                    under your Eclipse installation to the class path of the web
+                    application, that is, either to the
+                    <filename>WebContent/WEB-INF/lib</filename> folder in the project or
+                    to the library path of the application server. If copying outside
+                    Eclipse to a project, refresh the project by selecting it and pressing
+                    <keycap>F5</keycap>.
+                </para>
+
+                <para>
+                    You could also get it with an Ivy or Maven dependency, just make sure
+                    that the version is same as what the Scala IDE uses.
+                </para>
+            </listitem>
+        </orderedlist>
+
+        <para>
+            You should now be able to create a Scala UI class, such as the following:
+        </para>
+
+        <programlisting><?pocket-size 75% ?><![CDATA[@Theme("mytheme")
+class MyScalaUI extends UI {
+  override def init(request: VaadinRequest) = {
+    val content: VerticalLayout = new VerticalLayout
+    setContent(content)
+
+    val label: Label = new Label("Hello, world!")
+    content addComponent label
+
+    // Handle user interaction
+    content addComponent new Button("Click Me!",
+      new ClickListener {
+        override def buttonClick(event: ClickEvent) =
+          Notification.show("The time is " + new Date)
+      })
+  }
+}]]></programlisting>
+
+        <para>
+            Eclipse and Scala IDE should be able to import the Vaadin classes
+            automatically when you press
+            <keycombo><keycap>Ctrl</keycap><keycap>Shift</keycap><keycap>O</keycap></keycombo>.
+        </para>
+
+        <para>
+            You need to define the Scala UI class either in a servlet class (in Servlet
+            3.0 project) or in a <filename>web.xml</filename> deployment descriptor, just
+            like described in <xref linkend="getting-started.first-project.exploring"/>
+            for Java UIs.
+        </para>
+
+        <para condition="web">
+            The <link xlink:href="https://github.com/henrikerola/scaladin">Scaladin
+            add-on</link> enables a more Scala-like API for Vaadin. A Vaadin 7 compatible
+            version is under development.
+        </para>
+    </section>
+</chapter>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: xml
+sgml-omittag:nil
+sgml-shorttag:nil
+sgml-namecase-general:nil
+sgml-general-insert-case:lower
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:4
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-exposed-tags:nil
+sgml-local-catalogs:("/etc/sgml/catalog" "/usr/share/xemacs21/xemacs-packages/etc/psgml-dtds/CATALOG")
+sgml-local-ecat-files:("ECAT" "~/sgml/ECAT" "/usr/share/sgml/ECAT" "/usr/local/share/sgml/ECAT" "/usr/local/lib/sgml/ECAT")
+End:
+-->

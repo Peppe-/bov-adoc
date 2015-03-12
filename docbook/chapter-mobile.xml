@@ -1,0 +1,3199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ====================================================================== -->
+<!-- Copyright 2000-2012 Vaadin Ltd                                         -->
+<!-- All Rights Reserved                                                    -->
+<!-- This work is licensed under a Creative Commons Attribution-NoDerivs    -->
+<!-- License (CC-BY-ND) Version 3.0. Full license text is available at:     -->
+<!-- http://creativecommons.org/licenses/by-nd/3.0/legalcode                -->
+<!-- ====================================================================== -->
+
+<chapter xml:id="mobile">
+	<title>Mobile Applications with TouchKit</title>
+
+    <indexterm xml:id="term.touchkit" class="startofrange">
+        <primary>TouchKit</primary>
+    </indexterm>
+
+    <para>
+        This chapter describes how to create mobile applications using the Vaadin TouchKit.
+    </para>
+
+    <section xml:id="mobile.overview">
+        <title>Overview</title>
+
+        <para>
+            Web browsing is becoming ever increasingly mobile and web applications need to
+            satisfy users with both desktop computers and mobile devices, such as phones
+            and tablets. While the mobile browsers can show the pages just like in regular
+            browsers, the screen size, finger accuracy, and mobile browser features need
+            to be considered to make the experience more pleasant. Vaadin TouchKit gives
+            the power of Vaadin for creating mobile user interfaces that complement the
+            regular web user interfaces of your applications. Just like the purpose of the
+            Vaadin Framework is to make desktop-like web applications, the purpose of
+            TouchKit is to allow creation of web applications that give the look and feel
+            of native mobile applications.
+        </para>
+
+        <figure xml:id="figure.mobile.overview.touchkit">
+            <title>The Parking Demo for Vaadin TouchKit</title>
+			<mediaobject>
+				<imageobject role="html">
+					<imagedata align="center" fileref="img/mobile/mobile-overview-lo.png"/>
+				</imageobject>
+				<imageobject role="fo">
+					<imagedata scale="80" smallscale="100%" align="center" fileref="img/mobile/mobile-overview-hi.png"/>
+				</imageobject>
+			</mediaobject>
+        </figure>
+
+        <para>
+            Creating a mobile UI is much like creating a regular Vaadin UI. You can use
+            all the regular Vaadin components and add-ons available from Vaadin Directory,
+            but most importantly, you can use the special TouchKit components that are
+            optimized for mobile devices.
+        </para>
+
+        <programlisting><?pocket-size 65% ?><![CDATA[@Theme("mobiletheme")
+@Widgetset("com.example.myapp.MyAppWidgetSet")
+@Title("My Mobile App")
+public class SimplePhoneUI extends UI {
+    @Override
+    protected void init(VaadinRequest request) {
+        // Define a view
+        class MyView extends NavigationView {
+            public MyView() {
+                super("Planet Details");
+
+                CssLayout content = new CssLayout();
+                setContent(content);
+
+                VerticalComponentGroup group =
+                        new VerticalComponentGroup();
+                content.addComponent(group);
+
+                group.addComponent(new TextField("Planet"));
+                group.addComponent(new NumberField("Found"));
+                group.addComponent(new Switch("Probed"));
+
+                setRightComponent(new Button("OK"));
+            }
+        }
+
+        // Use it as the content root
+        setContent(new MyView());
+    }
+    ...
+}]]></programlisting>
+
+        <para>
+            The above example omits the definition of the servlet class, does not have any
+            UI logic yet, and you would normally implement some views, etc. The
+            resulting UI is shown in <xref linkend="figure.mobile.overview.example"/>.
+        </para>
+
+        <figure xml:id="figure.mobile.overview.example">
+            <title>Simple TouchKit UI</title>
+            <mediaobject>
+                <imageobject>
+                    <imagedata smallscale="50%" scale="35" align="center" fileref="img/mobile/simplephoneui.png"/>
+                </imageobject>
+            </mediaobject>
+        </figure>
+
+        <para>
+            TouchKit supports many special mobile browser features, such as geolocation,
+            context-specific input fields, and home screen launching. On iOS, special
+            features such as splash screen and web app mode are supported.
+        </para>
+
+        <para>
+            In addition to developing regular server-side UIs, TouchKit allows a special
+            <emphasis>offline mode</emphasis>, which is a client-side Vaadin UI that is
+            stored in the browser cache and switched to automatically when the network
+            connection is not available, either when starting the application or while
+            using it. For more information, see <xref linkend="mobile.offline"/>.
+        </para>
+
+        <para>
+            In this chapter, we first consider some special aspects of mobile
+            browsing. Then, we look how to create a project that uses TouchKit. TouchKit
+            offers a number of specialized mobile components, which are described in a
+            dedicated section. We treat phone and tablet applications separately, and
+            discuss testing briefly.
+        </para>
+
+        <simplesect xml:id="mobile.overview.demos">
+            <title>TouchKit Demos</title>
+
+            <para>
+                The Parking Demo showcases the most important TouchKit features for a
+                mobile location-based business application. The app itself is for helping
+                parking enforcement officers write parking tickets on the streets. It uses
+                geolocation, image acquisition from the camera of the mobile device, map
+                navigation, data visualization with Vaadin Charts, and dynamic UIs with
+                responsive layouts.  You can try it out at <link
+                xlink:href="http://demo.vaadin.com/parking">http://demo.vaadin.com/parking</link>. See
+                <xref linkend="mobile.installation.parking-demo"/> for instructions for
+                importing the project in Eclipse.
+
+                <phrase condition="web">The <link
+                xlink:href="https://github.com/vaadin/parking-demo">source code is
+                available and browseable at Github</link>.</phrase>
+            </para>
+
+            <para>
+                Mobile Mail is another demo application, which shows how to implement
+                browsing of deep category trees and make forms. You can try it out at
+                <link
+                xlink:href="http://demo.vaadin.com/mobilemail">http://demo.vaadin.com/mobilemail</link>.
+
+                <phrase condition="web">You can <link
+                xlink:href="https://github.com/vaadin/mobilemail-demo">browse the
+                source code</link> of the demo at Github.</phrase>
+            </para>
+
+            <para>
+                Some of the examples given in this chapter can be seen in action at <link
+                xlink:href="http://demo.vaadin.com/touchkit-sampler/">demo.vaadin.com/touchkit-sampler</link>.
+
+                <phrase condition="web">You can browse the source code at the <link
+                xlink:href="https://github.com/vaadin-samples/touchkit-sampler">source
+                repository</link> or clone it with Git.</phrase>
+            </para>
+        </simplesect>
+
+        <simplesect xml:id="mobile.overview.license">
+            <title>Licensing</title>
+
+            <para>
+                Vaadin TouchKit is a commercial product licensed under a dual-licensing
+                scheme. The AGPL license allows open-source development, while the CVAL
+                license needs to be purchased for closed-source use, including web
+                deployments and internal use. Commercial licenses can be purchased from
+                Vaadin Directory, where you can also find the license details and
+                download Vaadin TouchKit.
+            </para>
+        </simplesect>
+    </section>
+
+    <section xml:id="mobile.considerations">
+        <title>Considerations Regarding Mobile Browsing</title>
+
+        <para>
+            When developing web applications that support mobile browsing, you need to
+            consider various issues that are different from non-mobile use. TouchKit is
+            designed to help with these issues.
+        </para>
+
+        <section xml:id="mobile.considerations.mobile-hi">
+            <title>Mobile Human Interface</title>
+
+            <para>
+                Mobile devices use very different human interfaces than regular
+                computers. For example, the screen can be rotated easily to switch between
+                portrait and landscape views. This does not just change the dimensions of
+                the display, but also affects how to arrange components for the best user
+                experience. In addition to TouchKit, responsive layouts help in allowing
+                flexible layouts, as described in <xref linkend="themes.responsive"/>.
+            </para>
+
+            <para>
+                The user interface is used with a finger instead of a mouse, so there are
+                no features such as "right-finger-button". When using a mouse you can
+                click double-click or right-click, but on a touch device, you are using
+                interactions such as tap and "long tap". Finger gestures also play a large
+                role, such as using a vertical swipe gesture for scrolling instead of a
+                scroll bar. Some browsers also allow using two- or multiple-finger
+                gestures.
+            </para>
+
+            <para>
+                There is normally no physical keyboard, but an on-screen keyboard, which
+                can change depending on the context. You also need to ensure that it does
+                not hide the input field to which the user is trying to enter data when it
+                pops up. This should be handled by the browser, but is among the issues
+                that requires special testing.
+            </para>
+        </section>
+
+        <section xml:id="mobile.considerations.bandwidth">
+            <title>Bandwidth and Performance</title>
+
+            <para>
+                Mobile Internet connections are often significantly slower than with fixed
+                lines. With a low-end mobile connection, such as 384 kbps, just loading
+                the Vaadin client-side engine can take several seconds. This can be helped
+                by compiling a widget set that includes only the widgets for the used
+                components, as described in <xref linkend="mobile.optimization"/>, by
+                compiling the theme into the widget set, and so forth.
+            </para>
+
+            <para>
+                Even with mobile broadband, the latency can be significant factor,
+                especially with highly interactive rich applications. The latency is
+                usually almost unnoticeable in fixed lines, typically less than 100 ms,
+                while mobile Edge connections typically have latency around 500 ms, and
+                sometimes much higher during hiccups. You may need to limit the use of the
+                immediate mode, text change events, and polling. The latency compensation
+                in some components, such as <classname>NavigationManager</classname>,
+                allows view change animations to occur while the server request to display
+                the result is being made.
+            </para>
+
+            <para>
+                Further, the choice of components affects performance. TouchKit components
+                are designed to be light-weight. Of the other Vaadin components, some are
+                more light-weight than others. Especially, most other layout components
+                have a more deeper DOM structure and are slower to render than the
+                light-weight <classname>CssLayout</classname>. TouchKit also includes
+                special styling for <classname>CssLayout</classname>.
+            </para>
+        </section>
+
+        <section xml:id="mobile.considerations.features">
+            <title>Mobile Features</title>
+
+            <para>
+                Phones and tablets have many integrated features that are often available in
+                the browser interface as well. Location-awareness is one of the most recent
+                features. And of course, you can also make phone calls.
+            </para>
+        </section>
+
+        <section xml:id="mobile.considerations.compatibility">
+            <title>Compatibility</title>
+
+            <para>
+                The mobile browsing field is currently evolving at a quick pace and the
+                special conventions introduced by leading manufacturers may, in the next
+                few years, stabilize as new web standards. The browser support in TouchKit
+                originally concentrated on WebKit, which appears to be emerging as the
+                leading mobile browser core. In addition to Apple's products, also the
+                default browser in Android uses WebKit as the layout engine. Yet they have
+                differences, as the Android's JavaScript engine, which is highly relevant
+                for Vaadin, is the Google Chrome's V8 engine. As of TouchKit 4, Internet
+                Explorer on Windows Phone is also supported.
+            </para>
+
+            <para>
+                For the list of devices supported by the latest TouchKit version, see the
+                <link xlink:href="https://vaadin.com/add-ons/touchkit">TouchKit product
+                page</link> at the Vaadin site.
+            </para>
+
+            <para>
+                Vaadin TouchKit aims to follow the quickly evolving APIs of these major
+                platforms, with the assumption that other browsers will follow their lead
+                in standardization. Other platforms will be supported if they rise in
+                popularity.
+            </para>
+
+            <section xml:id="mobile.considerations.compatibility.backbutton">
+                <title>Back Button</title>
+
+                <para>
+                    Some mobile devices, especially Android and Windows Phone devices,
+                    have a dedicated back button, while iOS devices in particular do not.
+                    TouchKit does not provide any particular support for the button, but
+                    as it is a regular browser back button, you can handle it with URI
+                    fragments, as described in <xref linkend="advanced.urifu"/>. For iOS,
+                    the browser back button is hidden if the user adds the application to
+                    the home screen, in which case you need to implement
+                    application-specific logic for the back-navigation.
+                </para>
+            </section>
+        </section>
+    </section>
+
+    <section xml:id="mobile.installation" condition="web">
+        <title>Installing Vaadin TouchKit</title>
+
+        <para>
+            You can download and install TouchKit from Vaadin Directory at <link
+            xlink:href="https://vaadin.com/addon/vaadin-touchkit">vaadin.com/addon/vaadin-touchkit</link>
+            as an installation package, or get it with Maven or Ivy. If your project is
+            not compatible with the AGPL license, you can purchase CVAL licenses from
+            Vaadin Directory or subscribe to the Pro Tools package at <link
+            xlink:href="https://vaadin.com/pro">vaadin.com/pro</link>.
+        </para>
+
+        <para>
+            Add-on installation is described in detail in <xref linkend="addons"/>. The
+            add-on includes a widget set, so you need to compile the widget set for your
+            project.
+        </para>
+
+        <section xml:id="mobile.elements.ivy" condition="web">
+            <title>Installing as Ivy Dependency</title>
+
+            <para>
+                If you use the add-on in an Eclipse project created with the Vaadin Plugin
+                for Eclipse, you can define an Ivy dependency to automatically download
+                the library. Include the following declaration inside the
+                <literal>dependencies</literal> section in the
+                <filename>ivy.xml</filename>:
+            </para>
+
+            <programlisting>&lt;dependency org="com.vaadin.addon"
+            name="vaadin-touchkit-agpl"
+            rev="<emphasis role="bold">latest.release</emphasis>"
+            conf="default->default" /&gt;</programlisting>
+
+            <para>
+                You can use <literal>latest.release</literal> revision tag to always use
+                the latest release or specify a version by its version number. IvyDE
+                should resolve the dependency immediately as you save the file. See <xref
+                linkend="addons.eclipse"/> for further details.
+            </para>
+        </section>
+
+        <section xml:id="mobile.installation.maven" condition="web">
+            <title>Defining the Maven Dependency</title>
+
+            <para>
+                You can install Vaadin TouchKit in a Maven project by adding it as a
+                dependency, as described below, or by using the Maven archetype, as
+                described in <xref linkend="mobile.project.maven"/>.
+            </para>
+
+            <para>
+                To use TouchKit in a Vaadin project, you need to include the following
+                dependency in the POM. The <literal>artifactId</literal> should be
+                <literal>vaadin-touchkit-agpl</literal> or
+                <literal>vaadin-touchkit-cval</literal>, depending on which license suits
+                your project requirements.
+            </para>
+
+            <programlisting>&lt;dependency&gt;
+    &lt;groupId&gt;com.vaadin.addon&lt;/groupId&gt;
+    &lt;artifactId&gt;vaadin-touchkit-<emphasis role="bold">agpl</emphasis>&lt;/artifactId&gt;
+    &lt;version&gt;<emphasis role="bold">LATEST</emphasis>&lt;/version&gt;
+&lt;/dependency&gt;</programlisting>
+
+            <para>
+                You can use the <parameter>LATEST</parameter> version as shown above or a
+                specific version by its version number.
+            </para>
+
+            <para>
+                You also need to define the repository for the Vaadin add-ons under the
+                <literal>&lt;repositories&gt;</literal> element:
+            </para>
+
+            <programlisting><![CDATA[<repository>
+    <id>vaadin-addons</id>
+    <url>http://maven.vaadin.com/vaadin-addons</url>
+</repository>]]></programlisting>
+
+            <para>
+                Finally, you need to enable the widget set compilation in the POM, as
+                described in <xref linkend="addons.maven.widgetset"/>, and compile it.
+            </para>
+        </section>
+
+        <section xml:id="mobile.elements.downloading" condition="web">
+            <title>Installing the Zip Package</title>
+
+            <para>
+                Vaadin TouchKit is distributed as a Zip package that contains the TouchKit
+                JAR, a JavaDoc JAR, license texts, and other documentation.  You can
+                download the Zip package from Vaadin Directory. A different package is
+                provided for each of the two licenses, and Directory asks for your
+                choice.
+            </para>
+
+            <para>
+                The TouchKit JAR in the package should be put in the
+                <filename>WEB-INF/lib</filename> folder of the web application.
+            </para>
+
+            <para>
+                Please see the <filename>README.html</filename> for more information about
+                the package contents.
+            </para>
+        </section>
+    </section>
+
+    <section xml:id="mobile.installation.parking-demo">
+        <title>Importing the Parking Demo</title>
+
+        <para>
+            The Parking Demo, illustrated in <xref
+            linkend="figure.mobile.overview.touchkit"/> in the overview, showcases most of
+            the functionality in Vaadin TouchKit. You can try out the demo online with a
+            TouchKit-compatible browser at <link
+            xlink:href="http://demo.vaadin.com/parking">demo.vaadin.com/parking</link>.
+        </para>
+
+        <para>
+            You can browse the sources on-line or, more conveniently, import the project
+            in Eclipse (or other IDE). As the project is Maven-based, Eclipse users need
+            to install the m2e plugin to be able to import Maven projects, as well as EGit
+            to be able to import Git repositories. Once they are installed, you should be
+            able to import Parking Demo as follows.
+        </para>
+
+        <orderedlist>
+            <listitem>Select <menuchoice><guimenu>File</guimenu><guimenuitem>Import</guimenuitem></menuchoice></listitem>
+            <listitem>Select <menuchoice><guimenu>Maven</guimenu><guimenuitem>Check out Maven Project from SCM</guimenuitem></menuchoice>, and click <guibutton>Next</guibutton>.</listitem>
+
+            <listitem>
+                <para>
+                    You may need to install the EGit SCM connector if you have not done so
+                    previously. If Git is not available in the SCM list, click
+                    <guibutton>m2e marketplace</guibutton>, select the EGit connector, and
+                    click <guibutton>Finish</guibutton>. You need to restart Eclipse and
+                    redo the earlier steps above.
+                </para>
+
+                <para>
+                    Instead of using m2e EGit connector, you can also check out the
+                    project with another Git tool and then import it in Eclipse as a Maven
+                    project.
+                </para>
+            </listitem>
+
+            <listitem>
+                In <guilabel>SCM URL</guilabel>, select <guilabel>git</guilabel> and enter
+                the repository URL <uri>https://github.com/vaadin/parking-demo</uri>. 
+            </listitem>
+
+            <listitem>Click <guibutton>Finish</guibutton>.</listitem>
+
+            <listitem>
+                Compile the widget set either by clicking <guibutton>Compile
+                Widgetset</guibutton> in the Eclipse toolbar or by running the
+                <literal>vaadin:compile</literal> goal with Maven. 
+            </listitem>
+
+            <listitem>
+                Deploy the application to a server. See <xref
+                linkend="getting-started.first-project.server"/> for instructions for
+                deploying in Eclipse.
+            </listitem>
+
+            <listitem>
+                Open the URL <uri>http://localhost:8080/parking</uri> with a mobile device
+                or a WebKit-compatible browser, such as Safari or Chrome, to run the
+                Parking Demo.
+            </listitem>
+        </orderedlist>
+    </section>
+
+    <section xml:id="mobile.project">
+        <title>Creating a New TouchKit Project</title>
+
+        <para>
+            The easiest ways to create a new TouchKit application project are to either
+            use the Maven archetype or create the project as a regular Vaadin project with
+            the Vaadin Plugin for Eclipse and then modify it for TouchKit.
+        </para>
+
+        <section xml:id="mobile.project.maven">
+            <title>Using the Maven Archetype</title>
+
+            <para>
+                You can create a new TouchKit application project using the Maven
+                <parameter>vaadin-archetype-touchkit</parameter> archetype. Creating
+                Vaadin projects with Maven is described in more detail in <xref
+                linkend="getting-started.maven"/>.
+            </para>
+
+            <para>
+                For example, to create a project from the command-line, you could do:
+            </para>
+
+            <screen><prompt>$</prompt> <command>mvn</command> archetype:generate \
+  -DarchetypeGroupId=com.vaadin \
+  -DarchetypeArtifactId=vaadin-archetype-touchkit \
+  -DarchetypeVersion=<replaceable>4.0.0</replaceable> \
+  -DgroupId=<replaceable>example.com</replaceable> -DartifactId=<replaceable>myproject</replaceable> \
+  -Dversion=<replaceable>0.1.0</replaceable> \
+  -DApplicationName=<replaceable>My</replaceable> -Dpackaging=war</screen>
+
+            <para>
+                The <parameter>ApplicationName</parameter> parameter for the archetype is
+                used as a prefix for the various stub class names. For example, the above
+                "My" name results in classes such as <classname>MyTouchKitUI</classname>.
+            </para>
+
+            <para>
+                The generated project has the following source files:
+            </para>
+
+            <variablelist>
+                <varlistentry>
+                    <term><filename>MyTouchKitUI.java</filename></term>
+                    <listitem>
+                        <para>
+                            The mobile UI for the TouchKit application. See <xref
+                            linkend="mobile.elements.ui"/> for the basics of a TouchKit
+                            UI. The example UI uses <classname>TabBarView</classname> as
+                            the content. The first tab features a
+                            <classname>MenuView</classname> (see below), a navigation view
+                            stub defined in the project.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><filename>MyFallbackUI.java</filename></term>
+                    <listitem>
+                        <para>
+                            A fallback UI for browsers unsupported by TouchKit, such as
+                            regular desktop browsers. See <xref
+                            linkend="mobile.features.fallback"/> for more information
+                            about fallback UIs.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><filename>MyServlet.java</filename></term>
+                    <listitem>
+                        <para>
+                            The servlet class for the UI, defined using the
+                            <literal>@WebServlet</literal> annotation in Servlet API
+                            3.0. The generated servlet customizes TouchKit to define the
+                            <classname>MyUIProvider</classname>, which sets the fallback
+                            UI. See <xref linkend="mobile.elements.servlet"/> for more
+                            details about defining a custom servlet to customize TouchKit.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><filename>MyUIProvider.java</filename></term>
+                    <listitem>
+                        <para>
+                            Creates either the <classname>MyTouchKitUI</classname> for
+                            supported mobile browsers or
+                            <classname>MyFallBackUI</classname> for unsupported
+                            browsers. See <xref linkend="mobile.features.fallback"/> for
+                            more information about fallback UIs.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><filename>MenuView.java</filename></term>
+                    <listitem>
+                        <para>
+                            Presents a stub for a menu view. The menu is made of
+                            <classname>NavigationButton</classname>s laid out in a
+                            <classname>VerticalComponentGroup</classname>. Clicking a
+                            button navigates to another view; in the stub to a
+                            <classname>FormView</classname> (see below).
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><filename>FormView.java</filename></term>
+                    <listitem>
+                        <para>
+                            Presents a stub for a data input form.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><filename>gwt/AppWidgetSet.gwt.xml</filename></term>
+                    <listitem>
+                        <para>
+                            Widget set descriptor for the project. When compiled, it is
+                            automatically updated to include possible other add-on widget
+                            sets in the project.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><filename>gwt/client/MyOfflineDataService.java</filename></term>
+                    <listitem>
+                        <para>
+                            A data service stub for storing data in the offline mode. See
+                            <xref linkend="mobile.offline"/>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><filename>gwt/client/MyPersistToServerRpc.java</filename></term>
+                    <listitem>
+                        <para>
+                            Client-to-Server RPC stub to persist offline data to the
+                            server-side.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+
+            <para>
+                If you import the project to Eclipse or other IDE, you at least need to
+                compile the widget set to be able to deploy the project. You can to do
+                that with Maven integration in the IDE, or from command-line with:
+            </para>
+
+            <screen><prompt>$</prompt> <command>mvn</command> vaadin:compile</screen>
+
+            <para>
+                See <xref linkend="getting-started.maven"/>. At least in Eclipse, you
+                should now be able to import and deploy the project to a development
+                server. You can also compile the project and launch it in a Jetty web
+                server (port 8080) from command-line as follows:
+            </para>
+
+            <screen><prompt>$</prompt> <command>mvn</command> package
+<prompt>$</prompt> <command>mvn</command> jetty:run</screen>
+
+            <para>
+                Note that a project generated by the archetype defines the servlet with
+                the <literal>@WebServlet</literal> annotation defined in Servlet API
+                3.0. The application server must support Servlet 3.0. For example, if you
+                use Tomcat, you need at least Tomcat 7.
+            </para>
+        </section>
+
+        <section xml:id="mobile.project.eclipse">
+            <title>Starting from a New Eclipse Project</title>
+
+            <para>
+                You can create a new TouchKit project from a regular Vaadin project
+                created with the Vaadin Plugin for Eclipse (see <xref
+                linkend="getting-started.first-project"/>).
+            </para>
+
+            <para>
+                After creating the project, you need to do the following tasks:
+            </para>
+
+            <orderedlist>
+                <listitem>
+                    <para>
+                        Install the TouchKit library in the project by including it in the
+                        <filename>ivy.xml</filename><phrase condition="web">, as described
+                        in <xref linkend="mobile.elements.ivy"/>,</phrase> and compile the
+                        widget set.
+                    </para>
+                </listitem>
+
+                <listitem>
+                    <para>
+                        Extend <classname>TouchkitServlet</classname> instead of
+                        <classname>VaadinServlet</classname> in the servlet class, as
+                        described in <xref linkend="mobile.elements.servlet"/>. It is
+                        recommended that you extract the static inner class created by the
+                        wizard to a regular class, as you most probably need to do
+                        additional configuration in it.
+                    </para>
+
+            <programlisting><?pocket-size 70% ?>@WebServlet(value = "/*",
+            asyncSupported = true)
+@VaadinServletConfiguration(
+        productionMode = false,
+        ui = MyMobileUI.class)
+public class MyProjectServlet extends <emphasis role="bold">TouchKitServlet</emphasis> {
+}</programlisting>
+                </listitem>
+
+                <listitem>
+                    <para>
+                        If you intend to define a fallback UI later, as described in <xref
+                        linkend="mobile.features.fallback"/>, you may want to copy the
+                        original UI class stub to use it as a fallback UI class.
+                    </para>
+                </listitem>
+
+                <listitem>
+                    <para>
+                        To get started quickly, disable the use of custom theme by using
+                        <literal>@Theme("touchkit")</literal> in the UI class. To
+                        create a custom mobile theme later, see <xref
+                        linkend="mobile.elements.theme"/>.
+                    </para>
+
+                    <programlisting><?pocket-size 75% ?>@Theme("<emphasis role="bold">touchkit</emphasis>")
+public class MyMobileUI extends UI {</programlisting>
+                </listitem>
+
+                <listitem>
+                    <para>
+                        Build the mobile UI preferring TouchKit components instead of the
+                        core Vaadin components, as described in <xref
+                        linkend="mobile.elements.ui"/>.
+                    </para>
+                </listitem>
+            </orderedlist>
+
+            <para>
+                We cover these and various other tasks in more detail in <xref
+                linkend="mobile.elements"/>.
+            </para>
+        </section>
+    </section>
+
+    <section xml:id="mobile.elements">
+        <title>Elements of a TouchKit Application</title>
+
+        <para>
+            At minimum, a TouchKit application requires a UI class, which is defined in a
+            deployment descriptor, as usual for Vaadin applications. You usually define a
+            servlet class, where you can also do some TouchKit-specific configuration. You
+            may also need to have a custom theme. These and other tasks are described in
+            the following subsections.
+        </para>
+
+        <section xml:id="mobile.elements.servlet">
+            <title>The Servlet Class</title>
+
+            <para>
+                When using a Servlet 3.0 compatible application server, you usually define
+                the UI and make basic configuration with a servlet class with the
+                <literal>@WebServlet</literal> annotation. Vaadin Plugin for Eclipse
+                creates the servlet class as a static inner class of the UI class, while
+                the Maven archetype creates it as a separate class, which is usually the
+                preferred way.
+            </para>
+
+            <para>
+                The servlet class must define the UI class as usual. Additionally, you can
+                configure the following TouchKit features in the servlet class:
+            </para>
+
+            <itemizedlist>
+                <listitem>Customize bookmark or home screen icon</listitem>
+                <listitem>Customize splash screen image</listitem>
+                <listitem>Customize status bar in iOS</listitem>
+                <listitem>Use special web app mode in iOS</listitem>
+                <listitem>Provide a fallback UI (<xref linkend="mobile.features.fallback"/>)</listitem>
+                <listitem>Enable offline mode</listitem>
+            </itemizedlist>
+
+            <para>
+                A custom servlet should normally extend the
+                <classname>TouchKitServlet</classname>. You should place your code in
+                <methodname>servletInitialized()</methodname> and call the super method in
+                the beginning.
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[public class MyServlet extends TouchKitServlet {
+    @Override
+    protected void servletInitialized() throws ServletException {
+        super.servletInitialized();
+
+        ... customization ...
+    }
+}]]></programlisting>
+
+            <para>
+                If you need to rather extend some other servlet, possibly in another
+                add-on, it should be trivial to reimplement the functionality of
+                <classname>TouchKitServlet</classname>, which is just to manage the
+                TouchKit settings object.
+            </para>
+
+            <para>
+                If using <filename>web.xml</filename> deployment descriptor instead of the
+                <classname>@WebServlet</classname>, you only need to implement custom
+                servlet class if you need to do any of the above configuration, which you
+                typically need to do.
+            </para>
+        </section>
+
+        <section xml:id="mobile.elements.webxml">
+            <title>Defining Servlet and UI with <filename>web.xml</filename> Deployment Descriptor</title>
+
+            <para>
+                If using an old style <filename>web.xml</filename> deployment descriptor,
+                you need to define the special <classname>TouchKitServlet</classname>
+                class instead of the regular <classname>VaadinServlet</classname> in the
+                <filename>web.xml</filename> deployment descriptor.  Often you need to
+                make some configuration or add special logic in a custom servlet, as
+                described in the previous section, in which case you need to define your
+                servlet in the deployment descriptor.
+            </para>
+
+            <programlisting><?pocket-size 65% ?>&lt;servlet&gt;
+  &lt;servlet-name&gt;Vaadin UI Servlet&lt;/servlet-name&gt;
+  &lt;servlet-class&gt;
+    <emphasis role="bold">com.vaadin.addon.touchkit.server.TouchKitServlet</emphasis>
+  &lt;/servlet-class&gt;
+  &lt;init-param&gt;
+    &lt;description&gt;Vaadin UI class to start&lt;/description&gt;
+    &lt;param-name&gt;ui&lt;/param-name&gt;
+    &lt;param-value&gt;<emphasis role="bold">com.example.myapp.MyMobileUI</emphasis>&lt;/param-value&gt;
+  &lt;/init-param&gt;
+&lt;/servlet&gt;</programlisting>
+        </section>
+
+        <section xml:id="mobile.elements.settings">
+            <title>TouchKit Settings</title>
+
+            <para>
+                TouchKit has a number of settings that you can customize for your
+                needs. The <classname>TouchKitSettings</classname> configuration object is
+                managed by <classname>TouchKitServlet</classname>, so if you make any
+                modifications to it, you need to implement a custom servlet, as described
+                earlier.
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[public class MyServlet extends TouchKitServlet {
+    @Override
+    protected void servletInitialized() throws ServletException {
+        super.servletInitialized();
+
+        TouchKitSettings s = getTouchKitSettings();
+        ...
+    }
+}]]></programlisting>
+
+            <para>
+                The settings include special settings for iOS devices, which are contained
+                in a separate <classname>IosWebAppSettings</classname> object, available
+                from the TouchKit settings with
+                <methodname>getIosWebAppSettings()</methodname>.
+            </para>
+
+            <section xml:id="mobile.elements.settings.icons">
+                <title>Application Icons</title>
+
+                <para>
+                    The location bar, bookmarks, and other places can display an icon for
+                    the web application. You can set the icon, or more exactly icons, in
+                    an <classname>ApplicationIcons</classname> object, which manages icons
+                    for different resolutions. The most properly sized icon for the
+                    context is used. iOS devices prefer icons with 57&#215;57,
+                    72&#215;72, and 144&#215;144 pixels, and Android devices
+                    36&#215;36, 48&#215;48, 72&#215;72, and 96&#215;96 pixels.
+                </para>
+
+                <para>
+                    You can add an icon to the application icons collection with
+                    <methodname>addApplicationIcon()</methodname>.  You
+                    can acquire the base URL for your application from the servlet
+                    context, as shown in the following example.
+                </para>
+
+                <programlisting><?pocket-size 75% ?><![CDATA[TouchKitSettings s = getTouchKitSettings();
+String contextPath = getServletConfig()
+    .getServletContext().getContextPath();
+s.getApplicationIcons().addApplicationIcon(
+    contextPath + "VAADIN/themes/mytheme/icon.png");]]></programlisting>
+
+                <para>
+                    The basic method just takes the icon name, while the other one lets
+                    you define its size. It also has a <parameter>preComposed</parameter>
+                    parameter, which when true, instructs Safari from adding effects to
+                    the icon in iOS.
+                </para>
+            </section>
+
+            <section xml:id="mobile.elements.settings.viewport">
+                <title>Viewport Settings</title>
+
+                <para>
+                    The <classname>ViewPortSettings</classname> object, which you can get
+                    from the TouchKit settings with
+                    <methodname>getViewPortSettings()</methodname>, manages settings
+                    related to the display, most importantly the scaling limitations.
+                </para>
+
+                <programlisting><?pocket-size 65% ?><![CDATA[TouchKitSettings s = getTouchKitSettings();
+ViewPortSettings vp = s.getViewPortSettings();
+vp.setViewPortUserScalable(true);
+...]]></programlisting>
+
+                <para>
+                    See the <link
+                    xlink:href="http://developer.apple.com/library/safari/">Safari
+                    Development Library</link> at the Apple developer's site for more
+                    details regarding the functionality in the iOS browser.
+                </para>
+            </section>
+
+            <section xml:id="mobile.elements.settings.splash">
+                <title>Startup Image for iOS</title>
+
+                <para>
+                    iOS browser supports a startup (splash) image that is shown while the
+                    application is loading. You can set it in the
+                    <classname>IosWebAppSettings</classname> object with
+                    <methodname>setStartupImage()</methodname>. You can acquire the base
+                    URL for your application from the servlet context, as shown in the
+                    following example.
+                </para>
+
+                <programlisting><?pocket-size 65% ?><![CDATA[TouchKitSettings s = getTouchKitSettings();
+String contextPath = getServletConfig().getServletContext()
+    .getContextPath();
+s.getIosWebAppSettings().setStartupImage(
+    contextPath + "VAADIN/themes/mytheme/startup.png");]]></programlisting>
+
+            </section>
+
+            <section xml:id="mobile.elements.settings.webapp">
+                <title>Web App Capability for iOS</title>
+
+                <para>
+                    iOS supports a special web app mode for bookmarks added and started
+                    from the home screen. With the mode enabled, the client may, among
+                    other things, hide the browser's own UI to give more space for the web
+                    application. The mode is enabled by a header that tells the browser
+                    whether the application is designed to be used as a web application
+                    rather than a web page.
+                </para>
+
+                <programlisting><![CDATA[TouchKitSettings s = getTouchKitSettings();
+s.getIosWebAppSettings().setWebAppCapable(true);]]></programlisting>
+
+                <para>
+                    See the <link
+                    xlink:href="http://developer.apple.com/library/safari/">Safari
+                    Development Library</link> at the Apple developer's site for more
+                    details regarding the functionality in the iOS browser.
+                </para>
+            </section>
+
+            <section xml:id="mobile.elements.settings.cache">
+                <title>Cache Manifest</title>
+
+                <para>
+                    The <classname>ApplicationCacheSettings</classname> object manages the
+                    cache manifest, which is used to configure how the browser caches the
+                    page and other resources for the web app. See <xref
+                    linkend="mobile.offline"/> for more details about its use.
+                </para>
+            </section>
+        </section>
+
+        <section xml:id="mobile.elements.ui">
+            <title>The UI</title>
+
+            <para>
+                Mobile UIs extend the <classname>UI</classname> class as usual and
+                construct the user interface from components.
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[@Theme("mobiletheme")
+@Widgetset("com.example.myapp.MyAppWidgetSet")
+@Title("My Simple App")
+public class SimplePhoneUI extends UI {
+    @Override
+    protected void init(VaadinRequest request) {
+        // Create the content root layout for the UI
+        TabBarView mainView = new TabBarView();
+        setContent(mainView);
+
+        ...
+    }
+}]]></programlisting>
+
+            <para>
+                As TouchKit comes with a custom widget set, you need to use a combining
+                widget set for your project, defined with the
+                <literal>@Widgetset</literal> annotation for the UI. The combining widget
+                set descriptor is automatically generated by the Vaadin Plugin for Eclipse
+                and in Maven when you install or define the TouchKit add-on.
+            </para>
+
+            <para>
+                Most commonly, you will use a combination of the major three TouchKit
+                components as the basis of the UI: <classname>TabBarView</classname>,
+                <classname>NavigationView</classname>, or
+                <classname>NavigationManager</classname>.
+            </para>
+
+            <para>
+                If a offline UI is provided, it needs to be enabled in the initialization
+                of the UI, as described in <xref linkend="mobile.offline"/>. This code is
+                included in the project stub created by the Maven archetype.
+            </para>
+        </section>
+
+        <!-- TODO
+        <section xml:id="mobile.elements.phonevstablet">
+            <title>Phone and Tablet UIs</title>
+
+            <para>
+                The displays in mobile phones and tablets can have very different sizes,
+                so you may want to provide optimized views for each. You can get the
+                display size in pixels from the browser info
+            </para>
+        </section>
+        -->
+
+        <section xml:id="mobile.elements.widgetset">
+            <title>Mobile Widget Set</title>
+
+            <para>
+                TouchKit includes a widget set and therefore requires compiling a project
+                widget set that includes it, as described in <xref
+                linkend="addons"/>. The project widget set descriptor is
+                automatically generated during the compilation process, whether you use
+                Maven or the Eclipse plugin.
+            </para>
+
+            <para>
+                Note that if you have a TouchKit UI in the same project as a non-TouchKit
+                UI, you probably do not want to compile the TouchKit widget set into its
+                widget set. As the automatic generation of the descriptor includes all the
+                widget sets that it finds from the class path, the result can be unwanted,
+                and you need to edit the widget set descriptor manually.
+            </para>
+        </section>
+
+        <section xml:id="mobile.elements.theme">
+            <title>Mobile Theme</title>
+
+            <para>
+                You can use both Sass and CSS themes for TouchKit applications, although
+                they are defined a bit differently from regular Vaadin themes. To optimize
+                how a theme is loaded, you can build it into a GWT client bundle.
+            </para>
+
+            <section xml:id="mobile.elements.theme.css">
+                <title>Defining a Regular Theme</title>
+
+                <para>
+                    Using plain CSS is often the easiest way to define a simple theme for
+                    a mobile application, as using Sass would not yield all the same
+                    benefits as in a regular Vaadin application. TouchKit includes its own
+                    base theme in its widget set, so you do not need to
+                    <literal>@import</literal> it explicitly.
+                </para>
+
+                <para>
+                    A CSS theme is defined in a file located at
+                    <filename>VAADIN/themes/mymobiletheme/styles.css</filename>. As
+                    importing the base does not need to (and should not) be done, it could
+                    simply be as follows:
+                </para>
+
+                <programlisting><![CDATA[.stylishlabel {
+    color: red;
+    font-style: italic;
+}]]></programlisting>
+
+                <para>
+                    You need to set the theme with the
+                    <literal>@Theme("mymobiletheme")</literal> annotation for your UI
+                    class, as usual.
+                </para>
+
+                <para>
+                    You can also use Sass by creating a <filename>styles.scss</filename>
+                    and then compiling it to CSS with the Vaadin theme compiler. However,
+                    as above, you should not include a base theme. The rules do not need
+                    to be wrapped in a selector with the theme name, as is recommended for
+                    regular Vaadin themes.
+                </para>
+            </section>
+
+            <section xml:id="mobile.elements.theme.responsive">
+                <title>Responsive Mobile Themes</title>
+
+                <para>
+                    The responsive extension is especially useful for mobile layouts, as
+                    it makes it easy to adapt a layout for phones and tablets and for
+                    changing the screen orientation. With the extension, changing the UI
+                    layout according to screen orientation is handled entirely on the
+                    client-side by the add-on, using special CSS selectors in the
+                    theme. See <xref linkend="themes.responsive"/> for details.
+                </para>
+
+                <para>
+                    The Parking Demo uses the extension. From its source code, which is
+                    available at Github, you can learn how the conditional selectors are
+                    used in the <link
+                    xlink:href="https://github.com/vaadin/parking-demo/tree/master/src/main/resources/com/vaadin/demo/parking/widgetset/client/theme">CSS
+                    defined in a GWT client bundle</link>.
+                </para>
+
+                <para>
+                    For example, the CSS for the <guilabel>Stats</guilabel> tab in the
+                    Parking demo defines a responsive selector as follows, to allow
+                    fitting two charts side-by-side if there is enough room horizontally:
+                </para>
+
+                <programlisting><?pocket-size 75% ?><![CDATA[.stats .statschart {
+    margin-bottom: 30px;
+    float: left;
+    width: 100%;
+}
+
+.v-ui[width-range~="801px-"] .stats .statschart {
+    width: 48% !important;
+    margin: 0 1%;
+}]]></programlisting>
+
+                <para>
+                    Normally, if there's 800 pixels or less space horizontally, each chart
+                    takes 100% of the screen width, causing the second one to wrap to the
+                    next line in the containing <classname>CssLayout</classname>. If there
+                    is more space, the two charts are shown in 48% width, so that both can
+                    fit in the same line. <phrase condition="web">This follows the
+                    flexible wrapping pattern described in <xref
+                    linkend="themes.responsive.wrap"/>.</phrase>
+                </para>
+            </section>
+
+            <section xml:id="mobile.elements.theme.gwt">
+                <title>Defining a Theme in a GWT Client Bundle</title>
+
+                <para>
+                    Using a GWT theme instead of a regular Vaadin theme offers several
+                    performance benefits on mobile devices by reducing the number of
+                    resources loaded separately. All the resources, such as images and
+                    stylesheets, can be loaded with the widget set. Images can be handled
+                    as sprites tiled in bundle images.
+                </para>
+
+                <para>
+                    The GWT CSS classes have their own special format, a bit similar to
+                    Sass themes. See <link
+                    xlink:href="https://developers.google.com/web-toolkit/doc/latest/DevGuideClientBundle">GWT
+                    Developer's Guide for detailed information about client bundles</link>
+                    and how to define image, CSS, and other resources.
+                </para>
+
+                <para>
+                    To use a GWT client bundle in a TouchKit application, you need to
+                    define a <emphasis>theme loader</emphasis> that extends the TouchKit
+                    <classname>ThemeLoader</classname> and implements the
+                    <methodname>load()</methodname> method to inject the bundle. The theme
+                    loader and the client bundle are a client-side classes that are
+                    compiled into the widget set, and must therefore be defined under the
+                    <filename>client</filename> directory.
+                </para>
+
+                <para>
+                    For example, in the Parking Demo we have as follows:
+                </para>
+
+                <programlisting><?pocket-size 65% ?><![CDATA[public class ParkingThemeLoader extends ThemeLoader {
+    @Override
+    public final void load() {
+        // First load the default TouchKit theme...
+        super.load();
+
+        // ... and add Parking Demo CSS from its own bundle
+        ParkingBundle.INSTANCE.fontsCss().ensureInjected();
+        ParkingBundle.INSTANCE.css().ensureInjected();
+        ParkingBundle.INSTANCE.ticketsCss().ensureInjected();
+        ParkingBundle.INSTANCE.statsCss().ensureInjected();
+        ParkingBundle.INSTANCE.shiftsCss().ensureInjected();
+        ParkingBundle.INSTANCE.mapCss().ensureInjected();
+    }
+}]]></programlisting>
+
+                <para>
+                    You can call <methodname>super.load()</methodname> to load the default
+                    TouchKit theme, but you can omit the call if you do not want to use
+                    it. In such case, your GWT theme should import the Vaadin base theme
+                    explicitly.
+                </para>
+
+                <para>
+                    The theme loader must be defined in the <filename>.gwt.xml</filename>
+                    widget set descriptor as follows:
+                </para>
+
+                <programlisting><?pocket-size 65% ?>&lt;replace-with
+    class="<emphasis role="bold">com.vaadin.demo.parking.widgetset.client.theme.ParkingThemeLoader</emphasis>"&gt;
+    &lt;when-type-is
+        class="com.vaadin.addon.touchkit.gwt.client.ThemeLoader" /&gt;
+&lt;/replace-with&gt;</programlisting>
+
+                <para>
+                    See the Parking Demo sources for a complete example of defining a GWT
+                    theme.
+                </para>
+            </section>
+        </section>
+
+        <section xml:id="mobile.elements.icons">
+            <title>Using Font Icons</title>
+
+            <para>
+                You can use font icons, as described in <xref linkend="themes.fonticon"/>,
+                also with most TouchKit components.
+            </para>
+
+            <figure xml:id="figure.mobile.elements.icons">
+                <title>Font Icons in <classname>TabBarView</classname></title>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata smallscale="75%" scale="70" align="center" fileref="img/mobile/fonticons.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+
+            <para>
+                For example, as is done in the UI stub of a TouchKit project created from
+                the Maven archetype:
+            </para>
+
+            <programlisting><![CDATA[// Have a tab bar with multiple tab views
+TabBarView tabBarView = new TabBarView();
+
+// Have a tab
+... create view1 ...
+Tab tab1 = tabBarView.addTab(view1);
+
+// Use the "book" icon for the tab
+tab1.setIcon(FontAwesome.BOOK);]]></programlisting>
+        </section>
+    </section>
+
+    <section xml:id="mobile.components">
+        <title>Mobile User Interface Components</title>
+
+        <para>
+            TouchKit introduces a number of components special to mobile user interfaces
+            to give better user interaction and to utilize the special features in mobile
+            devices.
+        </para>
+
+		<variablelist>
+			<varlistentry>
+				<term><classname>NavigationView</classname></term>
+				<listitem>
+					<para>
+                        A view with a navigation bar (<classname>NavigationBar</classname>
+                        for navigating back and forth in a
+                        <classname>NavigationManager</classname>.
+                    </para>
+                </listitem>
+            </varlistentry>
+			<varlistentry>
+				<term><classname>Toolbar</classname></term>
+				<listitem>
+					<para>
+                        A horizontal layout especially for buttons. A sub-component of
+                        <classname>TabBarView</classname> or
+                        <classname>NavigationView</classname>.
+                    </para>
+                </listitem>
+            </varlistentry>
+			<varlistentry>
+				<term><classname>NavigationManager</classname></term>
+				<listitem>
+					<para>
+                        A component container that enables slide animations between the
+                        components while the server request is being made for the purpose
+                        of latency compensation. The components are typically
+                        <classname>NavigationView</classname>s or
+                        <classname>SwipeView</classname>s.
+                    </para>
+                </listitem>
+            </varlistentry>
+			<varlistentry>
+				<term><classname>NavigationButton</classname></term>
+				<listitem>
+					<para>
+                        A special button for initiating view change in a
+                        <classname>NavigationManager</classname> on the client-side, for
+                        the purpose of latency compensation.
+                    </para>
+                </listitem>
+            </varlistentry>
+			<varlistentry>
+				<term><classname>Popover</classname></term>
+				<listitem>
+					<para>
+                        A floating pop-up frame that can be positioned relative to a component.
+                    </para>
+                </listitem>
+            </varlistentry>
+			<varlistentry>
+				<term><classname>SwipeView</classname></term>
+				<listitem>
+					<para>
+                        A view for navigating back and forth in a
+                        <classname>NavigationManager</classname> using horizontal swipe
+                        gestures.
+                    </para>
+                </listitem>
+            </varlistentry>
+			<varlistentry>
+				<term><classname>Switch</classname></term>
+				<listitem>
+					<para>
+                        A sliding on/off toggle for boolean values.
+                    </para>
+                </listitem>
+            </varlistentry>
+			<varlistentry>
+				<term><classname>VerticalComponentGroup</classname></term>
+				<listitem>
+					<para>
+                        A vertical layout for grouping components.
+                    </para>
+                </listitem>
+            </varlistentry>
+			<varlistentry>
+				<term><classname>HorizontalButtonGroup</classname></term>
+				<listitem>
+					<para>
+                        A horizontal layout for grouping especially buttons.
+                    </para>
+                </listitem>
+            </varlistentry>
+			<varlistentry>
+				<term><classname>TabBarView</classname></term>
+				<listitem>
+					<para>
+                        A tabbed view with a content area on the top and a
+                        <classname>Toolbar</classname> for navigating between sub-views on
+                        the bottom.
+                    </para>
+                </listitem>
+            </varlistentry>
+			<varlistentry>
+				<term><classname>EmailField</classname>, <classname>NumberField</classname>, and <classname>UrlField</classname></term>
+				<listitem>
+					<para>
+                        Text fields for inputting specifically email addresses, numbers,
+                        and URLs, respectively, with a specific virtual keyboard.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+
+        <para>
+            The components are detailed in the following subsections.
+        </para>
+
+        <section xml:id="mobile.components.navigationview">
+            <title><classname>NavigationView</classname></title>
+
+            <para>
+                The <classname>NavigationView</classname> is a layout component that consists
+                of a navigation bar and a content area. The content area is scrollable, so
+                there is no need to use an inner panel component. In addition, there can be an
+                optional toolbar component at the bottom of the
+                view. A <classname>NavigationView</classname> is often used inside a
+                <classname>NavigationManager</classname> to get view change animations.
+            </para>
+
+            <figure xml:id="figure.mobile.components.navigationview">
+                <title>Layout of the <classname>NavigationView</classname></title>
+                <mediaobject>
+                    <imageobject role="html">
+                        <imagedata align="center" fileref="img/mobile/navigationview-lo.png"/>
+                    </imageobject>
+                    <imageobject role="fo">
+                        <imagedata smallscale="100%" scale="70" align="center" fileref="img/mobile/navigationview-hi.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+
+            <para>
+                <classname>NavigationView</classname> has a full size by default. The content
+                area is expanding, so that it takes all the space left over from the navigation
+                bar and toolbar.
+            </para>
+
+            <section xml:id="mobile.components.navigationview.navigationbar">
+                <title>Navigation Bar</title>
+
+                <para>
+                    The navigation bar at the top of <classname>NavigationView</classname>
+                    is a separate <classname>NavigationBar</classname> component. It has
+                    two component slots, with one on the left and one on the right. The
+                    caption is displayed in the middle. The
+                    <classname>NavigationBar</classname> component can be used
+                    independently as well.
+                </para>
+
+                <para>
+                    When the <classname>NavigationBar</classname> is used for navigation and you
+                    set the previous component with
+                    <methodname>setPreviousComponent()</methodname>, the left slot is
+                    automatically filled with a <guibutton>Back</guibutton> button. This is
+                    done automatically if you use the <classname>NavigationView</classname>
+                    inside a <classname>NavigationManager</classname>.
+                </para>
+
+                <para>
+                    You can get access to the navigation bar component with
+                    <methodname>getNavigationBar()</methodname> to use its manipulator methods
+                    directly, but <classname>NavigationView</classname> also offers some
+                    shorthand methods: <methodname>setLeftComponent()</methodname>,
+                    <methodname>setRightComponent()</methodname>, and a setter and a getter
+                    for the caption.
+                </para>
+            </section>
+
+            <section xml:id="mobile.components.navigationview.toolbar">
+                <title>Toolbar</title>
+
+                <para>
+                    A slot for an optional toolbar is located at the bottom of the
+                    <classname>NavigationView</classname>. The toolbar can be any component,
+                    but a <classname>Toolbar</classname> component made for this purpose is
+                    included in TouchKit. It is described in <xref
+                        linkend="mobile.components.toolbar"/>. You could also use a
+                    <classname>HorizontalLayout</classname> or
+                    <classname>CssLayout</classname>.
+                </para>
+
+                <para>
+                    You usually fill the tool bar with <classname>Button</classname>
+                    components with an icon and no textual caption. You set the toolbar with
+                    <methodname>setToolbar()</methodname>.
+                </para>
+            </section>
+
+            <section xml:id="mobile.components.navigationview.css" condition="web">
+                <title>Styling with CSS</title>
+
+                <programlisting><![CDATA[.v-touchkit-navview { }
+  .v-touchkit-navview-wrapper {}
+  .v-touchkit-navview-toolbar {}
+.v-touchkit-navview .v-touchkit-navview-notoolbar {}]]></programlisting>
+
+                <para>
+                    The root element has the <literal>v-touchkit-navview</literal> class. The
+                    content area is wrapped inside a
+                    <literal>v-touchkit-navview-wrapper</literal> element. If the view has a
+                    toolbar, the toolbar slot has the
+                    <literal>v-touchkit-navview-toolbar</literal> style, but if not, the
+                    top-level element has the <literal>v-touchkit-navview-notoolbar</literal>
+                    style.
+                </para>
+            </section>
+        </section>
+
+        <section xml:id="mobile.components.toolbar">
+            <title><classname>Toolbar</classname></title>
+
+            <para>
+                The <classname>Toolbar</classname> is a horizontal layout component
+                intended for containing <classname>Button</classname> components. The
+                toolbar has by default 100% horizontal width and a fixed height. The
+                components are spread evenly in the horizontal
+                direction. <classname>Toolbar</classname> is used in a
+                <classname>TabBarView</classname>, as described in <xref
+                linkend="mobile.components.tabbarview" xrefstyle="select:label"/>.
+            </para>
+
+            <para>
+                For a description of the inherited features, please refer to <xref
+                    linkend="layout.orderedlayout"/>.
+            </para>
+
+            <section xml:id="mobile.components.toolbar.css" condition="web">
+                <title>Styling with CSS</title>
+
+                <programlisting><![CDATA[.v-touchkit-toolbar { }]]></programlisting>
+
+                <para>
+                    The component has an overall <literal>v-touchkit-toolbar</literal>
+                    style.
+                </para>
+            </section>
+        </section>
+
+        <section xml:id="mobile.components.navigationpanel">
+            <title><classname>NavigationManager</classname></title>
+
+            <para>
+                The <classname>NavigationManager</classname> is a visual effect component that
+                gives sliding animation when switching between views. You can register
+                three components: the currently displayed component,
+                the previous one on the left, and the next component on the right. You can set
+                these components with <methodname>setCurrentComponent()</methodname>,
+                <methodname>setPreviousComponent()</methodname>, and
+                <methodname>setNextComponent()</methodname>, respectively.
+            </para>
+
+            <para>
+                The <classname>NavigationManager</classname> component is illustrated in <xref
+                    linkend="figure.mobile.components.navigationpanel"/>.
+            </para>
+
+            <figure xml:id="figure.mobile.components.navigationpanel">
+                <title><classname>NavigationManager</classname> with Three <classname>NavigationView</classname>s</title>
+                <mediaobject>
+                    <imageobject role="html">
+                        <imagedata align="center" fileref="img/mobile/navigationpanel-lo.png"/>
+                    </imageobject>
+                    <imageobject role="fo">
+                        <imagedata smallscale="100%" scale="80" align="center" fileref="img/mobile/navigationpanel-hi.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+
+            <para>
+                The navigation manager is important for responsiveness, because the previous and
+                next components are cached and the slide animation started before server is
+                contacted to load the new next or previous views.
+            </para>
+
+            <para>
+                You give the initial view as a parameter for the constructor. Typically,
+                you use a navigation manager as the UI content or inside a
+                <classname>TabBarView</classname>.
+            </para>
+
+            <programlisting><![CDATA[public class MyUI extends UI {
+    @Override
+    protected void init(VaadinRequest request) {
+        NavigationManager manager =
+               new NavigationManager(new MainView());
+        setContent(manager);
+    }
+}]]></programlisting>
+
+            <section xml:id="mobile.components.navigationpanel.viewhandling">
+                <title>Changing Views</title>
+
+                <para>
+                    Switching between the views (components) is normally done with
+                    predefined navigation targets to enhance responsiveness. Clicking a
+                    <classname>NavigationButton</classname> or a button in a navigation
+                    bar starts navigation automatically without a server roundtrip. Swipe
+                    gestures are supported with the <classname>SwipeView</classname>
+                    component.
+                </para>
+
+                <para>
+                    Navigation can also be done programmatically with the
+                    <methodname>navigateTo()</methodname> method. If breadcrumbs are
+                    enabled, the current view is also pushed to the breadcrumb stack. To
+                    navigate back, you can call <methodname>navigateBack()</methodname>,
+                    which is also called implicitly if a <guibutton>Back</guibutton>
+                    button is clicked in a <classname>NavigationView</classname>. Also, if
+                    navigation is done to the "previous" component,
+                    <methodname>navigateBack()</methodname> is done implicitly.
+                </para>
+
+                <para>
+                    When navigation occurs, the current component is moved as the previous
+                    or next component, according to the direction of the navigation.
+                </para>
+            </section>
+
+            <section xml:id="mobile.components.navigationpanel.viewhandling">
+                <title>Handling View Changes</title>
+
+                <para>
+                    While you can put any components in the manager, some special features are
+                    enabled when using the <classname>NavigationView</classname>. When a view
+                    becomes visible, the <methodname>onBecomingVisible()</methodname> method
+                    in the view is called. You can override it, just remember to call the
+                    superclass method.
+                </para>
+
+                <programlisting><![CDATA[@Override
+protected void onBecomingVisible() {
+    super.onBecomingVisible();
+
+    ...
+}]]></programlisting>
+
+                <para>
+                    Otherwise, you can handle navigation changes in the manager with a
+                    <interfacename>NavigationListener</interfacename>. The
+                    <parameter>direction</parameter> property tells whether the navigation
+                    was done forward or backward in the breadcrumb stack, that is, whether
+                    navigation was done with <methodname>navigateTo()</methodname> or
+                    <methodname>navigateBack</methodname>.  The current component,
+                    accessible with <methodname>getCurrentComponent()</methodname>, refers
+                    to the navigation target component.
+                </para>
+
+                <programlisting><?pocket-size 65% ?><![CDATA[manager.addNavigationListener(new NavigationListener() {
+    @Override
+    public void navigate(NavigationEvent event) {
+        if (event.getDirection() ==
+                NavigationEvent.Direction.BACK) {
+            // Do something
+            Notification.show("You came back to " +
+                manager.getCurrentComponent().getCaption());
+        }
+    }
+});]]></programlisting>
+            </section>
+
+            <section xml:id="mobile.components.navigationpanel.breadcrump">
+                <title>Tracking Breadcrumbs</title>
+
+                <para>
+                    <classname>NavigationManager</classname> also handles
+                    <emphasis>breadcrumb</emphasis> tracking. The
+                    <methodname>navigateTo()</methodname> pushes the current view on the top
+                    of the breadcrumb stack and <methodname>navigateBack()</methodname> can be
+                    called to return to the previous breadcrumb level.
+                </para>
+
+                <para>
+                    Notice that calling <methodname>navigateTo()</methodname> with the
+                    "previous" component is equivalent to calling
+                    <methodname>navigateBack()</methodname>.
+                </para>
+            </section>
+        </section>
+
+        <section xml:id="mobile.components.navigationbutton">
+            <title><classname>NavigationButton</classname></title>
+
+            <para>
+                The <classname>NavigationButton</classname> is a special version of the
+                regular <classname>Button</classname> component, designed for navigation
+                inside a <classname>NavigationManager</classname> (see <xref
+                linkend="mobile.components.navigationpanel"/>). Clicking a navigation
+                button will automatically navigate to the defined target view. The view
+                change animation does not need to make a server request first, but starts
+                immediately after clicking the button. If you leave the target view empty,
+                an empty placeholder view is shown in the animation. The view is filled
+                after it gets the content from the server.
+            </para>
+
+            <para>
+                A navigation button does not have a particular border by default, because
+                multiple navigation buttons are typically used inside a
+                <classname>VerticalComponentGroup</classname> to create menus, as
+                illustrated in <xref
+                linkend="figure.mobile.components.navigationbutton"/>.
+            </para>
+
+            <figure xml:id="figure.mobile.components.navigationbutton">
+                <title><classname>NavigationButton</classname>s Inside a Vertical Component Group</title>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata smallscale="50%" scale="80" align="center" fileref="img/mobile/verticalcomponentgroup.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+
+            <para>
+                A navigation button has a caption and can have a description and an
+                icon. If not given explicitly, the caption is taken from the caption of
+                the navigation view if it is initialized before the button. The icon is
+                positioned left of the caption, and the description is aligned on the
+                right side of the button.
+            </para>
+
+            <para>
+                You can give the target view either in the constructor or with
+                <methodname>setTargetView()</methodname>, or create it later by handling
+                the button click.
+            </para>
+
+            <programlisting><?pocket-size 70% ?><![CDATA[// Button caption comes from the view caption
+box.addComponent(new NavigationButton(new PopoverView()));
+
+// Give button caption explicitly
+box.addComponent(new NavigationButton("Decorated Popover",
+                   new DecoratedPopoverView()));]]></programlisting>
+
+            <para>
+                If the target view is not created or initialized before the button is
+                clicked, it does not yet have a caption during the animation. The default
+                is to use the button caption as a temporary target view caption, but you
+                can set it explicitly with
+                <methodname>setTargetViewCaption()</methodname>. The temporary caption is
+                shown during the slide animation and until the content for the view has
+                been received from the server. It is then replaced with the proper caption
+                of the view, and you normally want to have it the same. The temporary
+                caption is also used as the caption of button if it is not given
+                explicitly.
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[
+final NavigationButton navButton = new NavigationButton();
+navButton.setTargetViewCaption("Text Input Fields");
+navButton.addClickListener(
+    new NavigationButtonClickListener() {
+
+    @Override
+    public void buttonClick(NavigationButtonClickEvent event) {
+        navButton.getNavigationManager()
+            .navigateTo(new FieldView());
+    }
+});
+box.addComponent(navButton);]]></programlisting>
+
+            <para>
+                Creating views dynamically this way is recommended to reduce the memory
+                footprint.
+            </para>
+
+            <para>
+                Notice that the automatic navigation will only work if the button is
+                inside a <classname>NavigationManager</classname> (in a view managed by
+                it). If you just want to use the button as a visual element, you can use
+                it like a regular <classname>Button</classname> and handle the click
+                events with a <classname>ClickListener</classname>.
+            </para>
+
+            <section xml:id="mobile.components.navigationbutton.css" condition="web">
+                <title>Styling with CSS</title>
+
+                <programlisting><![CDATA[.v-touchkit-navbutton { }
+  .v-touchkit-navbutton-desc { }
+  .v-icon { }]]></programlisting>
+
+                <para>
+                    The component has an overall <literal>v-touchkit-navbutton</literal>
+                    style. If the component description is set with
+                    <methodname>setDescription()</methodname>, it is shown in a separate
+                    <literal>&lt;span&gt;</literal> element with the
+                    <literal>v-touchkit-navbutton-desc</literal> style. The description
+                    has an alternative <literal>emphasis</literal> style, as well as a
+                    stronger capsule-like <literal>pill</literal> style with rounded
+                    corners, which you can enable with
+                    <methodname>addStyleName()</methodname>.
+                </para>
+
+                <para>
+                    The default style of the navigation button is designed for placing the
+                    buttons inside a <classname>VerticalComponentGroup</classname>. It has
+                    a different style when it is in a
+                    <classname>HorizontalButtonGroup</classname> and when in the left or
+                    right slot of the <classname>NavigationBar</classname>.
+                </para>
+            </section>
+        </section>
+
+        <section xml:id="mobile.components.popover">
+            <title><classname>Popover</classname></title>
+
+            <para>
+                <classname>Popover</classname> is much like a regular Vaadin sub-window,
+                useful for quickly displaying some options or a small form related to an
+                action. Unlike regular sub-windows, it does not support dragging or
+                resizing by the user. As sub-windows usually require a rather large screen
+                size, the <classname>Popover</classname> is most useful for tablet
+                devices. When used on smaller devices, such as phones, the
+                <classname>Popover</classname> automatically fills the entire screen.
+            </para>
+
+            <figure xml:id="figure.mobile.components.popover">
+                <title><classname>Popover</classname> in a Phone</title>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata smallscale="50%" scale="35" align="center" fileref="img/mobile/parking-map-popover.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+
+            <para>
+                It is customary to use a <classname>NavigationView</classname> to have
+                border decorations and caption. In the following, we subclass
+                <classname>Popover</classname> to create the content.
+            </para>
+
+            <programlisting><?pocket-size 75% ?><![CDATA[class DetailsPopover extends Popover {
+    public DetailsPopover() {
+        setWidth("350px");
+        setHeight("65%");
+
+        // Have some details to display
+        VerticalLayout layout = new VerticalLayout();
+        ...
+
+        NavigationView c = new NavigationView(layout);
+        c.setCaption("Details");
+        setContent(c);
+    }
+}]]></programlisting>
+
+            <para>
+                A <classname>Popover</classname> can be opened relative to a component by
+                calling <methodname>showRelativeTo()</methodname>. In the following
+                example, we open the popover when a table item is clicked.
+            </para>
+
+            <programlisting><?pocket-size 75% ?><![CDATA[
+Table table = new Table("Planets", planetData());
+table.addItemClickListener(new ItemClickListener() {
+    @Override
+    public void itemClick(ItemClickEvent event) {
+        DetailsPopover popover = new DetailsPopover();
+
+        // Show it relative to the navigation bar of
+        // the current NavigationView.
+        popover.showRelativeTo(view.getNavigationBar());
+    }
+});]]></programlisting>
+
+            <para>
+                You can also add the <classname>Popover</classname> to the
+                <classname>UI</classname> with <methodname>addWindow()</methodname>.
+            </para>
+
+            <para>
+                A popover is shown in a tablet device as illustrated <xref
+                linkend="figure.mobile.components.popover.tablet"/>. In this example, we
+                have a <classname>CssLayout</classname> with some buttons as the popover
+                content.
+            </para>
+
+            <figure xml:id="figure.mobile.components.popover.tablet">
+                <title><classname>Popover</classname> in a Tablet Device</title>
+                <mediaobject>
+                        <imageobject>
+                        <imagedata smallscale="100%" scale="35" align="center" fileref="img/mobile/popover-tablet.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+
+            <section xml:id="mobile.components.popover.close" condition="web">
+                <title>Closing a Popover</title>
+
+                <para>
+                    When <parameter>closable</parameter> is enabled in a
+                    <classname>Popover</classname>, as it is by default, it can be closed
+                    by clicking anywhere outside the popup area. This may not be enough if
+                    the popover fills the entire screen, in which case the user gets
+                    stuck. The popover can be closed programmatically by calling
+                    <methodname>close()</methodname>. You can, for example, add a
+                    <interfacename>MouseEvents.ClickListener</interfacename> to the
+                    popover to allow closing it by clicking anywhere inside it.
+                </para>
+
+                <para>
+                    If the popover has editable fields, you may want to have a close
+                    button in the navigation bar of the
+                    <classname>NavigationView</classname>. In the following example, we
+                    add a close button to the right slot of the navigation bar (you need
+                    to include the icon in your theme).
+                </para>
+
+                <programlisting><?pocket-size 70% ?><![CDATA[class DetailsPopover extends Popover
+      implements Button.ClickListener {
+    public DetailsPopover(Table table, Object itemId) {
+        setWidth("350px");
+        setHeight("65%");
+        Layout layout = new FormLayout();
+        ... create the content ...
+
+        // Decorate with navigation view
+        NavigationView content = new NavigationView(layout);
+        content.setCaption("Details");
+        setContent(content);
+
+        // Have a close button
+        Button close = new Button(null, this);
+        close.setIcon(new ThemeResource("close64.png"));
+        content.setRightComponent(close);
+    }
+
+    public void buttonClick(ClickEvent event) {
+        close();
+    }
+}]]></programlisting>
+            </section>
+
+            <section xml:id="mobile.components.popover.css" condition="web">
+                <title>Styling with CSS</title>
+
+                <programlisting><![CDATA[.v-touchkit-popover .v-touchkit-fullscreen { }
+  .v-touchkit-popover .v-touchkit-relative { }
+  .v-touchkit-popover .v-touchkit-plain { }]]></programlisting>
+
+                <para>
+                    The component has an overall <literal>v-touchkit-popover</literal> style. If
+                    full-screen, it also has the <literal>v-touchkit-fullscreen</literal> style, if
+                    positioned relatively it has <literal>v-touchkit-relative</literal>, and if not,
+                    the <literal>v-touchkit-plain</literal> style.
+                </para>
+            </section>
+        </section>
+
+        <section xml:id="mobile.components.swipeview">
+            <title><classname>SwipeView</classname></title>
+
+            <para>
+                The <classname>SwipeView</classname> is a wrapper that allows navigating
+                between views by swiping them horizontally left or right. The component
+                works together with a <classname>NavigationManager</classname> (see <xref
+                linkend="mobile.components.swipeview"/>) to change between the views when
+                swiped, and to animate the change. A <classname>SwipeView</classname>
+                should be an immediate child of the
+                <classname>NavigationManager</classname>, but can contain a
+                <classname>NavigationView</classname> to provide button navigation as
+                well.
+            </para>
+
+            <para>
+                Let us have a selection of photographs to browse. We extend
+                <classname>NavigationManager</classname> that creates the slide effect and
+                create actual image views dynamically. In the constructor, we create the
+                two first ones.
+            </para>
+
+            <programlisting><?pocket-size 75% ?><![CDATA[class SlideShow extends NavigationManager
+      implements NavigationListener {
+    String imageNames[] = {"Mercury.jpg", "Venus.jpg",
+        "Earth.jpg", "Mars.jpg", "Jupiter.jpg",
+        "Saturn.jpg", "Uranus.jpg", "Neptune.jpg"};
+    int pos = 0;
+
+    public SlideShow() {
+        // Set up the initial views
+        navigateTo(createView(pos));
+        setNextComponent(createView(pos+1));
+
+        addNavigationListener(this);
+    }]]></programlisting>
+
+            <para>
+                The individual views have a <classname>SwipeView</classname> and the top.
+            </para>
+
+            <programlisting><?pocket-size 75% ?><![CDATA[    SwipeView createView(int pos) {
+        SwipeView view = new SwipeView();
+        view.setSizeFull();
+
+        // Use an inner layout to center the image
+        VerticalLayout layout = new VerticalLayout();
+        layout.setSizeFull();
+
+        Image image = new Image(null, new ThemeResource(
+            "planets/" + imageNames[pos]));
+        layout.addComponent(image);
+        layout.setComponentAlignment(image,
+            Alignment.MIDDLE_CENTER);
+
+        view.setContent(layout);
+        return view;
+    }]]></programlisting>
+
+            <para>
+                When the view is swiped to either direction, we need to
+                set the next image in that direction dynamically in the
+                <classname>NavigationManager</classname>.
+            </para>
+
+            <programlisting><?pocket-size 75% ?><![CDATA[@Override
+public void navigate(NavigationEvent event) {
+    switch (event.getDirection()) {
+        case FORWARD:
+            if (++pos < imageNames.length-1)
+                setNextComponent(createView(pos+1));
+            break;
+        case BACK:
+            if (--pos > 0)
+                setPreviousComponent(createView(pos-1));
+    }
+}]]></programlisting>
+        </section>
+
+        <section xml:id="mobile.components.switch">
+            <title><classname>Switch</classname></title>
+
+            <para>
+                The <classname>Switch</classname> component is a two-state selector that
+                can be toggled either by tapping or sliding and looks like the switch
+                button in Apple iOS. It extends <classname>CheckBox</classname> and has
+                therefore <classname>Boolean</classname> value type. The caption is
+                managed by the containing layout.
+            </para>
+
+            <programlisting><![CDATA[VerticalComponentGroup group =
+        new VerticalComponentGroup();
+Switch myswitch = new Switch("To be or not to be?");
+myswitch.setValue(true);
+group.addComponent(myswitch);]]></programlisting>
+
+            <para>
+                As with other field components, you can handle value changes with a
+                <interfacename>ValueChangeListener</interfacename>. Use
+                <methodname>setImmediate(true)</methodname> to get them immediately when
+                toggled.
+            </para>
+
+            <para>
+                The result is shown in <xref linkend="figure.mobile.components.switch"/>.
+            </para>
+
+            <figure xml:id="figure.mobile.components.switch">
+                <title><classname>Switch</classname></title>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata smallscale="70%" scale="70" align="center" fileref="img/mobile/switch.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+
+            <section xml:id="mobile.components.switch.css" condition="web">
+                <title>Styling with CSS</title>
+
+                <programlisting><![CDATA[.v-touchkit-switch { }
+  .v-touchkit-switch-slider { }]]></programlisting>
+
+                <para>
+                    The component has an overall <literal>v-touchkit-switch</literal> style. The slider
+                    element has <literal>v-touchkit-switch-slider</literal> style.
+                </para>
+            </section>
+        </section>
+
+		<section xml:id="mobile.components.verticalcomponentgroup">
+            <title><classname>VerticalComponentGroup</classname></title>
+
+			<para>
+				The <classname>VerticalComponentGroup</classname> is a layout component
+				for grouping components in a vertical stack with a border. Component
+				captions are placed left of the components, and the components are aligned
+				right. The component group is typically used for forms or with
+				<classname>NavigationButton</classname> to create navigation menus.
+			</para>
+
+            <programlisting><?pocket-size 75% ?><![CDATA[VerticalComponentGroup group =
+    new VerticalComponentGroup("TouchKit Components");
+group.setWidth("100%");
+
+// Navigation to sub-views
+group.addComponent(new NavigationButton(
+    new PopoverView()));
+group.addComponent(new NavigationButton(
+    new DecoratedPopoverView()));
+
+layout.addComponent(box);]]></programlisting>
+
+            <para>
+                The result is shown in <xref
+                linkend="figure.mobile.components.verticalcomponentgroup"/>.
+            </para>
+
+            <figure xml:id="figure.mobile.components.verticalcomponentgroup">
+                <title><classname>VerticalComponentGroup</classname></title>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata smallscale="70%" scale="80" align="center" fileref="img/mobile/verticalcomponentgroup.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+
+			<section xml:id="mobile.components.verticalcomponentgroup.css" condition="web">
+                <title>Styling with CSS</title>
+
+                <programlisting><![CDATA[.v-touchkit-verticalcomponentgroup { }]]></programlisting>
+
+                <para>
+                    The component has an overall <literal>v-touchkit-verticalcomponentgroup</literal>
+                    style. If the component has a caption, the
+                    <literal>v-touchkit-has-caption</literal> style is added.
+                </para>
+            </section>
+		</section>
+
+		<section xml:id="mobile.components.horizontalbuttongroup">
+            <title><classname>HorizontalButtonGroup</classname></title>
+			<para>
+				The <classname>HorizontalButtonGroup</classname> is intended for grouping
+				buttons inside the slots of a
+				<classname>VerticalComponentGroup</classname> with a special button group
+				style.
+			</para>
+
+			<programlisting><?pocket-size 75% ?><![CDATA[VerticalComponentGroup vertical =
+        new VerticalComponentGroup();
+vertical.addComponent(new TextField("Name"));
+
+HorizontalButtonGroup buttons =
+        new HorizontalButtonGroup();
+buttons.addComponent(new Button("OK"));
+buttons.addComponent(new Button("Cancel"));
+vertical.addComponent(buttons);]]></programlisting>
+
+            <para>
+                The result is shown in <xref
+                linkend="figure.mobile.components.horizontalbuttongroup"/>
+            </para>
+
+            <figure xml:id="figure.mobile.components.horizontalbuttongroup">
+                <title><classname>HorizontalButtonGroup</classname></title>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata smallscale="70%" scale="80" align="center" fileref="img/mobile/horizontalbuttongroup.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+
+            <para>
+                You can also make single buttons prettier by wrapping them in the
+                component. Also the <classname>Upload</classname> component has a button,
+                and you can give it the <literal>v-button</literal> style to make it look
+                like a button would in the group<phrase condition="web">, as is done in
+                <xref linkend="mobile.features.upload"/></phrase>.
+            </para>
+
+            <para>
+                Despite the name, and the fact that the button group is intended for
+                buttons, you can, in fact, put any components inside it. Whether the
+                result is meaningful, depends on the component.
+            </para>
+
+            <section xml:id="mobile.components.horizontalbuttongroup.css" condition="web">
+                <title>Styling with CSS</title>
+
+                <programlisting><![CDATA[.v-touchkit-horizontalbuttongroup { }]]></programlisting>
+
+                <para>
+                    The component has an overall
+                    <literal>v-touchkit-horizontalbuttongroup</literal> style. As noted
+                    above, the TouchKit style sheet includes special rules for components
+                    that have the <literal>v-button</literal> style inside the group.
+                </para>
+            </section>
+		</section>
+
+        <section xml:id="mobile.components.tabbarview">
+            <title><classname>TabBarView</classname></title>
+
+            <para>
+                The <classname>TabBarView</classname> is a layout component that consist
+                of a tab bar at the bottom of the screen and a content area. Each tab has
+                a content component which is displayed when the tab is selected.
+            </para>
+
+            <figure xml:id="figure.mobile.components.tabbarview">
+                <title><classname>TabBar</classname> with Four <classname>NavigationView</classname>s</title>
+                <mediaobject>
+                    <imageobject role="html">
+                        <imagedata align="center" fileref="img/mobile/parking-tabs-lo.png"/>
+                    </imageobject>
+                    <imageobject role="fo">
+                        <imagedata smallscale="100%" scale="80" align="center" fileref="img/mobile/parking-tabs-hi.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+
+            <para>
+                <classname>TabBarView</classname> implements
+                <interfacename>ComponentContainer</interfacename>, but uses its own
+                specialized API for monipulating tabs. To add a new tab, you need to call
+                <methodname>addTab()</methodname> with the content component. It creates
+                the tab and returns a <classname>Tab</classname> object for managing
+                it. You should set at least the caption and icon for a tab.
+            </para>
+
+            <programlisting><?pocket-size 75% ?><![CDATA[TabBarView bar = new TabBarView();
+
+// Create some Vaadin component to use as content
+Label content = new Label("Really simple content");
+
+// Create a tab for it
+Tab tab = bar.addTab(label);
+
+// Set tab name and/or icon
+tab.setCaption("tab name");
+tab.setIcon(new ThemeResource(...));]]></programlisting>
+
+            <para>
+                A tab can be removed with <methodname>removeTab()</methodname>. Note that
+                the <interfacename>ComponentContainer</interfacename> methods
+                <methodname>addComponent()</methodname> and
+                <methodname>removeComponent()</methodname> will throw an
+                <classname>UnsupportedOperationException</classname> if used.
+            </para>
+
+            <section xml:id="mobile.components.tabbarview.selection" condition="web">
+                <title>Changing Tab Selection</title>
+
+                <para>
+                    Current tab selection can be accessed with
+                    <methodname>getSelectedTab()</methodname> and set with
+                    <methodname>setSelectedTab()</methodname>. Changing tab selection
+                    either by the user or programmatically causes a
+                    <interfacename>SelectedTabChangeEvent</interfacename>, which you can
+                    handle with a
+                    <interfacename>SelectedTabChangeListener</interfacename>.
+                </para>
+
+                <programlisting><?pocket-size 75% ?><![CDATA[Tab selectedTab = bar.getSelectedTab();
+bar.setSelectedTab(selectedTab);]]></programlisting>
+            </section>
+
+            <section xml:id="mobile.components.tabbarview.css" condition="web">
+                <title>Styling with CSS</title>
+
+                <programlisting><![CDATA[.v-touchkit-tabbar {}
+.v-touchkit-tabbar-wrapper {}
+.v-touchkit-tabbar-toolbar {} ]]></programlisting>
+
+                <para>
+                    The component has overall <literal>v-touchkit-tabbar</literal> style.
+                    Content area is wrapped inside a
+                    <literal>v-touchkit-tabbar-wrapper</literal> element. Tab bar control
+                    area itself has the <literal>v-touchkit-tabbar-toolbar</literal>
+                    style.
+                </para>
+            </section>
+        </section>
+
+        <section xml:id="mobile.components.emailfield">
+            <title><classname>EmailField</classname></title>
+
+            <para>
+                The <classname>EmailField</classname> is just like the regular
+                <classname>TextField</classname>, except that it has automatic capitalization
+                and correction turned off. Mobile devices also recognize the field as an email
+                field and can offer a virtual keyboard for the purpose, so that it includes
+                the at (<literal>@</literal>) and period (<literal>.</literal>) characters,
+                and possibly a shorthand for <literal>.com</literal>.
+            </para>
+
+            <figure xml:id="figure.mobile.components.emailfield">
+                <title><classname>EmailField</classname> while editing</title>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata smallscale="40%" scale="35" align="center" fileref="img/mobile/emailfield.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+
+            <section xml:id="mobile.components.emailfield.css" condition="web">
+                <title>Styling with CSS</title>
+
+                <programlisting><![CDATA[.v-textfield {}
+.v-textfield.v-textfield-error {}]]></programlisting>
+
+                <para>
+                    The <classname>EmailField</classname> has an overall
+                    <literal>v-textfield</literal> style, just like a regular
+                    <classname>TextField</classname> component would. It will get also the
+                    <literal>v-textfield-error</literal> if there is a component error,
+                    for example, from failed validation.
+                </para>
+            </section>
+        </section>
+
+        <section xml:id="mobile.components.numberfield">
+            <title><classname>NumberField</classname></title>
+
+            <para>
+                The <classname>NumberField</classname> is just like the regular
+                <classname>TextField</classname>, except that it is marked as a numeric input
+                field for mobile devices, so that they will show a numeric virtual keyboard
+                rather than the default alphanumeric.
+            </para>
+
+            <figure xml:id="figure.mobile.components.emailfield">
+                <title><classname>NumberField</classname> while editing</title>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata smallscale="40%" scale="35" align="center" fileref="img/mobile/numberfield.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+
+            <section xml:id="mobile.components.numberfield.css" condition="web">
+                <title>Styling with CSS</title>
+
+                <programlisting><![CDATA[.v-textfield {}
+.v-textfield.v-numberfield-error {}]]></programlisting>
+
+                <para>
+                    The <classname>NumberField</classname> has an overall
+                    <literal>v-textfield</literal> style, just like a regular
+                    <classname>TextField</classname> component would. It will get also the
+                    <literal>v-numberfield-error</literal> if there is a component error,
+                    for example, from failed validation.
+                </para>
+            </section>
+        </section>
+
+        <section xml:id="mobile.components.urlfield">
+            <title><classname>UrlField</classname></title>
+
+            <para>
+                The <classname>UrlField</classname> is just like the regular
+                <classname>TextField</classname>, except that it is marked as a URL input
+                field for mobile devices, so that they will show a URL input virtual keyboard
+                rather than the default alphanumeric. It has convenience methods
+                <methodname>getUrl()</methodname> and <methodname>setUrl(URL url)</methodname>
+                for converting input value from and to java.net.URL.
+            </para>
+
+            <section xml:id="mobile.components.urlfield.css" condition="web">
+                <title>Styling with CSS</title>
+
+                <programlisting><![CDATA[.v-textfield {}
+.v-textfield.v-textfield-error {}]]></programlisting>
+
+                <para>
+                    The <classname>UrlField</classname> has an overall
+                    <literal>v-textfield</literal> style, just like a regular
+                    <classname>TextField</classname> component would.
+                </para>
+            </section>
+        </section>
+    </section>
+
+    <section xml:id="mobile.features">
+        <title>Advanced Mobile Features</title>
+
+        <section xml:id="mobile.features.fallback">
+            <title>Providing a Fallback UI</title>
+
+            <para>
+                You may need to use the same URL and hence the same servlet for both the
+                mobile TouchKit UI and for regular browsers. In this case, you need to
+                recognize the mobile browsers compatible with Vaadin TouchKit and provide
+                a fallback UI for any other browsers. The fallback UI can be a regular
+                Vaadin UI, a "Sorry!" message, or a redirection to an alternate user
+                interface.
+            </para>
+
+            <para>
+                You can handle the fallback logic in a custom
+                <classname>UIProvider</classname> that creates the UIs in the servlet. As
+                TouchKit supports only WebKit and Windows Phone browsers, you can do the
+                recognition by checking if the <parameter>user-agent</parameter> string
+                contains the sub-strings "<literal>webkit</literal>" or "<literal>windows
+                phone</literal>" as follows:
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[public class MyUIProvider extends UIProvider {
+    @Override
+    public Class<? extends UI>
+              getUIClass(UIClassSelectionEvent event) {
+        String ua = event.getRequest()
+                .getHeader("user-agent").toLowerCase();
+        if (   ua.toLowerCase().contains("webkit")
+            || ua.toLowerCase().contains("windows phone 8")
+            || ua.toLowerCase().contains("windows phone 9")) {
+            return MyUI.class;
+        } else {
+            return MyFallbackUI.class;
+        }
+    }
+}]]></programlisting>
+
+            <para>
+                The custom UI provider has to be added in a custom servlet class, which
+                you need to define in the <filename>web.xml</filename>, as described in
+                <xref linkend="mobile.elements.settings"/>. For example, as follows:
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[public class MyServlet extends TouchKitServlet {
+    private MyUIProvider uiProvider = new MyUIProvider();
+
+    @Override
+    protected void servletInitialized() throws ServletException {
+        super.servletInitialized();
+
+        getService().addSessionInitListener(
+                new SessionInitListener() {
+            @Override
+            public void sessionInit(SessionInitEvent event)
+                    throws ServiceException {
+                event.getSession().addUIProvider(uiProvider);
+            }
+        });
+
+        ... other custom servlet settings ...
+    }
+}]]></programlisting>
+
+            <para>
+                See the Parking Demo for a working example.
+            </para>
+        </section>
+
+        <section xml:id="mobile.features.geolocation">
+            <title>Geolocation</title>
+
+            <para>
+                The geolocation feature in TouchKit allows receiving the geographical
+                location from the mobile device. The browser will ask the user to confirm
+                that the web site is allowed to get the location information. Tapping
+                <guibutton>Share Location</guibutton> gives the permission. The browser
+                will give the position acquired by GPS, cellular positioning, or Wi-Fi
+                positioning, as enabled in the device.
+            </para>
+
+            <para>
+                Geolocation is requested by calling the static
+                <methodname>detect()</methodname> method in
+                <classname>Geolocator</classname>. You need to provide a
+                <classname>PositionCallback</classname> handler that is called when the
+                device has an answer for your request. If the geolocation request
+                succeeds, <methodname>onSuccess()</methodname> is called. Otherwise, for
+                example, if the user did not allow sharing of his location,
+                <methodname>onFailure()</methodname> is called. The geolocation data is
+                provided in a <classname>Position</classname> object.
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[Geolocator.detect(new PositionCallback() {
+    public void onSuccess(Position position) {
+        double latitude  = position.getLatitude();
+        double longitude = position.getLongitude();
+        double accuracy  = position.getAccuracy();
+
+        ...
+    }
+
+    public void onFailure(int errorCode) {
+        ...
+    }
+});]]></programlisting>
+
+            <para>
+                The position is given as degrees with fractions in the WGS84 coordinate
+                system used by GPS. The longitude is positive to East and negative to West
+                of the prime meridian of WGS84. The accuracy is given in meters. In
+                addition to the above data, the following are also provided:
+            </para>
+
+            <itemizedlist>
+                <listitem>Altitude</listitem>
+                <listitem>Altitude accuracy</listitem>
+                <listitem>Heading</listitem>
+                <listitem>Speed</listitem>
+            </itemizedlist>
+
+            <para>
+                If any of the position data is unavailable, its value will be zero.
+            </para>
+
+            <para>
+                The <methodname>onFailure()</methodname> is called if the positioning
+                fails for some reason. The <parameter>errorCode</parameter> explains the
+                reason. Error 1 is returned if the permission was denied, 2 if the
+                position is unavailable, 3 on positioning timeout, and 0 on an unknown
+                error.
+            </para>
+
+            <para>
+                Notice that geolocation can take significant time, depending on the
+                location method used by the device. With Wi-Fi and cellular positioning,
+                the time is usually less than 30 seconds. With unassisted GPS, it can
+                reach 15 minutes on a fresh device and even longer if the reception is
+                bad. However, once a location fix has been made, updates to the location
+                will be faster. If you are making navigation software, you need to update
+                the position data fairly frequently by calling the
+                <methodname>detect()</methodname> method in
+                <classname>Geolocator</classname> multiple times.
+            </para>
+
+            <section xml:id="mobile.features.geolocation.map" condition="web">
+                <title>Displaying Position on a Map</title>
+
+                <para>
+                    Geographical positions are often visualized with a map. There are
+                    countless ways to do that, for example, in the Parking Demo we use the
+                    <link
+                    xlink:href="http://vaadin.com/directory#addon/v-leaflet">V-Leaflet</link>
+                    add-on component.
+                </para>
+
+                <para>
+                    Notice that the geolocation gives the position in the WGS84 coordinate
+                    system used by GPS. The same system is conveniently used by many
+                    Internet map services, but is not in any way universal. Further, in
+                    some countries, map data is legally required to have erroneus
+                    coordinates.
+                </para>
+
+                <para>
+                    The <classname>MapView</classname> in the Parking Demo is a TouchKit
+                    navigation view that uses the <classname>LMap</classname> component
+                    from the add-on to display the map:
+                </para>
+
+                <programlisting><?pocket-size 75% ?><![CDATA[public class MapView extends CssLayout
+      implements PositionCallback, LeafletClickListener {
+    private LMap map;
+    private final LMarker you = new LMarker();
+    ...]]></programlisting>
+
+                <para>
+                    Position is requested from the device when a button is clicked:
+                </para>
+
+                <programlisting><?pocket-size 75% ?><![CDATA[locatebutton = new Button("", new ClickListener() {
+    @Override
+    public void buttonClick(final ClickEvent event) {
+        Geolocator.detect(MapView.this);
+    }
+});
+locatebutton.addStyleName("locatebutton");
+locatebutton.setWidth(30, Unit.PIXELS);
+locatebutton.setHeight(30, Unit.PIXELS);
+locatebutton.setDisableOnClick(true);
+addComponent(locatebutton);]]></programlisting>
+
+                <para>
+                    When TouchKit gets the position, we center the map as follows:
+                </para>
+
+                <programlisting><?pocket-size 75% ?><![CDATA[@Override
+public void onSuccess(final Position position) {
+    ParkingUI app = ParkingUI.getApp();
+    app.setCurrentLatitude(position.getLatitude());
+    app.setCurrentLongitude(position.getLongitude());
+
+    setCenter();
+
+    // Enable centering on current position manually
+    locatebutton.setEnabled(true);
+}
+
+private void setCenter() {
+    if (map != null)
+        map.setCenter(you.getPoint());
+}]]></programlisting>
+            </section>
+        </section>
+
+        <section xml:id="mobile.features.localstorage">
+            <title>Storing Data in the Local Storage</title>
+
+            <para>
+                The <classname>LocalStorage</classname> UI extension allows storing data
+                in the HTML5 local storage from the server-side application.  The storage
+                is a singleton, which you can get with
+                <methodname>LocalStorage.get()</methodname>.
+            </para>
+
+            <programlisting><![CDATA[final LocalStorage storage = LocalStorage.get();]]></programlisting>
+
+            <section xml:id="mobile.features.localstorage.storing">
+                <title>Storing Data</title>
+
+                <para>
+                    You can store data in the local storage as key-value pairs with the
+                    <methodname>put()</methodname> method. Both the key and value must be
+                    strings. Storing the data requires a client round-trip, so the success
+                    or failure of the store operation can be handled with an optional
+                    <interfacename>LocalStorageCallback</interfacename>.
+                </para>
+
+                <programlisting><?pocket-size 75% ?><![CDATA[// Editor for the value to be stored
+final TextField valueEditor = new TextField("Value");
+valueEditor.setNullRepresentation("");
+layout.addComponent(valueEditor);
+
+Button store = new Button("Store", new ClickListener() {
+    @Override
+    public void buttonClick(ClickEvent event) {
+        storage.put("value", valueEditor.getValue(),
+                    new LocalStorageCallback() {
+            @Override
+            public void onSuccess(String value) {
+                Notification.show("Stored");
+            }
+
+            @Override
+            public void onFailure(FailureEvent error) {
+                Notification.show("Storing Failed");
+            }
+        });
+    }
+}));
+layout.addComponent(store);]]></programlisting>
+            </section>
+
+            <section xml:id="mobile.features.localstorage.retrieving">
+                <title>Retrieving Data from the Storage</title>
+
+                <para>
+                    You can retrieve data from the local storage with the
+                    <methodname>get()</methodname> method. It takes the key and a
+                    <interfacename>LocalStorageCallback</interfacename> to receive the
+                    retrieved value, or a failure. Retrieving the value to the server-side
+                    requires a client rount-trip and another server request is made to
+                    send the value with the callback.
+                </para>
+
+                <programlisting><?pocket-size 75% ?><![CDATA[storage.get("value", new LocalStorageCallback() {
+    @Override
+    public void onSuccess(String value) {
+        valueEditor.setValue(value);
+        Notification.show("Value Retrieved");
+    }
+
+    @Override
+    public void onFailure(FailureEvent error) {
+        Notification.show("Failed because: " +
+                          error.getMessage());
+    }
+});]]></programlisting>
+
+            </section>
+        </section>
+
+        <section xml:id="mobile.features.upload" condition="web">
+            <title>Uploading Content</title>
+
+            <para>
+                Uploading content from a mobile device works just like with regular Vaadin
+                applications using the <classname>Upload</classname> component.
+            </para>
+
+            <para>
+                In an offline UI or client-side code in general, you need to handle
+                uploading differently, using a special upload widget or handler.
+            </para>
+
+            <section xml:id="mobile.features.upload.server-side" condition="web">
+                <title>Server-Side <classname>Upload</classname> Component</title>
+
+                <para>
+                    In a server-side UI, you can use the regular
+                    <classname>Upload</classname> component described in <xref
+                    linkend="components.upload"/>. When choosing a file, the device will
+                    ask to select the file from files, gallery, camera, or other possible
+                    sources, depending on the device. The only difference to normal use is
+                    that the upload component must be in <emphasis>immediate</emphasis>
+                    mode.
+                </para>
+
+                <para>
+                    Uploading is supported by most mobile operating systems, such as iOS,
+                    Android, and Windows RT devices, but not in some, such as WP8.
+                </para>
+
+                <para>
+                    The following example shows how to implement simple upload to an in-memory
+                    storage.
+                </para>
+
+                <programlisting><?pocket-size 65% ?><![CDATA[// Display the image - only a placeholder first
+final Image image = new Image();
+image.setWidth("100%");
+image.setVisible(false);
+layout.addComponent(image);
+
+// Implement both receiver that saves upload in a file and
+// listener for successful upload
+class ImageUploader implements Receiver, SucceededListener,
+                               ProgressListener {
+    final static int maxLength = 10000000;
+    ByteArrayOutputStream fos = null;
+    String filename;
+    Upload upload;
+
+    public ImageUploader(Upload upload) {
+        this.upload = upload;
+    }
+
+    public OutputStream receiveUpload(String filename,
+                                      String mimeType) {
+        this.filename = filename;
+        fos = new ByteArrayOutputStream(maxLength + 1);
+        return fos; // Return the output stream to write to
+    }
+
+    @Override
+    public void updateProgress(long readBytes,
+                               long contentLength) {
+        if (readBytes > maxLength) {
+            Notification.show("Too big content");
+            upload.interruptUpload();
+        }
+    }
+
+    public void uploadSucceeded(SucceededEvent event) {
+        // Show the uploaded file in the image viewer
+        image.setSource(new StreamResource(new StreamSource() {
+            @Override
+            public InputStream getStream() {
+                byte[] bytes = fos.toByteArray();
+                return new ByteArrayInputStream(bytes);
+            }
+        }, filename));
+
+        image.setVisible(true);
+    }
+};
+
+Upload upload = new Upload();
+ImageUploader uploader = new ImageUploader(upload);
+upload.setReceiver(uploader);
+upload.addSucceededListener(uploader);
+upload.setImmediate(true); // Only button
+
+// Wrap it in a button group to give better style
+HorizontalButtonGroup group = new HorizontalButtonGroup();
+group.addComponent(upload);
+layout.addComponent(group);]]></programlisting>
+
+                <para>
+                    The result is shown in <xref linkend="figure.mobile.features.upload"/>
+                    (&copy;2001 Marko Gr&ouml;nroos).
+                </para>
+
+                <figure xml:id="figure.mobile.features.upload">
+                    <title>Mobile Upload</title>
+                    <mediaobject>
+                        <imageobject>
+                            <imagedata srccredit="Marko Gr&ouml;, 2001" smallscale="70%" scale="70" align="center" fileref="img/mobile/upload.png"/>
+                        </imageobject>
+                    </mediaobject>
+                    <!-- Image Copyright Marko Gronroos 2001.
+                         Licensed under Creative Commons Attribution-NoDerivs 4.0 license.
+                         https://creativecommons.org/licenses/by-nd/4.0/legalcode -->
+                </figure>
+            </section>
+
+            <section xml:id="mobile.features.upload.client-side" condition="web">
+                <title>Upload on the Client-Side</title>
+
+                <para>
+                    When making a client-side widget that handles file upload, such as for
+                    offline mode, you can use the GWT <link
+                    xlink:href="http://www.gwtproject.org/javadoc/latest/com/google/gwt/user/client/ui/FileUpload.html"><classname>FileUpload</classname>
+                    component</link>. In such case, you need to communicate the image data
+                    to the server with an RPC call.
+                </para>
+
+                <para>
+                    On a mobile device, the perhaps most common upload task is to capture
+                    images with the integrated camera. To display them in the client-side
+                    UI correctly, you want make sure that they have reasonable size and
+                    correct orientation, without making a server round-trip to do the
+                    corrections. To send them to the server, you want to avoid using too
+                    much bandwidth. The <classname>ImageUpload</classname> widget included
+                    in the <literal>lib-gwt-imageupload</literal> add-on, <link
+                    xlink:href="https://vaadin.com/directory#addon/lib-gwt-imageupload">available
+                    from Vaadin Directory</link>, allows launching the camera application
+                    in the device and capturing an image. It further allows defining an
+                    image manipulation pipeline with transformations to reduce the image
+                    size if necessary, correct the orientation according to EXIF data, and
+                    so forth. The corrected image is loaded to a memory buffer, which
+                    you can display in another widget, send to the server, or store in the
+                    local store.
+                </para>
+
+                <para>
+                    In the following, we allow capturing an image with the camera,
+                    normalize the image and reduce its size, and reduce the size further
+                    for displaying it in a thumbnail. Notice that the image data is
+                    encoded as a URL, which can be used as such in CSS, for example.
+                </para>
+
+                <programlisting><?pocket-size 65% ?><![CDATA[final ImageUpload fileUpload = new ImageUpload();
+
+// Have a separate button to initiate the upload
+final VButton takePhotoButton = new VButton();
+takePhotoButton.addClickHandler(new ClickHandler() {
+    @Override
+    public void onClick(ClickEvent event) {
+        fileUpload.click();
+    }
+});
+
+// Capture images from the camera, instead of allowing to
+// choose from gallery or other sources.
+fileUpload.setCapture(true);
+
+// Normalize the orientation and make size suitable for
+// sending to server
+EXIFOrientationNormalizer normalizer =
+        new EXIFOrientationNormalizer();
+normalizer.setMaxWidth(1024);
+normalizer.setMaxHeight(1024);
+fileUpload.addImageManipulator(normalizer);
+fileUpload.addImageLoadedHandler(new ImageLoadedHandler() {
+    @Override
+    public void onImageLoaded(ImageLoadedEvent event) {
+        // Store the image data as encoded URL
+        setImage(event.getImageData().getDataURL());
+    }
+});
+
+// Reduce the size further for displaying a thumbnail
+ImageTransformer thumbGenerator = new ImageTransformer();
+thumbGenerator.setImageDataSource(fileUpload);
+thumbGenerator.setMaxWidth(75);
+thumbGenerator.setMaxHeigth(75);
+thumbGenerator.addImageLoadedHandler(new ImageLoadedHandler() {
+   @Override
+   public void onImageLoaded(ImageLoadedEvent event) {
+       // Store the thumbnail image data as encoded URL
+       setThumbnail(event.getImageData().getDataURL());
+   }
+});]]></programlisting>
+
+                <para>
+                    See the Parking Demo for more details about the usage of the add-on.
+                </para>
+            </section>
+        </section>
+    </section>
+
+    <section xml:id="mobile.offline">
+        <title>Offline Mode</title>
+
+        <para>
+            While regular Vaadin TouchKit applications are server-side applications,
+            TouchKit allows a special <emphasis>offline mode</emphasis>, which is a
+            client-side Vaadin UI that is switched to automatically when the network
+            connection is not available. The offline UI is included in the widget set of
+            the regular server-side UI and stored in the browser cache. By providing a
+            special cache manifest, the browser caches the page so strongly that it
+            persists even after browser restart, effectively making it an offline
+            application.
+        </para>
+
+        <figure xml:id="figure.mobile.offline.parking">
+            <title>Offline Mode in the Parking Demo</title>
+            <mediaobject>
+                <imageobject>
+                    <imagedata smallscale="70%" scale="50" align="center" fileref="img/mobile/parking-offline.png"/>
+                </imageobject>
+            </mediaobject>
+        </figure>
+
+        <para>
+            During offline operation, the offline UI can store data in the HTML5 local
+            storage of the mobile browser and then passed to the server-side application
+            when the connection is again available.
+        </para>
+
+        <para>
+            The offline mode is enabled in the project stub created by the Maven archetype
+            (see <xref linkend="mobile.project.maven"/>), with stubs for the offline data
+            storage and server RPC classes.
+        </para>
+
+        <para>
+            See the Parking demo and its source code for complete examples of the offline
+            mode.
+        </para>
+
+        <section xml:id="mobile.offline.cache">
+            <title>Enabling the Cache Manifest</title>
+
+            <para>
+                HTML5 supports a <emphasis>cache manifest</emphasis>, which makes offline
+                web applications possible. It controls how different resources are
+                cached. The manifest is generated by TouchKit, but you need to enable it
+                in the TouchKit settings. To do so, you need to define a custom servlet,
+                as described in <xref linkend="mobile.elements.servlet"/>, and call
+                <methodname>setCacheManifestEnabled(true)</methodname> for the cache
+                settings, as follows:
+            </para>
+
+            <programlisting><![CDATA[TouchKitSettings s = getTouchKitSettings();
+...
+s.getApplicationCacheSettings()
+ .setCacheManifestEnabled(true);]]></programlisting>
+
+            <para>
+                You also need to define a MIME type for the manifest in the
+                <filename>web.xml</filename> deployment descriptor as follows:
+            </para>
+
+            <programlisting><![CDATA[<mime-mapping>
+	<extension>manifest</extension>
+	<mime-type>text/cache-manifest</mime-type>
+</mime-mapping>]]></programlisting>
+        </section>
+
+        <section xml:id="mobile.offline.offlinemodesettings">
+            <title>Enabling Offline Mode</title>
+
+            <para>
+                To enable the offline mode, you need to add the
+                <classname>OfflineMode</classname> extension to the UI.
+            </para>
+
+            <programlisting><![CDATA[OfflineMode offlineMode = new OfflineMode();
+offlineMode.extend(this);
+
+// Maintain the session when the browser app closes
+offlineMode.setPersistentSessionCookie(true);
+
+// Define the timeout in secs to wait when a server
+// request is sent before falling back to offline mode
+offlineMode.setOfflineModeTimeout(15);]]></programlisting>
+
+            <para>
+                The above code is included in the project stub created by the Maven
+                archetype (see <xref linkend="mobile.project.maven"/>).
+            </para>
+
+            <para>
+                You can extend the <classname>OfflineMode</classname> extension to
+                transfer data conveniently from the offline UI to the server-side, as
+                described in <xref linkend="mobile.offline.data"/>.
+            </para>
+        </section>
+
+        <section xml:id="mobile.offline.ui">
+            <title>The Offline User Interface</title>
+
+            <para>
+                An offline mode is built like any other client-side module, as described
+                in <xref linkend="clientside"/>. You can use any GWT, Vaadin, add-on, and
+                also TouchKit widgets in the offline user interface.
+            </para>
+
+            <para>
+                Most typically, a client-side application builds a simplified UI for data
+                browsing and entry. It stores the data in the HTML5 local storage. It
+                watches if the server connection is restored, and if it is, it sends any
+                collected data to the server and suggests to return to the online mode.
+            </para>
+
+            <para>
+                The Parking Demo provides an example implementation of an offline mode
+                user interface. The Ticket view is implemented as a fat client-side
+                widget, where the server-side view only communicates the state to the
+                widget.
+            </para>
+        </section>
+
+        <section xml:id="mobile.offline.data">
+            <title>Sending Data to Server</title>
+
+            <para>
+                Once the connection is available, the offline UI can send any collected
+                data to the server-side. You can send the data from the offline UI, for
+                example, by making a server RPC call to a server-side UI extension, as
+                described in <xref linkend="gwt.rpc"/>.
+            </para>
+        </section>
+
+        <section xml:id="mobile.offline.theme">
+            <title>The Offline Theme</title>
+
+            <para>
+                Normally, client-side modules have their own stylesheets in the
+                <filename>public</filename> folder that is compiled into the client-side
+                target, as described in <xref linkend="gwt.styling"/> and <xref
+                linkend="clientside.module.stylesheet"/>. However, you may want to have
+                the offline mode have the same visual style as the online mode. To use the
+                same theme as the server-side application, you need to define the theme
+                path in the widget set definition file as follows.
+            </para>
+
+            <programlisting><?pocket-size 65% ?>&lt;set-configuration-property
+    name='touchkit.manifestlinker.additionalCacheRoot'
+    value='src/main/webapp/VAADIN/themes/<replaceable>mytheme</replaceable>:../../../VAADIN/themes/<replaceable>mytheme</replaceable> /&gt;</programlisting>
+
+            <para>
+                You need to follow a CSS style structure required by the Vaadin theme in
+                your offline application. If you use any Vaadin widgets, as described in
+                <xref linkend="clientsidewidgets.vaadin"/>, they will use the Vaadin theme.
+            </para>
+        </section>
+    </section>
+
+    <section xml:id="mobile.optimization">
+        <title>Building an Optimized Widget Set</title>
+
+        <para>
+            Mobile networks are generally somewhat slower than DSL Internet
+            connections. When starting a Vaadin application, the widget set is the biggest
+            resource that needs to be loaded in the browser. As most of the Vaadin
+            components are not used by most applications, especially mobile ones, it is
+            beneficial to create an optimized version of the widget set.
+        </para>
+
+        <para>
+            Vaadin supports lazy loading of individual widget implementations when they
+            are needed. The <classname>TouchKitWidgetSet</classname> used in TouchKit
+            applications optimizes the widgetset to only download the most essential
+            widgets first and then load other widget implementation lazily. This is a good
+            compromise for most TouchKit applications. Nevertheless, because of the high
+            latency of most mobile networks, loading the widget set in small pieces might
+            not be the best solution for every case. With custom optimization, you can
+            create a monolithic widget set stripped off all unnecessary widgets. Together
+            with proper GZip compression, is should be quite light-weight for mobile
+            browsers.
+        </para>
+
+        <para>
+            However, if the application has big components which are rarely used or
+            not on the initial views, it may be best to load those widgets eagerly or
+            lazily.
+        </para>
+
+        <para>
+            You can find a working example of widget set optimization in the
+            <filename>ParkingWidgetset.gwt.xml</filename> and
+            <filename>WidgetLoaderFactory.java</filename> in the Parking Demo sources.
+        </para>
+
+        <section xml:id="mobile.optimization.widgetmap" condition="web">
+            <title>Generating the Widget Map</title>
+
+            <para>
+                You can fine-tune a widget set by using a custom
+                <classname>WidgetMapGenerator</classname> implementation. The generator
+                class should extend <classname>TouchKitBundleLoaderFactory</classname> and
+                override its <methodname>getConnectorsForWidgetset()</methodname>
+                method. The method returns the connector classes of the widgets used in
+                the widget set.
+            </para>
+
+            <para>
+                The list of used connectors (and their widgets) can be built manually
+                if you know what components you use in your application. You can also,
+                for example, use a debugger to dig into the
+                <classname>CommunicationManager</classname> class in Vaadin, which
+                opens all the views of the running application. It contains a set of
+                all components that have been used so far.
+            </para>
+
+            <para>
+                In Parking Demo, we first build a list of the connector class names in
+                the constructor as follows:
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[
+public class WidgetLoaderFactory
+       extends TouchKitBundleLoaderFactory {
+    private final ArrayList<String> usedConnectors;
+
+    public WidgetLoaderFactory() {
+        usedConnectors = new ArrayList<String>();
+        usedConnectors.add(ButtonConnector.class.getName());
+        usedConnectors.add(ChartConnector.class.getName());
+        usedConnectors.add(CssLayoutConnector.class.getName());
+        ...]]></programlisting>
+
+            <para>
+                Then we use the list it in the
+                <methodname>getConnectorsForWidgetset()</methodname> to create the proper
+                list of class type definitions by filtering them from all class type
+                definitions. <classname>JClassType</classname> is used for type
+                definition.
+            </para>
+
+            <programlisting><?pocket-size 70% ?><![CDATA[@Override
+protected Collection<JClassType> getConnectorsForWidgetset(
+        TreeLogger logger, TypeOracle typeOracle)
+        throws UnableToCompleteException {
+    // The usedConnectors list should contain all the
+    // connectors that we need in the app, so we
+    // can leave all others away.
+
+    // Get all connectors in the unoptimized widget set
+    Collection<JClassType> connectorsForWidgetset = super
+            .getConnectorsForWidgetset(logger, typeOracle);
+
+    // Filter the connectors using the used list
+    ArrayList<JClassType> arrayList =
+            new ArrayList<JClassType>();
+    for (JClassType jClassType : connectorsForWidgetset) {
+        String qualifiedSourceName =
+            jClassType.getQualifiedSourceName();
+        if (usedConnectors.contains(qualifiedSourceName)) {
+            arrayList.add(jClassType);
+        }
+    }
+    return arrayList;
+}]]></programlisting>
+        </section>
+
+        <section xml:id="mobile.optimization.loadingstyle" condition="web">
+            <title>Defining the Widget Loading Style</title>
+
+            <para>
+                The <methodname>getLoadStyle()</methodname> method should return the
+                widget loading style, which should be <parameter>EAGER</parameter> to get
+                a monolithic widgetset.
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[    @Override
+    protected LoadStyle getLoadStyle(JClassType connectorType) {
+        return LoadStyle.EAGER;
+    }
+}]]></programlisting>
+        </section>
+
+        <section xml:id="mobile.optimization.definition" condition="web">
+            <title>Applying the Custom Widget Map Generator</title>
+
+            <para>
+                It needs to be defined in the <filename>.gwt.xml</filename> widget set
+                definition file as follows:
+            </para>
+
+            <programlisting>&lt;generate-with class="<replaceable>com.myprj.WidgetLoaderFactory</replaceable>"&gt;
+    &lt;when-type-assignable class="com.vaadin.client.metadata.ConnectorBundleLoader" /&gt;
+&lt;/generate-with&gt;</programlisting>
+        </section>
+
+        <section xml:id="mobile.optimization.deployment" condition="web">
+            <title>Deployment</title>
+
+            <para>
+                Note that you need to enable GZip compression for your deployment if you
+                wish to optimize the startup time and minimize the amount of transferred
+                data. The best method for doing that highly depends on your hosting setup,
+                so we do not cover it here.
+            </para>
+        </section>
+    </section>
+
+    <section xml:id="mobile.testing">
+        <title>Testing and Debugging on Mobile Devices</title>
+
+        <para>
+            Testing places special challenges for mobile devices. The mobile browsers may not
+            have much debugging features and you may not be able to install third-party
+            debugging add-ons, such as the Chrome Developer Tools.
+        </para>
+
+        <section xml:id="mobile.testing.debugging">
+            <title>Debugging</title>
+
+            <para>
+                The debug window, as described in <xref
+                linkend="advanced.debug"/>, works on mobile browsers as
+                well, even if it is a bit harder to use.
+            </para>
+
+            <para>
+                The lack of in-browser analysis tools can be helped with simple
+                client-side coding. For example, you can dump the HTML content of the page
+                with the <parameter>innerHTML</parameter> property in the HTML DOM. To do
+                so, you need to execute a JavaScript call from the server-side and handle
+                its response with a call-back method, as described in <xref
+                linkend="advanced.javascript.callback"/>.
+            </para>
+
+            <section xml:id="mobile.testing.debugging.desktop">
+                <title>Desktop Debugging</title>
+
+                <para>
+                    TouchKit supports especially WebKit-based browsers, which are used in
+                    iOS and Android devices. You can therefore reach a decent
+                    compatibility by using a desktop browser based on WebKit, such as
+                    Google Chrome. Features such as geolocation are also supported by
+                    desktop browsers. If you make your phone/tablet-detection and
+                    orientation detection using screen size, you can easily emulate the
+                    modes by resizing the browser. Also, the browsers have special
+                    development settings to emulate some features in touch devices.
+                </para>
+            </section>
+
+            <section xml:id="mobile.testing.debugging.remote">
+                <title>Remote Debugging</title>
+
+                <para>
+                    Both Safari and <link
+                    xlink:href="https://developers.google.com/chrome-developer-tools/docs/remote-debugging">Chrome</link>
+                    support remote debugging, which allows you to debug the supported
+                    mobile browsers remotely from a desktop browser.
+                </para>
+            </section>
+        </section>
+    </section>
+
+    <indexterm startref="term.touchkit" class="endofrange"/>
+</chapter>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: xml
+sgml-omittag:nil
+sgml-shorttag:nil
+sgml-namecase-general:nil
+sgml-general-insert-case:lower
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:4
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-exposed-tags:nil
+sgml-local-catalogs:("/etc/sgml/catalog" "/usr/share/xemacs21/xemacs-packages/etc/psgml-dtds/CATALOG")
+sgml-local-ecat-files:("ECAT" "~/sgml/ECAT" "/usr/share/sgml/ECAT" "/usr/local/share/sgml/ECAT" "/usr/local/lib/sgml/ECAT")
+End:
+-->

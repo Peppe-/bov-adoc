@@ -1,0 +1,618 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ====================================================================== -->
+<!-- Copyright 2000-2012 Vaadin Ltd                                         -->
+<!-- All Rights Reserved                                                    -->
+<!-- This work is licensed under a Creative Commons Attribution-NoDerivs    -->
+<!-- License (CC-BY-ND) Version 3.0. Full license text is available at:     -->
+<!-- http://creativecommons.org/licenses/by-nd/3.0/legalcode                -->
+<!-- ====================================================================== -->
+
+<chapter xml:id="clientside">
+	<title>Client-Side Vaadin Development</title>
+
+    <para>
+        This chapter gives an overview of the Vaadin client-side framework, its
+        architecture, and development tools.
+    </para>
+
+    <section xml:id="clientside.overview">
+        <title>Overview</title>
+
+        <para>
+            As noted in the introduction, Vaadin supports two development models:
+            server-side and client-side. Client-side Vaadin code is executed in the web
+            browser as JavaScript code. The code is written in Java, like all Vaadin code,
+            and then compiled to JavaScript with the <emphasis>Vaadin Client
+            Compiler</emphasis>. You can develop client-side widgets and integrate them
+            with server-side counterpart components to allow using them in server-side
+            Vaadin applications. That is how the components in the server-side framework
+            and in most add-ons are done. Alternatively, you can create pure client-side
+            GWT applications, which you can simply load in the browser from an HTML page
+            and use even without server-side connectivity.
+        </para>
+
+        <para>
+            The client-side framework is based on the Google Web Toolkit (GWT), with added
+            features and bug fixes. Vaadin is compatible with GWT to the extent of the
+            basic GWT feature set. Vaadin Ltd is a member of the GWT Steering Committee,
+            working on the future direction of GWT together with Google and other
+            supporters of GWT.
+        </para>
+
+        <note>
+            <title>Widgets and Components</title>
+            <para>
+                <indexterm><primary>widget, definition</primary></indexterm>
+                
+                Google Web Toolkit uses the term <emphasis>widget</emphasis> for user
+                interface components. In this book, we use the term widget to refer to
+                client-side components, while using the term <emphasis>component</emphasis> in
+                a general sense and also in the special sense for server-side components.
+            </para>
+        </note>
+
+        <para>
+            The main idea in server-side Vaadin development is to render the server-side
+            components in the browser with the Client-Side Engine. The engine is
+            essentially a set of widgets paired with <emphasis>connectors</emphasis> that
+            serialize their state and events with the server-side counterpart
+            components. The client-side engine is technically called a <emphasis>widget
+            set</emphasis>, to describe the fact that it mostly consists of widgets and
+            that widget sets can be combined, as described later.
+        </para>
+    </section>
+    
+    <section xml:id="clientside.installing">
+        <title>Installing the Client-Side Development Environment</title>
+
+        <para>
+            The installation of the client-side development libraries is described in
+            <xref linkend="getting-started"/>. You especially need the
+            <filename>vaadin-client</filename> library, which contains the client-side
+            Java API, and <filename>vaadin-client-compiler</filename>, which contains the
+            Vaadin Client Compiler for compiling Java to JavaScript.
+        </para>
+    </section>
+
+    <section xml:id="clientside.module">
+        <title>Client-Side Module Descriptor</title>
+
+        <para>
+            Client-side Vaadin modules, such as the Vaadin Client-Side Engine (widget set)
+            or pure client-side applications, that are to be compiled to JavaScript, are
+            defined in a <emphasis>module descriptor</emphasis>
+            (<filename>.gwt.xml</filename>) file.
+        </para>
+
+        <para>
+            When defining a widget set to build the Vaadin client-side engine, the only
+            necessary task is to inherit a base widget set. If you are developing a
+            regular widget set, you should normally inherit the
+            <classname>DefaultWidgetSet</classname>.
+        </para>
+
+        <programlisting><?pocket-size 65% ?><![CDATA[
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE module PUBLIC
+  "-//Google Inc.//DTD Google Web Toolkit 1.7.0//EN"
+  "http://google-web-toolkit.googlecode.com/svn/tags/1.7.0/distro-source/core/src/gwt-module.dtd">
+
+<module>
+    <!-- Inherit the default widget set -->
+    <inherits name="com.vaadin.DefaultWidgetSet" />
+</module>]]></programlisting>
+
+        <para>
+            If you are developing a pure client-side application, you should instead
+            inherit <classname>com.vaadin.Vaadin</classname>, as described in <xref
+            linkend="clientsideapp"/>. In that case, the module descriptor also needs an
+            entry-point.
+        </para>
+        
+        <para>
+            If you are using the Eclipse IDE, the New Vaadin Widget wizard will
+            automatically create the GWT module descriptor. See <xref
+                linkend="gwt.eclipse.widget"/> for detailed instructions.
+        </para>
+        
+        <section xml:id="clientside.module.stylesheet">
+            <title>Specifying a Stylesheet</title>
+
+            <para>
+                A client-side module can include CSS stylesheets. When the module is
+                compiled, these stylesheets are copied to the output target. In the module
+                descriptor, define a <literal>stylesheet</literal> element.
+            </para>
+
+
+            <para>
+                For example, if you are developing a custom widget and want to have a
+                default stylesheet for it, you could define it as follows:
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[<stylesheet src="mywidget/styles.css"/>]]></programlisting>
+
+            <para>
+                The specified path is relative to the <emphasis>public</emphasis>
+                folder under the folder of the module descriptor.
+            </para>
+        </section>
+
+        <section xml:id="gwt.module.compilation-limiting">
+            <title>Limiting Compilation Targets</title>
+                
+            <para>
+                Compiling widget sets takes considerable time. You can reduce the
+                compilation time significantly by compiling the widget sets only for
+                your browser, which is useful during development. You can do this by
+                setting the <parameter>user.agent</parameter> property in the module
+                descriptor.
+            </para>
+                
+            <programlisting><?pocket-size 75% ?><![CDATA[<set-property name="user.agent" value="gecko1_8"/>]]></programlisting>
+            
+            <para>
+                The <parameter>value</parameter> attribute should match your browser. The
+                browsers supported by GWT depend on the GWT version, below is a list of
+                browser identifiers supported by GWT.
+            </para>
+            
+            <table>
+                <title>GWT User Agents</title>
+                <tgroup cols="2" align="left">
+                    <colspec colnum="1" colname="col1" colwidth="1*"/>
+                    <colspec colnum="2" colname="col2" colwidth="3*"/>
+                    <thead>
+                        <row valign="top">
+                            <entry>Identifier</entry>
+                            <entry>Name</entry>
+                        </row>
+                    </thead>
+                    <tbody>
+                        <row valign="top">
+                            <entry>ie6</entry>
+                            <entry>Internet Explorer 6</entry>
+                        </row>
+                        <row valign="top">
+                            <entry>ie8</entry>
+                            <entry>Internet Explorer 8</entry>
+                        </row>
+                        <row valign="top">
+                            <entry>gecko1_8</entry>
+                            <entry>Mozilla Firefox 1.5 and later</entry>
+                        </row>
+                        <row valign="top">
+                            <entry>safari</entry>
+                            <entry>Apple Safari and other Webkit-based browsers including Google Chrome</entry>
+                        </row>
+                        <row valign="top">
+                            <entry>opera</entry>
+                            <entry>Opera</entry>
+                        </row>
+                        <row valign="top">
+                            <entry>ie9</entry>
+                            <entry>Internet Explorer 9</entry>
+                        </row>
+                    </tbody>
+                </tgroup>
+            </table>
+        </section>
+        
+        <para>
+            For more information about the GWT Module XML Format, please see Google Web
+            Toolkit Developer Guide.
+        </para>
+    </section>
+
+    <section xml:id="clientside.compiling">
+        <title>Compiling a Client-Side Module</title>
+
+        <para>
+            A client-side module, either a widget set or a pure client-side module, needs
+            to be compiled to JavaScript using the Vaadin Client Compiler. During
+            development, the Development Mode makes the compilation automatically when you
+            reload the page, provided that the module has been initially compiled once
+            with the compiler.
+       </para>
+
+        <para>
+            As most Vaadin add-ons include widgets, widget set compilation is usually
+            needed when using add-ons. In that case, the widget sets from different
+            add-ons are compiled into a <emphasis>project widget set</emphasis>, as
+            described in <xref linkend="addons"/>. <!-- TODO Provide a link to a proper
+            add-on compilation section when one is available. -->
+        </para>
+
+        <section xml:id="clientside.compiling.overview">
+            <title>Vaadin Compiler Overview</title>
+
+            <para>
+                The Vaadin Client Compiler compiles Java to JavaScript. It is provided as
+                the <filename>vaadin-client-compiler</filename> JAR, which you can execute
+                with the <literal>-jar</literal> parameter for the Java runtime. It
+                requires the <filename>vaadin-client</filename> JAR, which contains the
+                Vaadin client-side framework.
+            </para>
+
+            <para>
+                The compiler compiles a <emphasis>client module</emphasis>, which can be
+                either a pure client-side module or a Vaadin widget set, that is, the
+                Vaadin Client-Side Engine that includes the widgets used in the
+                application. The client module is defined with a module descriptor, which
+                was described in <xref linkend="clientside.module"/>.
+            </para>
+
+            <para>
+                The compiler writes the compilation result to a target folder that will
+                include the compiled JavaScript with any static resources included in the
+                module.
+            </para>
+        </section>
+
+        <section xml:id="clientside.compiling.eclipse">
+            <title>Compiling in Eclipse</title>
+
+            <para>
+                When the Vaadin Plugin is installed in Eclipse, you can simply click the
+                <guibutton>Compile Vaadin widgets</guibutton> button in the toolbar. It
+                will compile the widget set it finds from the project. If the project has
+                multiple widget sets, such as one for custom widgets and another one for
+                the project, you need to select the module descriptor of the widget set to
+                compile before clicking the button.
+            </para>
+
+            <para>
+                The compilation with Vaadin Plugin for Eclipse currently requires that the
+                module descriptor has suffix <filename>Widgetset.gwt.xml</filename>,
+                although you can use it to compile also other client-side modules than
+                widget sets. The result is written under
+                <filename>WebContent/VAADIN/widgetsets</filename> folder.
+            </para>
+        </section>
+
+        <section xml:id="clientside.compiling.ant">
+            <title>Compiling with Ant</title>
+
+            <para>
+                You can find a script template for compiling widget sets with Ant and Ivy
+                at the <link xlink:href="http://vaadin.com/download/">Vaadin download
+                page</link>. You can copy the build script to your project and, once
+                configured, run it with Ant.
+            </para>
+        </section>
+
+        <section xml:id="clientside.compiling.maven">
+            <title>Compiling with Maven</title>
+
+            <para>
+                You can compile the widget set with the <literal>vaadin:compile</literal>
+                goal as follows:
+            </para>
+
+            <screen><prompt>$</prompt> <command>mvn</command> <parameter>vaadin:compile</parameter></screen>
+        </section>
+    </section>
+
+    <section xml:id="clientside.widget">
+        <title>Creating a Custom Widget</title>
+
+        <para>
+            Creating a new Vaadin component usually begins from making a client-side
+            widget, which is later integrated with a server-side counterpart to enable
+            server-side development. In addition, you can also choose to make pure
+            client-side widgets, a possibility which we also describe later in this
+            section.
+        </para>
+
+        <section xml:id="clientside.widget.simple">
+            <title>A Basic Widget</title>
+
+            <para>
+                All widgets extend the <classname>Widget</classname> class or some of its
+                subclasses. You can extend any core GWT or supplementary Vaadin
+                widgets. Perhaps typically, an abstraction such as
+                <classname>Composite</classname>. The basic GWT widget component hierarchy
+                is illustrated in <xref linkend="figure.clientside.widgets"/>. Please see
+                the GWT API documentation for a complete description of the widget
+                classes.
+            </para>
+
+            <figure xml:id="figure.clientside.widgets">
+                <title>GWT Widget Base Class Hierarchy</title>
+                <mediaobject>
+                    <imageobject role="html">
+                        <imagedata align="center" fileref="img/gwt/gwt-widgets-lo.png"/>
+                    </imageobject>
+                    <imageobject role="fo">
+                        <imagedata scale="60" smallscale="100%" align="center" fileref="img/gwt/gwt-widgets-hi.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+
+            <para>
+                For example, we could extend the <classname>Label</classname> widget to
+                display some custom text.
+            </para>
+
+            <programlisting><?pocket-size 75% ?><![CDATA[package com.example.myapp.client;
+
+import com.google.gwt.user.client.ui.Label;
+
+public class MyWidget extends Label {
+    public static final String CLASSNAME = "mywidget";
+
+    public MyWidget() {
+        setStyleName(CLASSNAME);
+        setText("This is MyWidget");
+    }
+}]]></programlisting>
+
+            <para>
+                The above example is largely what the Eclipse plugin generates as a widget
+                stub. It is a good practice to set a distinctive style class for the
+                widget, to allow styling it with CSS.
+            </para>
+
+            <para>
+                The client-side source code <emphasis>must</emphasis> be contained in a
+                <filename>client</filename> package under the package of the descriptor
+                file, which is covered later.
+            </para>
+        </section>
+
+        <section xml:id="clientside.widget.using">
+            <title>Using the Widget</title>
+
+            <para>
+                You can use a custom widget just like you would use any widget, possibly
+                integrating it with a server-side component, or in pure client-side
+                modules such as the following:
+            </para>
+
+            <programlisting><![CDATA[public class MyEntryPoint implements EntryPoint {
+    @Override
+    public void onModuleLoad() {
+        // Use the custom widget
+        final MyWidget mywidget = new MyWidget();
+        RootPanel.get().add(mywidget);
+    }
+}]]></programlisting>
+        </section>
+    </section>
+
+    <section xml:id="clientside.debugging">
+        <title>Debugging Client-Side Code</title>
+        
+        <para>
+            Vaadin currently includes SuperDevMode for debugging client-side code right in
+            the browser.
+        </para>
+
+        <para>
+            The predecessor of SuperDevMode, the GWT Development Mode, no longer works in
+            recent versions of Firefox and Chrome, because of certain API changes in the
+            browsers. There exists workarounds on some platforms, but for the sake of
+            simplicity, we recommend using the SuperDevMode.
+        </para>
+
+        <section xml:id="clientside.debugging.devmode" condition="web">
+            <title>Launching Development Mode</title>
+
+            <para>
+                The Development Mode launches the application in the browser, compiles the
+                client-side module (or widget set) when the page is loaded, and allows
+                debugging the client-side code in Eclipse. You can launch the Development
+                Mode by running the <classname>com.google.gwt.dev.DevMode</classname>
+                class. It requires some parameters, as described later.
+            </para>
+
+            <para>
+                The Vaadin Plugin for Eclipse can create a launch configuration for the
+                Development Mode. In the Vaadin section of project properties, click the
+                <guibutton>Create development mode launch</guibutton> button. This creates
+                a new launch configuration in the project. You can edit the launch
+                configuration in <menuchoice><guimenu>Run</guimenu><guimenuitem>Run
+                Configurations</guimenuitem></menuchoice>. 
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[-noserver -war WebContent/VAADIN/widgetsets com.example.myproject.widgetset.MyWidgetSet -startupUrl http://localhost:8080/myproject -bindAddress 127.0.0.1]]></programlisting>
+
+            <para>
+                The parameters are as follows:
+            </para>
+
+            <variablelist>
+                <varlistentry>
+                    <term><parameter>-noserver</parameter></term>
+                    <listitem>
+                        Normally, the Development Mode launches its own Jetty server for
+                        hosting the content. If you are developing the application under
+                        an IDE that deploys it to a server, such as Eclipse, you can
+                        disable the Development Mode server with this option.
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><parameter>-war</parameter></term>
+                    <listitem>
+                        Specifies path to the location where the JavaScript is to be
+                        compiled. When developing a pure client-side module, this could be
+                        the <filename>WebContent</filename> (in Eclipse) or some other
+                        folder under it. When compiling widget sets, it must be
+                        <filename>WebContent/VAADIN/widgetsets</filename>.
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><parameter>-startupUrl</parameter></term>
+                    <listitem>
+                        Specifies the address of the loader page for the application. For
+                        server-side Vaadin applications, this should be the path to the
+                        Vaadin application servlet, as defined in the deployment. For pure
+                        client-side widgets, it should be the page where the application is
+                        included.
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><parameter>-bindAddress</parameter></term>
+                    <listitem>
+                        This is the IP address of the host in which the Development Mode
+                        runs. For debugging on the development workstation, it can be just
+                        <literal>127.0.0.1</literal>. Setting it as the proper IP address
+                        of the host enables remote debugging.
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </section>
+
+        <section xml:id="clientside.debugging.superdevmode">
+            <title>Launching SuperDevMode</title>
+
+            <para>
+                The SuperDevMode is much like the old Development Mode, except that it
+                does not require a browser plugin. Compilation from Java to JavaScript is
+                done incrementally, reducing the compilation time significantly. It also
+                allows debugging JavaScript and even Java right in the browser (currently
+                only supported in Chrome).
+            </para>
+
+            <para>
+                You can enable SuperDevMode as follows:
+            </para>
+
+            <orderedlist>
+                <listitem>
+                    <para>
+                        You need to set a redirect property in the
+                        <filename>.gwt.xml</filename> module descriptor as follows:
+                    </para>
+
+                    <programlisting><?pocket-size 65% ?><![CDATA[<set-configuration-property name="devModeRedirectEnabled" value="true" />]]></programlisting>
+
+                    <para>
+                        In addition, you need the <literal>xsiframe</literal> linker. It
+                        is included in the
+                        <classname>com.vaadin.DefaultWidgetSet</classname> as
+                        well as in the <classname>com.vaadin.Vaadin</classname>
+                        module. Otherwise, you need to include it with:
+                    </para>
+
+                    <programlisting><?pocket-size 65% ?><![CDATA[<add-linker name="xsiframe" />]]></programlisting>
+                </listitem>
+
+                <listitem>
+                    Compile the module (that is, the widget set), for example by clicking
+                    the button in Eclipse.
+                </listitem>
+
+                <listitem>
+                    <para>
+                        If you are using Eclipse, create a launch configuration for the
+                        SuperDevMode by clicking the <guibutton>Create SuperDevMode
+                        launch</guibutton> in the <guilabel>Vaadin</guilabel> section of
+                        the project properties.
+                    </para>
+
+                    <orderedlist>
+                        <listitem>
+                            The main class to execute should be
+                            <classname>com.google.gwt.dev.codeserver.CodeServer</classname>.
+                        </listitem>
+                        <listitem>
+                            The application takes the fully-qualified class name of the
+                            module (or widget set) as parameter, for example,
+                            <classname>com.example.myproject.widgetset.MyprojectWidgetset</classname>.
+                        </listitem>
+                        <listitem>
+                            Add project sources to the class path of the launch if they
+                            are not in the project class path.
+                        </listitem>
+                    </orderedlist>
+                </listitem>
+            </orderedlist>
+
+            <para>
+                The above configuration only needs to be done once to enable the
+                SuperDevMode. After that, you can launch the mode as follows:
+            </para>
+
+            <orderedlist>
+                <listitem>
+                    Run the SuperDevMode Code Server with the launch configuration that
+                    you created above. This perfoms the initial compilation of your module
+                    or widget set.
+                </listitem>
+                <listitem>
+                    Launch the servlet container for your application, for example, Tomcat.
+                </listitem>
+                <listitem>
+                    Open your browser with the application URL and add
+                    <literal>?superdevmode</literal> parameter to the URL (see the notice
+                    below if you are not extending
+                    <classname>DefaultWidgetSet</classname>). This recompiles the code,
+                    after which the page is reloaded with the SuperDevMode. You can also
+                    use the <literal>?debug</literal> parameter and then click the
+                    <guibutton>SDev</guibutton> button in the debug console.
+                </listitem>
+            </orderedlist>
+
+            <para>
+                If you make changes to the client-side code and refresh the page in the
+                browser, the client-side is recompiled and you see the results
+                immediately.
+            </para>
+
+            <para>
+                The Step 3 above assumes that you extend
+                <classname>DefaultWidgetSet</classname> in your module. If that is not the
+                case, you need to add the following at the start of the
+                <methodname>onModuleLoad()</methodname> method of the module:
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[if (SuperDevMode.enableBasedOnParameter()) { return; }]]></programlisting>
+
+            <para>
+                Alternatively, you can use the bookmarklets provided by the code
+                server. Go to <uri>http://localhost:9876/</uri> and drag the bookmarklets
+                "<guilabel>Dev Mode On</guilabel>" and "<guilabel>Dev Mode Off</guilabel>"
+                to the bookmarks bar
+            </para>
+        </section>
+
+        <section xml:id="clientside.debugging.chrome">
+            <title>Debugging Java Code in Chrome</title>
+
+            <para>
+                Chrome supports source maps, which allow debugging Java source code from
+                which the JavaScript was compiled.
+            </para>
+
+            <para>
+                Open the Chrome Inspector by right-clicking and selecting
+                <guilabel>Inspect Element</guilabel>. Click the settings icon in the lower
+                corner of the window and check the
+                <menuchoice><guimenu>Scripts</guimenu><guimenuitem>Enable source
+                maps</guimenuitem></menuchoice> option. Refresh the page with the
+                Inspector open, and you will see Java code instead of JavaScript in the
+                scripts tab.
+            </para>
+        </section>
+    </section>
+</chapter>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: xml
+sgml-omittag:nil
+sgml-shorttag:nil
+sgml-namecase-general:nil
+sgml-general-insert-case:lower
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:4
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-exposed-tags:nil
+sgml-local-catalogs:("/etc/sgml/catalog" "/usr/share/xemacs21/xemacs-packages/etc/psgml-dtds/CATALOG")
+sgml-local-ecat-files:("ECAT" "~/sgml/ECAT" "/usr/share/sgml/ECAT" "/usr/local/share/sgml/ECAT" "/usr/local/lib/sgml/ECAT")
+End:
+-->
+

@@ -1,0 +1,366 @@
+[[_addons]]
+= Using Vaadin Add-ons
+:doctype: book
+:numbered:
+:toc: left
+:icons: font
+:experimental:
+
+This chapter describes the installation of add-on components, themes, containers, and other tools from the Vaadin Directory and the use of commercial add-ons offered by Vaadin. 
+
+[[_addons.overview]]
+== Overview
+
+In addition to the components, layouts, themes, and data sources built in into the core Vaadin library, many others are available as add-ons.
+ <<,Vaadin Directory>> provides a rich collection of add-ons for Vaadin, and you may find others from independent sources.
+Add-ons are also one way to share your own components between projects. 
+
+Installation of add-ons from Vaadin Directory is simple, just adding an Ivy or Maven dependency, or downloading the JAR package and and dropping it in the web library folder of the project.
+Most add-ons include a widget set, which you need to compile, but it's usually just a click of a button or a single command. 
+
+After trying out an add-on, you can give some feedback to the author of the add-on by rating the add-on with one to five stars and optionally leaving a comment.
+Most add-ons also have a discussion forum thread for user feedback and questions. 
+
+Add-ons available from Vaadin Directory are distributed under different licenses, of which some are commercial.
+While the add-ons can be downloaded directly, you should note their license and other terms and conditions.
+Many are offered under a dual licensing agreement so that they can be used in open source projects for free, and many have a trial period for closed-source development.
+Commercial Vaadin add-ons distributed under the CVAL license require installing a license key as instructed in <<_addons.cval,addons.cval>>. 
+
+[[_addons.downloading]]
+== Downloading Add-ons from Vaadin Directory
+
+If you are not using Maven or a Maven-compatible dependency manager such as Ivy, or want to manage for your libraries manually, you can download add-on packages from the details page of an add-on in Vaadin Directory. 
+
+. Select the version; some add-ons have several versions available.
+  The latest is shown by default, but you can choose another the version to download from the dropdown menu in the header of the details page. 
+. Click btn:[Download Now] and save the JAR or Zip file on your computer. 
+. If the add-on is packaged in a Zip package, unzip the package and follow any instructions provided inside the package.
+  Typically, you just need to copy a JAR file to your web project under the [path]_WEB-INF/lib_ directory. 
++
+Note that some add-ons may require other libraries.
+You can resolve such dependencies manually, but we recommend using a dependency manager such as Ivy or Maven in your project. 
+
+. Update and recompile your project.
+  In Eclipse, select the project and press F5. 
+. You may need to compile the client-side implementations of the add-on components, that is, a _widget set_.
+  This is the case for majority of add-ons, except for pure server-side, theme, or data binding add-ons.
+  Compiling the widget set depends on the build environment.
+  See <<_addons.downloading.ant,addons.downloading.ant>>, or later in this chapter for instructions for compiling the widget set with Eclipse and Maven.                 
+. Update the project in your development web server and possibly restart the server. 
+
+[[_addons.downloading.ant]]
+=== Compiling Widget Sets with an Ant Script
+
+If you need to compile the widget set with an Ant script, you can find a script template package at the <<,Vaadin download page>>.
+You can copy the files in the package to your project and, once configured, use it by running Ant in the directory. 
+
+If you are using an IDE such as Eclipse, _always_                remember to refresh the project to synchronize it with the filesystem after compiling the widget set outside the IDE. 
+
+[[_addons.eclipse]]
+== Installing Add-ons in Eclipse with Ivy
+
+The Vaadin Plugin for Eclipse uses Apache Ivy to resolve dependencies.
+The dependencies should be listed in the [path]_ivy.xml_ file in the project root.
+The Vaadin Directory allows dowloading add-ons from a Maven repository, which can be accessed also by Ivy. 
+
+You can also use Ivy to resolve dependencies in an Ant script. 
+
+. Open the add-on page in Vaadin Directory. 
+. Select the version.
+  The latest is shown by default, but you can choose another the version from the dropdown menu in the header of the add-on details page. 
+. Click the [label]#Maven/Ivy# to display the Ivy dependency declaration, as illustrated in Figure <<_figure.addons.eclipse.ivybutton,figure.addons.eclipse.ivybutton>>.
+  If the add-on is available with multiple licenses, you will be prompted to select a license for the dependency. 
++
+.Ivy Dependency Declaration
+image::img/addons/directory-ivy-dependency.png[]
+
+. Open the [path]_ivysettings.xml_ in your Eclipse project either in the XML or Ivy Editor (either double-click the file or right-click it and select ). 
++
+Check that the settings file has the [literal]+<ibiblio>+ entry given in the Directory page.
+It should be, if the file was created by the Vaadin project wizard in Eclipse.
+If not, copy it there. 
++
+[source]
+----
+<chain name="default">
+  ...
+  <ibiblio name="vaadin-addons"
+           usepoms="true"
+           m2compatible="true"
+           root="http://maven.vaadin.com/vaadin-addons"/>
+  ...
+</chain>
+----
++
+If you get Vaadin addons from another repository, such as the local repository if you have compiled them yourself, you need to define a resolver for the repository in the settings file. 
+
+. Open the [path]_ivy.xml_ in your Eclipse project and copy the Ivy dependency to inside the [literal]+dependencies+                    element.
+  It should be as follows: 
++
+[source]
+----
+<dependencies>
+    ...
+    <dependency org="com.vaadin.addon"
+                name="vaadin-charts"
+                rev="1.0.0"/>
+</dependencies>
+----
++
+You can specify either a fixed version number or a dynamic revision tag, such as [literal]+latest.release+.
+You can find more information about the <<,dependency
+                    declarations>> in Ivy documentation. 
++
+If the [path]_ivy.xml_ does not have a [literal]+<configurations defaultconfmapping="default->default">+ defined, you also need to have [literal]+conf="default->default"+ in the dependency to resolve transient dependencies correctly. 
++
+IvyIDE immediately resolves the dependencies when you save the file. 
+
+. Compile the add-on widget set by clicking the [label]#Compile Vaadin widgets# button in the toolbar. 
++
+.Compiling Widget Set in Eclipse
+image::img/eclipse/widgetset-compiling-toolbar-lo.png[]
+
+
+If you experience problems with Ivy, first check all the dependency parameters.
+IvyDE can sometimes cause unexpected problems.
+You can clear the Ivy dependency cache by right-clicking the project and selecting .
+To refresh Ivy configuration, select .
+To try resolving again Ivy, select . 
+
+[[_addons.maven]]
+== Using Add-ons in a Maven Project
+(((Maven,using add-ons)))
+
+To use add-ons in a Maven project, you simply have to add them as dependencies in the project POM.
+Most add-ons include a widget set, which are compiled to the project widget set. 
+
+Creating, compiling, and packaging a Vaadin project with Maven was described in <<_getting_started.maven,getting-started.maven>>. 
+
+[[_addons.maven.dependency]]
+=== Adding a Dependency
+
+Vaadin Directory provides a Maven repository for all the add-ons in the Directory. 
+
+. Open the add-on page in Vaadin Directory. 
+. Select the version.
+  The latest is shown by default, but you can choose another the version from the dropdown menu in the header of the add-on details page. 
+. Click the [label]#Maven/Ivy# to display the Maven dependency declaration, as illustrated in Figure <<_figure.addons.maven.pombutton,figure.addons.maven.pombutton>>.
+  If the add-on is available with multiple licenses, you will be prompted to select a license for the dependency. 
++
+.Maven POM Definitions
+image::img/addons/directory-maven-pom.png[]
+
+. Copy the [literal]+dependency+ declaration to the [path]_pom.xml_ file in your project, under the [literal]+dependencies+ element. 
++
+[source]
+----
+  ...
+  <dependencies>
+    ...
+    <dependency>
+      <groupId>com.vaadin.addon</groupId>
+      <artifactId>vaadin-charts</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+  </dependencies>
+----
++
+You can use an exact version number, as is done in the example above, or [literal]+LATEST+ to always use the latest version of the add-on. 
++
+The POM excerpt given in Directory includes also a repository definition, but if you have used the [literal]+vaadin-archetype-application+ to create your project, it already includes the definition. 
+
+. Compile the widget set as described in the following section. 
+
+[[_addons.maven.compiling]]
+=== Compiling the Project Widget Set
+
+If you have used the [literal]+vaadin-archetype-application+ to create the project, the [path]_pom.xml_ includes all necessary declarations to compile the widget set.
+The widget set compilation occurs in standard Maven build phase, such as with  or  goal. 
+
+----
+$ mvn package
+----
+
+Then, just deploy the WAR to your application server. 
+
+[[_addons.maven.compiling.recompiling]]
+==== Recompiling the Widget Set
+
+The Vaadin plugin for Maven tries to avoid recompiling the widget set unless necessary, which sometimes means that it is not compiled even when it should.
+Running the [literal]+clean+ goal usually helps, but causes a full recompilation.
+You can compile the widget set manually by running the  goal. 
+
+----
+$ mvn vaadin:compile
+----
+
+Note that this does not update the project widget set by searching new widget sets from the class path.
+It must be updated if you add or remove add-ons, for example.
+You can do that by running the [literal]+vaadin:update-widgetset+ goal in the project directory. 
+
+----
+$ mvn vaadin:update-widgetset
+...
+[INFO] auto discovered modules [your.company.gwt.ProjectNameWidgetSet]
+[INFO] Updating widgetset your.company.gwt.ProjectNameWidgetSet
+[ERROR] 27.10.2011 19:22:34 com.vaadin.terminal.gwt.widgetsetutils.ClassPathExplorer getAvailableWidgetSets
+[ERROR] INFO: Widgetsets found from classpath:
+...
+----
+
+Do not mind the "ERROR" labels, they are just an issue with the Vaadin Plugin for Maven. 
+
+After running the update, you need to run the [literal]+vaadin:compile+ goal to actually compile the widget set. 
+
+[[_addons.maven.widgetset]]
+=== Enabling Widget Set Compilation
+
+If you are not using a POM created with the proper Vaadin archetype, you may need to enable widget set compilation manually.
+The simplest way to do that is to copy the definitions from a POM created with the archetype.
+Specifically, you need to copy the [literal]+plugin+                definitions.
+You also need the Vaadin dependencies. 
+
+You need to create an empty widget set definition file, which the widget set compilation will populate with widget sets found from the class path.
+Create a [path]_src/main/java/com/example/AppWidgetSet.gwt.xml_ file (in the project package) with an empty [literal]+<module>+                element as follows: 
+
+[source]
+----
+<module>
+</module>
+----
+
+[[_addons.maven.widgetset.web]]
+==== Enabling the Widget Set in the UI
+
+If you have previously used the default widget set in the project, you need to enable the project widget set in the [path]_web.xml_ deployment descriptor.
+Edit the [path]_src/main/webapp/WEB-INF/web.xml_ file and add or modify the [literal]+widgetset+ parameter for the servlet as follows. 
+
+[source]
+----
+<servlet>
+  ...
+  <init-param>
+    <description>Widget Set to Use</description>
+    <param-name>widgetset</param-name>
+    <param-value>com.example.AppWidgetSet</param-value>
+  </init-param>
+</servlet>
+----
+
+The parameter is the class name of the widget set, that is, without the [path]_.gwt.xml_ extension and with the Java dot notation for class names that include the package name. 
+
+[[_addons.cval]]
+== Installing Commercial Vaadin Add-on Licence
+
+The commercial Vaadin add-ons require installing a license key before using them.
+The license keys are development licenses and checked during widget set compilation, or in Vaadin TestBench when executing tests, so you do not need them when deploying the application. 
+
+[[_addons.cval.obtaining]]
+=== Obtaining License Keys
+
+You can purchase add-ons or obtain a free trial key from the Vaadin website.
+You need to register in the website to obtain a key. 
+
+You can get license keys from <<,vaadin.com/pro/licenses>>, where you can navigate by selecting in the Vaadin website  or directly  if you are a Pro Tools subscriber. 
+
+.Obtaining CVAL License
+image::img/addons/cval-pro-licenses-3.png[]
+
+Click on a license key to obtain the purchased or trial key. 
+
+.Obtaining CVAL License Key
+image::img/addons/cval-pro-licenses-code.png[]
+
+[[_addons.cval.installing]]
+=== Installing License Key in License File
+
+To install the license key in a development workstation, you can copy and paste it verbatim to a file in your home directory. 
+
+License for each product has a separate license file as follows: 
+
+Vaadin Charts::
+
+Vaadin Spreadsheet::
+
+Vaadin TestBench::
+
+Vaadin TouchKit::
+
+For example, in Linux and OSX: 
+
+----
+$ echo "L1cen5e-c0de" > ~/.vaadin.product.developer.license
+----
+
+[[_addons.cval.systemproperty]]
+=== Passing License Key as System Property
+
+You can also pass the key as a system property to the widget set compiler, usually with a [literal]+-D+ option.
+For example, on the command-line: 
+
+----
+$ java -Dvaadin.product.developer.license=L1cen5e-c0de ...
+----
+
+See <<,the
+                CVAL license key installation instructions>> for more details. 
+
+[[_addons.cval.systemproperty.environments]]
+==== Passing License Key in Different Environments
+
+How you actually pass the parameter to the widget set compiler depends on the development environment and the build system that you use to compile the widget set.
+Below are listed a few typical environments: 
+
+Eclipse IDE::
+  To install the license key for all projects, select                                 and navigate to the  section.
+  Select the JRE version that you use for the application and click btn:[Edit].
+  In the [label]#Default VM
+                                  arguments#, give the                                 expression as shown above. 
+
+Apache Ant::
+  If compiling the project with Apache Ant, you could set the key in the Ant script as follows: 
+
+Apache Maven::
+  If building the project with Apache Maven, you can pass the license key with a [literal]+-D+ parameter to Maven: 
+
+Continuous Integration Systems::
+  In CIS systems, you can pass the license key to build runners as a system property in the build configuration.
+  However, this only passes it to a runner.
+  As described above, Ant does not pass it to sub-processes implicitly, so you need to forward it explicitly as described earlier. 
+
+[[_addons.troubleshooting]]
+== Troubleshooting
+
+If you experience problems with using add-ons, you can try the following: 
+
+* Check the [path]_.gwt.xml_ descriptor file under the the project root package.
+  For example, if the project root package is [path]_com.example.myproject_, the widget set definition file is typically at [path]_com/example/project/AppWidgetset.gwt.xml_.
+  The location is not fixed and it can be elsewhere, as long as references to it match.
+  See <<_clientside.module,clientside.module>> for details on the contents of the client-side module descriptor, which is used to define a widget set. 
+* Check the [path]_WEB-INF/web.xml_ deployment descriptor and see that the servlet for your UI has a widget set parameter, such as the following: 
++
+[source]
+----
+<init-param>
+  <description>UI widgetset</description>
+  <param-name>widgetset</param-name>
+  <param-value>com.example.project.AppWidgetSet</param-value>
+</init-param>
+----
++
+Check that the widget set class corresponds with the [path]_.gwt.xml_ file in the source tree. 
+
+* See the [path]_VAADIN/widgetsets_ directory and check that the widget set appears there.
+  You can remove it and recompile the widget set to see that the compilation works properly. 
+* Use the [label]#Net# tab in Firebug to check that the widget set (and theme) is loaded properly. 
+* Use the  parameter for the application to open the debug window and check if there is any version conflict between the widget set and the Vaadin library, or the themes.
+  See <<_advanced.debug,advanced.debug>> for details. 
+* Refresh and recompile the project.
+  In Eclipse, select the project and press kbd:[F5], stop the server, clean the server temporary directories, and restart it. 
+* Check the Error Log view in Eclipse (or in the IDE you use). 
+
+ifdef::backend-docbook[]
+[index]
+== Index
+// Generated automatically by the DocBook toolchain.
+endif::backend-docbook[]

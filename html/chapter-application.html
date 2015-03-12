@@ -1,0 +1,2735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 1.5.2">
+<title>Writing a Server-Side Web Application</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400">
+<style>
+/* Asciidoctor default stylesheet | MIT License | http://asciidoctor.org */
+/* Remove the comments around the @import statement below when using this as a custom stylesheet */
+/*@import "https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400";*/
+article,aside,details,figcaption,figure,footer,header,hgroup,main,nav,section,summary{display:block}
+audio,canvas,video{display:inline-block}
+audio:not([controls]){display:none;height:0}
+[hidden],template{display:none}
+script{display:none!important}
+html{font-family:sans-serif;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}
+body{margin:0}
+a{background:transparent}
+a:focus{outline:thin dotted}
+a:active,a:hover{outline:0}
+h1{font-size:2em;margin:.67em 0}
+abbr[title]{border-bottom:1px dotted}
+b,strong{font-weight:bold}
+dfn{font-style:italic}
+hr{-moz-box-sizing:content-box;box-sizing:content-box;height:0}
+mark{background:#ff0;color:#000}
+code,kbd,pre,samp{font-family:monospace;font-size:1em}
+pre{white-space:pre-wrap}
+q{quotes:"\201C" "\201D" "\2018" "\2019"}
+small{font-size:80%}
+sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}
+sup{top:-.5em}
+sub{bottom:-.25em}
+img{border:0}
+svg:not(:root){overflow:hidden}
+figure{margin:0}
+fieldset{border:1px solid silver;margin:0 2px;padding:.35em .625em .75em}
+legend{border:0;padding:0}
+button,input,select,textarea{font-family:inherit;font-size:100%;margin:0}
+button,input{line-height:normal}
+button,select{text-transform:none}
+button,html input[type="button"],input[type="reset"],input[type="submit"]{-webkit-appearance:button;cursor:pointer}
+button[disabled],html input[disabled]{cursor:default}
+input[type="checkbox"],input[type="radio"]{box-sizing:border-box;padding:0}
+input[type="search"]{-webkit-appearance:textfield;-moz-box-sizing:content-box;-webkit-box-sizing:content-box;box-sizing:content-box}
+input[type="search"]::-webkit-search-cancel-button,input[type="search"]::-webkit-search-decoration{-webkit-appearance:none}
+button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}
+textarea{overflow:auto;vertical-align:top}
+table{border-collapse:collapse;border-spacing:0}
+*,*:before,*:after{-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box}
+html,body{font-size:100%}
+body{background:#fff;color:rgba(0,0,0,.8);padding:0;margin:0;font-family:"Noto Serif","DejaVu Serif",serif;font-weight:400;font-style:normal;line-height:1;position:relative;cursor:auto}
+a:hover{cursor:pointer}
+img,object,embed{max-width:100%;height:auto}
+object,embed{height:100%}
+img{-ms-interpolation-mode:bicubic}
+#map_canvas img,#map_canvas embed,#map_canvas object,.map_canvas img,.map_canvas embed,.map_canvas object{max-width:none!important}
+.left{float:left!important}
+.right{float:right!important}
+.text-left{text-align:left!important}
+.text-right{text-align:right!important}
+.text-center{text-align:center!important}
+.text-justify{text-align:justify!important}
+.hide{display:none}
+.antialiased,body{-webkit-font-smoothing:antialiased}
+img{display:inline-block;vertical-align:middle}
+textarea{height:auto;min-height:50px}
+select{width:100%}
+p.lead,.paragraph.lead>p,#preamble>.sectionbody>.paragraph:first-of-type p{font-size:1.21875em;line-height:1.6}
+.subheader,.admonitionblock td.content>.title,.audioblock>.title,.exampleblock>.title,.imageblock>.title,.listingblock>.title,.literalblock>.title,.stemblock>.title,.openblock>.title,.paragraph>.title,.quoteblock>.title,table.tableblock>.title,.verseblock>.title,.videoblock>.title,.dlist>.title,.olist>.title,.ulist>.title,.qlist>.title,.hdlist>.title{line-height:1.45;color:#7a2518;font-weight:400;margin-top:0;margin-bottom:.25em}
+div,dl,dt,dd,ul,ol,li,h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6,pre,form,p,blockquote,th,td{margin:0;padding:0;direction:ltr}
+a{color:#2156a5;text-decoration:underline;line-height:inherit}
+a:hover,a:focus{color:#1d4b8f}
+a img{border:none}
+p{font-family:inherit;font-weight:400;font-size:1em;line-height:1.6;margin-bottom:1.25em;text-rendering:optimizeLegibility}
+p aside{font-size:.875em;line-height:1.35;font-style:italic}
+h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{font-family:"Open Sans","DejaVu Sans",sans-serif;font-weight:300;font-style:normal;color:#ba3925;text-rendering:optimizeLegibility;margin-top:1em;margin-bottom:.5em;line-height:1.0125em}
+h1 small,h2 small,h3 small,#toctitle small,.sidebarblock>.content>.title small,h4 small,h5 small,h6 small{font-size:60%;color:#e99b8f;line-height:0}
+h1{font-size:2.125em}
+h2{font-size:1.6875em}
+h3,#toctitle,.sidebarblock>.content>.title{font-size:1.375em}
+h4,h5{font-size:1.125em}
+h6{font-size:1em}
+hr{border:solid #ddddd8;border-width:1px 0 0;clear:both;margin:1.25em 0 1.1875em;height:0}
+em,i{font-style:italic;line-height:inherit}
+strong,b{font-weight:bold;line-height:inherit}
+small{font-size:60%;line-height:inherit}
+code{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;font-weight:400;color:rgba(0,0,0,.9)}
+ul,ol,dl{font-size:1em;line-height:1.6;margin-bottom:1.25em;list-style-position:outside;font-family:inherit}
+ul,ol,ul.no-bullet,ol.no-bullet{margin-left:1.5em}
+ul li ul,ul li ol{margin-left:1.25em;margin-bottom:0;font-size:1em}
+ul.square li ul,ul.circle li ul,ul.disc li ul{list-style:inherit}
+ul.square{list-style-type:square}
+ul.circle{list-style-type:circle}
+ul.disc{list-style-type:disc}
+ul.no-bullet{list-style:none}
+ol li ul,ol li ol{margin-left:1.25em;margin-bottom:0}
+dl dt{margin-bottom:.3125em;font-weight:bold}
+dl dd{margin-bottom:1.25em}
+abbr,acronym{text-transform:uppercase;font-size:90%;color:rgba(0,0,0,.8);border-bottom:1px dotted #ddd;cursor:help}
+abbr{text-transform:none}
+blockquote{margin:0 0 1.25em;padding:.5625em 1.25em 0 1.1875em;border-left:1px solid #ddd}
+blockquote cite{display:block;font-size:.9375em;color:rgba(0,0,0,.6)}
+blockquote cite:before{content:"\2014 \0020"}
+blockquote cite a,blockquote cite a:visited{color:rgba(0,0,0,.6)}
+blockquote,blockquote p{line-height:1.6;color:rgba(0,0,0,.85)}
+@media only screen and (min-width:768px){h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{line-height:1.2}
+h1{font-size:2.75em}
+h2{font-size:2.3125em}
+h3,#toctitle,.sidebarblock>.content>.title{font-size:1.6875em}
+h4{font-size:1.4375em}}table{background:#fff;margin-bottom:1.25em;border:solid 1px #dedede}
+table thead,table tfoot{background:#f7f8f7;font-weight:bold}
+table thead tr th,table thead tr td,table tfoot tr th,table tfoot tr td{padding:.5em .625em .625em;font-size:inherit;color:rgba(0,0,0,.8);text-align:left}
+table tr th,table tr td{padding:.5625em .625em;font-size:inherit;color:rgba(0,0,0,.8)}
+table tr.even,table tr.alt,table tr:nth-of-type(even){background:#f8f8f7}
+table thead tr th,table tfoot tr th,table tbody tr td,table tr td,table tfoot tr td{display:table-cell;line-height:1.6}
+h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{line-height:1.2;word-spacing:-.05em}
+h1 strong,h2 strong,h3 strong,#toctitle strong,.sidebarblock>.content>.title strong,h4 strong,h5 strong,h6 strong{font-weight:400}
+.clearfix:before,.clearfix:after,.float-group:before,.float-group:after{content:" ";display:table}
+.clearfix:after,.float-group:after{clear:both}
+*:not(pre)>code{font-size:.9375em;font-style:normal!important;letter-spacing:0;padding:.1em .5ex;word-spacing:-.15em;background-color:#f7f7f8;-webkit-border-radius:4px;border-radius:4px;line-height:1.45;text-rendering:optimizeSpeed}
+pre,pre>code{line-height:1.45;color:rgba(0,0,0,.9);font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;font-weight:400;text-rendering:optimizeSpeed}
+.keyseq{color:rgba(51,51,51,.8)}
+kbd{display:inline-block;color:rgba(0,0,0,.8);font-size:.75em;line-height:1.4;background-color:#f7f7f7;border:1px solid #ccc;-webkit-border-radius:3px;border-radius:3px;-webkit-box-shadow:0 1px 0 rgba(0,0,0,.2),0 0 0 .1em white inset;box-shadow:0 1px 0 rgba(0,0,0,.2),0 0 0 .1em #fff inset;margin:-.15em .15em 0 .15em;padding:.2em .6em .2em .5em;vertical-align:middle;white-space:nowrap}
+.keyseq kbd:first-child{margin-left:0}
+.keyseq kbd:last-child{margin-right:0}
+.menuseq,.menu{color:rgba(0,0,0,.8)}
+b.button:before,b.button:after{position:relative;top:-1px;font-weight:400}
+b.button:before{content:"[";padding:0 3px 0 2px}
+b.button:after{content:"]";padding:0 2px 0 3px}
+p a>code:hover{color:rgba(0,0,0,.9)}
+#header,#content,#footnotes,#footer{width:100%;margin-left:auto;margin-right:auto;margin-top:0;margin-bottom:0;max-width:62.5em;*zoom:1;position:relative;padding-left:.9375em;padding-right:.9375em}
+#header:before,#header:after,#content:before,#content:after,#footnotes:before,#footnotes:after,#footer:before,#footer:after{content:" ";display:table}
+#header:after,#content:after,#footnotes:after,#footer:after{clear:both}
+#content{margin-top:1.25em}
+#content:before{content:none}
+#header>h1:first-child{color:rgba(0,0,0,.85);margin-top:2.25rem;margin-bottom:0}
+#header>h1:first-child+#toc{margin-top:8px;border-top:1px solid #ddddd8}
+#header>h1:only-child,body.toc2 #header>h1:nth-last-child(2){border-bottom:1px solid #ddddd8;padding-bottom:8px}
+#header .details{border-bottom:1px solid #ddddd8;line-height:1.45;padding-top:.25em;padding-bottom:.25em;padding-left:.25em;color:rgba(0,0,0,.6);display:-ms-flexbox;display:-webkit-flex;display:flex;-ms-flex-flow:row wrap;-webkit-flex-flow:row wrap;flex-flow:row wrap}
+#header .details span:first-child{margin-left:-.125em}
+#header .details span.email a{color:rgba(0,0,0,.85)}
+#header .details br{display:none}
+#header .details br+span:before{content:"\00a0\2013\00a0"}
+#header .details br+span.author:before{content:"\00a0\22c5\00a0";color:rgba(0,0,0,.85)}
+#header .details br+span#revremark:before{content:"\00a0|\00a0"}
+#header #revnumber{text-transform:capitalize}
+#header #revnumber:after{content:"\00a0"}
+#content>h1:first-child:not([class]){color:rgba(0,0,0,.85);border-bottom:1px solid #ddddd8;padding-bottom:8px;margin-top:0;padding-top:1rem;margin-bottom:1.25rem}
+#toc{border-bottom:1px solid #efefed;padding-bottom:.5em}
+#toc>ul{margin-left:.125em}
+#toc ul.sectlevel0>li>a{font-style:italic}
+#toc ul.sectlevel0 ul.sectlevel1{margin:.5em 0}
+#toc ul{font-family:"Open Sans","DejaVu Sans",sans-serif;list-style-type:none}
+#toc a{text-decoration:none}
+#toc a:active{text-decoration:underline}
+#toctitle{color:#7a2518;font-size:1.2em}
+@media only screen and (min-width:768px){#toctitle{font-size:1.375em}
+body.toc2{padding-left:15em;padding-right:0}
+#toc.toc2{margin-top:0!important;background-color:#f8f8f7;position:fixed;width:15em;left:0;top:0;border-right:1px solid #efefed;border-top-width:0!important;border-bottom-width:0!important;z-index:1000;padding:1.25em 1em;height:100%;overflow:auto}
+#toc.toc2 #toctitle{margin-top:0;font-size:1.2em}
+#toc.toc2>ul{font-size:.9em;margin-bottom:0}
+#toc.toc2 ul ul{margin-left:0;padding-left:1em}
+#toc.toc2 ul.sectlevel0 ul.sectlevel1{padding-left:0;margin-top:.5em;margin-bottom:.5em}
+body.toc2.toc-right{padding-left:0;padding-right:15em}
+body.toc2.toc-right #toc.toc2{border-right-width:0;border-left:1px solid #efefed;left:auto;right:0}}@media only screen and (min-width:1280px){body.toc2{padding-left:20em;padding-right:0}
+#toc.toc2{width:20em}
+#toc.toc2 #toctitle{font-size:1.375em}
+#toc.toc2>ul{font-size:.95em}
+#toc.toc2 ul ul{padding-left:1.25em}
+body.toc2.toc-right{padding-left:0;padding-right:20em}}#content #toc{border-style:solid;border-width:1px;border-color:#e0e0dc;margin-bottom:1.25em;padding:1.25em;background:#f8f8f7;-webkit-border-radius:4px;border-radius:4px}
+#content #toc>:first-child{margin-top:0}
+#content #toc>:last-child{margin-bottom:0}
+#footer{max-width:100%;background-color:rgba(0,0,0,.8);padding:1.25em}
+#footer-text{color:rgba(255,255,255,.8);line-height:1.44}
+.sect1{padding-bottom:.625em}
+@media only screen and (min-width:768px){.sect1{padding-bottom:1.25em}}.sect1+.sect1{border-top:1px solid #efefed}
+#content h1>a.anchor,h2>a.anchor,h3>a.anchor,#toctitle>a.anchor,.sidebarblock>.content>.title>a.anchor,h4>a.anchor,h5>a.anchor,h6>a.anchor{position:absolute;z-index:1001;width:1.5ex;margin-left:-1.5ex;display:block;text-decoration:none!important;visibility:hidden;text-align:center;font-weight:400}
+#content h1>a.anchor:before,h2>a.anchor:before,h3>a.anchor:before,#toctitle>a.anchor:before,.sidebarblock>.content>.title>a.anchor:before,h4>a.anchor:before,h5>a.anchor:before,h6>a.anchor:before{content:"\00A7";font-size:.85em;display:block;padding-top:.1em}
+#content h1:hover>a.anchor,#content h1>a.anchor:hover,h2:hover>a.anchor,h2>a.anchor:hover,h3:hover>a.anchor,#toctitle:hover>a.anchor,.sidebarblock>.content>.title:hover>a.anchor,h3>a.anchor:hover,#toctitle>a.anchor:hover,.sidebarblock>.content>.title>a.anchor:hover,h4:hover>a.anchor,h4>a.anchor:hover,h5:hover>a.anchor,h5>a.anchor:hover,h6:hover>a.anchor,h6>a.anchor:hover{visibility:visible}
+#content h1>a.link,h2>a.link,h3>a.link,#toctitle>a.link,.sidebarblock>.content>.title>a.link,h4>a.link,h5>a.link,h6>a.link{color:#ba3925;text-decoration:none}
+#content h1>a.link:hover,h2>a.link:hover,h3>a.link:hover,#toctitle>a.link:hover,.sidebarblock>.content>.title>a.link:hover,h4>a.link:hover,h5>a.link:hover,h6>a.link:hover{color:#a53221}
+.audioblock,.imageblock,.literalblock,.listingblock,.stemblock,.videoblock{margin-bottom:1.25em}
+.admonitionblock td.content>.title,.audioblock>.title,.exampleblock>.title,.imageblock>.title,.listingblock>.title,.literalblock>.title,.stemblock>.title,.openblock>.title,.paragraph>.title,.quoteblock>.title,table.tableblock>.title,.verseblock>.title,.videoblock>.title,.dlist>.title,.olist>.title,.ulist>.title,.qlist>.title,.hdlist>.title{text-rendering:optimizeLegibility;text-align:left;font-family:"Noto Serif","DejaVu Serif",serif;font-size:1rem;font-style:italic}
+table.tableblock>caption.title{white-space:nowrap;overflow:visible;max-width:0}
+.paragraph.lead>p,#preamble>.sectionbody>.paragraph:first-of-type p{color:rgba(0,0,0,.85)}
+table.tableblock #preamble>.sectionbody>.paragraph:first-of-type p{font-size:inherit}
+.admonitionblock>table{border-collapse:separate;border:0;background:none;width:100%}
+.admonitionblock>table td.icon{text-align:center;width:80px}
+.admonitionblock>table td.icon img{max-width:none}
+.admonitionblock>table td.icon .title{font-weight:bold;font-family:"Open Sans","DejaVu Sans",sans-serif;text-transform:uppercase}
+.admonitionblock>table td.content{padding-left:1.125em;padding-right:1.25em;border-left:1px solid #ddddd8;color:rgba(0,0,0,.6)}
+.admonitionblock>table td.content>:last-child>:last-child{margin-bottom:0}
+.exampleblock>.content{border-style:solid;border-width:1px;border-color:#e6e6e6;margin-bottom:1.25em;padding:1.25em;background:#fff;-webkit-border-radius:4px;border-radius:4px}
+.exampleblock>.content>:first-child{margin-top:0}
+.exampleblock>.content>:last-child{margin-bottom:0}
+.sidebarblock{border-style:solid;border-width:1px;border-color:#e0e0dc;margin-bottom:1.25em;padding:1.25em;background:#f8f8f7;-webkit-border-radius:4px;border-radius:4px}
+.sidebarblock>:first-child{margin-top:0}
+.sidebarblock>:last-child{margin-bottom:0}
+.sidebarblock>.content>.title{color:#7a2518;margin-top:0;text-align:center}
+.exampleblock>.content>:last-child>:last-child,.exampleblock>.content .olist>ol>li:last-child>:last-child,.exampleblock>.content .ulist>ul>li:last-child>:last-child,.exampleblock>.content .qlist>ol>li:last-child>:last-child,.sidebarblock>.content>:last-child>:last-child,.sidebarblock>.content .olist>ol>li:last-child>:last-child,.sidebarblock>.content .ulist>ul>li:last-child>:last-child,.sidebarblock>.content .qlist>ol>li:last-child>:last-child{margin-bottom:0}
+.literalblock pre,.listingblock pre:not(.highlight),.listingblock pre[class="highlight"],.listingblock pre[class^="highlight "],.listingblock pre.CodeRay,.listingblock pre.prettyprint{background:#f7f7f8}
+.sidebarblock .literalblock pre,.sidebarblock .listingblock pre:not(.highlight),.sidebarblock .listingblock pre[class="highlight"],.sidebarblock .listingblock pre[class^="highlight "],.sidebarblock .listingblock pre.CodeRay,.sidebarblock .listingblock pre.prettyprint{background:#f2f1f1}
+.literalblock pre,.literalblock pre[class],.listingblock pre,.listingblock pre[class]{-webkit-border-radius:4px;border-radius:4px;word-wrap:break-word;padding:1em;font-size:.8125em}
+.literalblock pre.nowrap,.literalblock pre[class].nowrap,.listingblock pre.nowrap,.listingblock pre[class].nowrap{overflow-x:auto;white-space:pre;word-wrap:normal}
+@media only screen and (min-width:768px){.literalblock pre,.literalblock pre[class],.listingblock pre,.listingblock pre[class]{font-size:.90625em}}@media only screen and (min-width:1280px){.literalblock pre,.literalblock pre[class],.listingblock pre,.listingblock pre[class]{font-size:1em}}.literalblock.output pre{color:#f7f7f8;background-color:rgba(0,0,0,.9)}
+.listingblock pre.highlightjs{padding:0}
+.listingblock pre.highlightjs>code{padding:1em;-webkit-border-radius:4px;border-radius:4px}
+.listingblock pre.prettyprint{border-width:0}
+.listingblock>.content{position:relative}
+.listingblock code[data-lang]:before{display:none;content:attr(data-lang);position:absolute;font-size:.75em;top:.425rem;right:.5rem;line-height:1;text-transform:uppercase;color:#999}
+.listingblock:hover code[data-lang]:before{display:block}
+.listingblock.terminal pre .command:before{content:attr(data-prompt);padding-right:.5em;color:#999}
+.listingblock.terminal pre .command:not([data-prompt]):before{content:"$"}
+table.pyhltable{border-collapse:separate;border:0;margin-bottom:0;background:none}
+table.pyhltable td{vertical-align:top;padding-top:0;padding-bottom:0}
+table.pyhltable td.code{padding-left:.75em;padding-right:0}
+pre.pygments .lineno,table.pyhltable td:not(.code){color:#999;padding-left:0;padding-right:.5em;border-right:1px solid #ddddd8}
+pre.pygments .lineno{display:inline-block;margin-right:.25em}
+table.pyhltable .linenodiv{background:none!important;padding-right:0!important}
+.quoteblock{margin:0 1em 1.25em 1.5em;display:table}
+.quoteblock>.title{margin-left:-1.5em;margin-bottom:.75em}
+.quoteblock blockquote,.quoteblock blockquote p{color:rgba(0,0,0,.85);font-size:1.15rem;line-height:1.75;word-spacing:.1em;letter-spacing:0;font-style:italic;text-align:justify}
+.quoteblock blockquote{margin:0;padding:0;border:0}
+.quoteblock blockquote:before{content:"\201c";float:left;font-size:2.75em;font-weight:bold;line-height:.6em;margin-left:-.6em;color:#7a2518;text-shadow:0 1px 2px rgba(0,0,0,.1)}
+.quoteblock blockquote>.paragraph:last-child p{margin-bottom:0}
+.quoteblock .attribution{margin-top:.5em;margin-right:.5ex;text-align:right}
+.quoteblock .quoteblock{margin-left:0;margin-right:0;padding:.5em 0;border-left:3px solid rgba(0,0,0,.6)}
+.quoteblock .quoteblock blockquote{padding:0 0 0 .75em}
+.quoteblock .quoteblock blockquote:before{display:none}
+.verseblock{margin:0 1em 1.25em 1em}
+.verseblock pre{font-family:"Open Sans","DejaVu Sans",sans;font-size:1.15rem;color:rgba(0,0,0,.85);font-weight:300;text-rendering:optimizeLegibility}
+.verseblock pre strong{font-weight:400}
+.verseblock .attribution{margin-top:1.25rem;margin-left:.5ex}
+.quoteblock .attribution,.verseblock .attribution{font-size:.9375em;line-height:1.45;font-style:italic}
+.quoteblock .attribution br,.verseblock .attribution br{display:none}
+.quoteblock .attribution cite,.verseblock .attribution cite{display:block;letter-spacing:-.05em;color:rgba(0,0,0,.6)}
+.quoteblock.abstract{margin:0 0 1.25em 0;display:block}
+.quoteblock.abstract blockquote,.quoteblock.abstract blockquote p{text-align:left;word-spacing:0}
+.quoteblock.abstract blockquote:before,.quoteblock.abstract blockquote p:first-of-type:before{display:none}
+table.tableblock{max-width:100%;border-collapse:separate}
+table.tableblock td>.paragraph:last-child p>p:last-child,table.tableblock th>p:last-child,table.tableblock td>p:last-child{margin-bottom:0}
+table.spread{width:100%}
+table.tableblock,th.tableblock,td.tableblock{border:0 solid #dedede}
+table.grid-all th.tableblock,table.grid-all td.tableblock{border-width:0 1px 1px 0}
+table.grid-all tfoot>tr>th.tableblock,table.grid-all tfoot>tr>td.tableblock{border-width:1px 1px 0 0}
+table.grid-cols th.tableblock,table.grid-cols td.tableblock{border-width:0 1px 0 0}
+table.grid-all *>tr>.tableblock:last-child,table.grid-cols *>tr>.tableblock:last-child{border-right-width:0}
+table.grid-rows th.tableblock,table.grid-rows td.tableblock{border-width:0 0 1px 0}
+table.grid-all tbody>tr:last-child>th.tableblock,table.grid-all tbody>tr:last-child>td.tableblock,table.grid-all thead:last-child>tr>th.tableblock,table.grid-rows tbody>tr:last-child>th.tableblock,table.grid-rows tbody>tr:last-child>td.tableblock,table.grid-rows thead:last-child>tr>th.tableblock{border-bottom-width:0}
+table.grid-rows tfoot>tr>th.tableblock,table.grid-rows tfoot>tr>td.tableblock{border-width:1px 0 0 0}
+table.frame-all{border-width:1px}
+table.frame-sides{border-width:0 1px}
+table.frame-topbot{border-width:1px 0}
+th.halign-left,td.halign-left{text-align:left}
+th.halign-right,td.halign-right{text-align:right}
+th.halign-center,td.halign-center{text-align:center}
+th.valign-top,td.valign-top{vertical-align:top}
+th.valign-bottom,td.valign-bottom{vertical-align:bottom}
+th.valign-middle,td.valign-middle{vertical-align:middle}
+table thead th,table tfoot th{font-weight:bold}
+tbody tr th{display:table-cell;line-height:1.6;background:#f7f8f7}
+tbody tr th,tbody tr th p,tfoot tr th,tfoot tr th p{color:rgba(0,0,0,.8);font-weight:bold}
+p.tableblock>code:only-child{background:none;padding:0}
+p.tableblock{font-size:1em}
+td>div.verse{white-space:pre}
+ol{margin-left:1.75em}
+ul li ol{margin-left:1.5em}
+dl dd{margin-left:1.125em}
+dl dd:last-child,dl dd:last-child>:last-child{margin-bottom:0}
+ol>li p,ul>li p,ul dd,ol dd,.olist .olist,.ulist .ulist,.ulist .olist,.olist .ulist{margin-bottom:.625em}
+ul.unstyled,ol.unnumbered,ul.checklist,ul.none{list-style-type:none}
+ul.unstyled,ol.unnumbered,ul.checklist{margin-left:.625em}
+ul.checklist li>p:first-child>.fa-square-o:first-child,ul.checklist li>p:first-child>.fa-check-square-o:first-child{width:1em;font-size:.85em}
+ul.checklist li>p:first-child>input[type="checkbox"]:first-child{width:1em;position:relative;top:1px}
+ul.inline{margin:0 auto .625em auto;margin-left:-1.375em;margin-right:0;padding:0;list-style:none;overflow:hidden}
+ul.inline>li{list-style:none;float:left;margin-left:1.375em;display:block}
+ul.inline>li>*{display:block}
+.unstyled dl dt{font-weight:400;font-style:normal}
+ol.arabic{list-style-type:decimal}
+ol.decimal{list-style-type:decimal-leading-zero}
+ol.loweralpha{list-style-type:lower-alpha}
+ol.upperalpha{list-style-type:upper-alpha}
+ol.lowerroman{list-style-type:lower-roman}
+ol.upperroman{list-style-type:upper-roman}
+ol.lowergreek{list-style-type:lower-greek}
+.hdlist>table,.colist>table{border:0;background:none}
+.hdlist>table>tbody>tr,.colist>table>tbody>tr{background:none}
+td.hdlist1{padding-right:.75em;font-weight:bold}
+td.hdlist1,td.hdlist2{vertical-align:top}
+.literalblock+.colist,.listingblock+.colist{margin-top:-.5em}
+.colist>table tr>td:first-of-type{padding:0 .75em;line-height:1}
+.colist>table tr>td:last-of-type{padding:.25em 0}
+.thumb,.th{line-height:0;display:inline-block;border:solid 4px #fff;-webkit-box-shadow:0 0 0 1px #ddd;box-shadow:0 0 0 1px #ddd}
+.imageblock.left,.imageblock[style*="float: left"]{margin:.25em .625em 1.25em 0}
+.imageblock.right,.imageblock[style*="float: right"]{margin:.25em 0 1.25em .625em}
+.imageblock>.title{margin-bottom:0}
+.imageblock.thumb,.imageblock.th{border-width:6px}
+.imageblock.thumb>.title,.imageblock.th>.title{padding:0 .125em}
+.image.left,.image.right{margin-top:.25em;margin-bottom:.25em;display:inline-block;line-height:0}
+.image.left{margin-right:.625em}
+.image.right{margin-left:.625em}
+a.image{text-decoration:none}
+span.footnote,span.footnoteref{vertical-align:super;font-size:.875em}
+span.footnote a,span.footnoteref a{text-decoration:none}
+span.footnote a:active,span.footnoteref a:active{text-decoration:underline}
+#footnotes{padding-top:.75em;padding-bottom:.75em;margin-bottom:.625em}
+#footnotes hr{width:20%;min-width:6.25em;margin:-.25em 0 .75em 0;border-width:1px 0 0 0}
+#footnotes .footnote{padding:0 .375em;line-height:1.3;font-size:.875em;margin-left:1.2em;text-indent:-1.2em;margin-bottom:.2em}
+#footnotes .footnote a:first-of-type{font-weight:bold;text-decoration:none}
+#footnotes .footnote:last-of-type{margin-bottom:0}
+#content #footnotes{margin-top:-.625em;margin-bottom:0;padding:.75em 0}
+.gist .file-data>table{border:0;background:#fff;width:100%;margin-bottom:0}
+.gist .file-data>table td.line-data{width:99%}
+div.unbreakable{page-break-inside:avoid}
+.big{font-size:larger}
+.small{font-size:smaller}
+.underline{text-decoration:underline}
+.overline{text-decoration:overline}
+.line-through{text-decoration:line-through}
+.aqua{color:#00bfbf}
+.aqua-background{background-color:#00fafa}
+.black{color:#000}
+.black-background{background-color:#000}
+.blue{color:#0000bf}
+.blue-background{background-color:#0000fa}
+.fuchsia{color:#bf00bf}
+.fuchsia-background{background-color:#fa00fa}
+.gray{color:#606060}
+.gray-background{background-color:#7d7d7d}
+.green{color:#006000}
+.green-background{background-color:#007d00}
+.lime{color:#00bf00}
+.lime-background{background-color:#00fa00}
+.maroon{color:#600000}
+.maroon-background{background-color:#7d0000}
+.navy{color:#000060}
+.navy-background{background-color:#00007d}
+.olive{color:#606000}
+.olive-background{background-color:#7d7d00}
+.purple{color:#600060}
+.purple-background{background-color:#7d007d}
+.red{color:#bf0000}
+.red-background{background-color:#fa0000}
+.silver{color:#909090}
+.silver-background{background-color:#bcbcbc}
+.teal{color:#006060}
+.teal-background{background-color:#007d7d}
+.white{color:#bfbfbf}
+.white-background{background-color:#fafafa}
+.yellow{color:#bfbf00}
+.yellow-background{background-color:#fafa00}
+span.icon>.fa{cursor:default}
+.admonitionblock td.icon [class^="fa icon-"]{font-size:2.5em;text-shadow:1px 1px 2px rgba(0,0,0,.5);cursor:default}
+.admonitionblock td.icon .icon-note:before{content:"\f05a";color:#19407c}
+.admonitionblock td.icon .icon-tip:before{content:"\f0eb";text-shadow:1px 1px 2px rgba(155,155,0,.8);color:#111}
+.admonitionblock td.icon .icon-warning:before{content:"\f071";color:#bf6900}
+.admonitionblock td.icon .icon-caution:before{content:"\f06d";color:#bf3400}
+.admonitionblock td.icon .icon-important:before{content:"\f06a";color:#bf0000}
+.conum[data-value]{display:inline-block;color:#fff!important;background-color:rgba(0,0,0,.8);-webkit-border-radius:100px;border-radius:100px;text-align:center;font-size:.75em;width:1.67em;height:1.67em;line-height:1.67em;font-family:"Open Sans","DejaVu Sans",sans-serif;font-style:normal;font-weight:bold}
+.conum[data-value] *{color:#fff!important}
+.conum[data-value]+b{display:none}
+.conum[data-value]:after{content:attr(data-value)}
+pre .conum[data-value]{position:relative;top:-.125em}
+b.conum *{color:inherit!important}
+.conum:not([data-value]):empty{display:none}
+h1,h2{letter-spacing:-.01em}
+dt,th.tableblock,td.content{text-rendering:optimizeLegibility}
+p,td.content{letter-spacing:-.01em}
+p strong,td.content strong{letter-spacing:-.005em}
+p,blockquote,dt,td.content{font-size:1.0625rem}
+p{margin-bottom:1.25rem}
+.sidebarblock p,.sidebarblock dt,.sidebarblock td.content,p.tableblock{font-size:1em}
+.exampleblock>.content{background-color:#fffef7;border-color:#e0e0dc;-webkit-box-shadow:0 1px 4px #e0e0dc;box-shadow:0 1px 4px #e0e0dc}
+.print-only{display:none!important}
+@media print{@page{margin:1.25cm .75cm}
+*{-webkit-box-shadow:none!important;box-shadow:none!important;text-shadow:none!important}
+a{color:inherit!important;text-decoration:underline!important}
+a.bare,a[href^="#"],a[href^="mailto:"]{text-decoration:none!important}
+a[href^="http:"]:not(.bare):after,a[href^="https:"]:not(.bare):after{content:"(" attr(href) ")";display:inline-block;font-size:.875em;padding-left:.25em}
+abbr[title]:after{content:" (" attr(title) ")"}
+pre,blockquote,tr,img{page-break-inside:avoid}
+thead{display:table-header-group}
+img{max-width:100%!important}
+p,blockquote,dt,td.content{font-size:1em;orphans:3;widows:3}
+h2,h3,#toctitle,.sidebarblock>.content>.title{page-break-after:avoid}
+#toc,.sidebarblock,.exampleblock>.content{background:none!important}
+#toc{border-bottom:1px solid #ddddd8!important;padding-bottom:0!important}
+.sect1{padding-bottom:0!important}
+.sect1+.sect1{border:0!important}
+#header>h1:first-child{margin-top:1.25rem}
+body.book #header{text-align:center}
+body.book #header>h1:first-child{border:0!important;margin:2.5em 0 1em 0}
+body.book #header .details{border:0!important;display:block;padding:0!important}
+body.book #header .details span:first-child{margin-left:0!important}
+body.book #header .details br{display:block}
+body.book #header .details br+span:before{content:none!important}
+body.book #toc{border:0!important;text-align:left!important;padding:0!important;margin:0!important}
+body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-break-before:always}
+.listingblock code[data-lang]:before{display:block}
+#footer{background:none!important;padding:0 .9375em}
+#footer-text{color:rgba(0,0,0,.6)!important;font-size:.9em}
+.hide-on-print{display:none!important}
+.print-only{display:block!important}
+.hide-for-print{display:none!important}
+.show-for-print{display:inherit!important}}
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.2.0/css/font-awesome.min.css">
+</head>
+<body id="_application" class="book toc2 toc-left">
+<div id="header">
+<h1>Writing a Server-Side Web Application</h1>
+<div id="toc" class="toc2">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_application.overview">1. Overview</a></li>
+<li><a href="#_application.architecture">2. Building the UI</a>
+<ul class="sectlevel2">
+<li><a href="#_application.architecture.architecture">2.1. Application Architecture</a></li>
+<li><a href="#_application.architecture.composition">2.2. Compositing Components</a></li>
+<li><a href="#_application.architecture.navigation">2.3. View Navigation</a></li>
+<li><a href="#_application.architecture.accessing">2.4. Accessing , Page, Session, and Service</a></li>
+</ul>
+</li>
+<li><a href="#_application.declarative">3. Designing UIs Declaratively</a>
+<ul class="sectlevel2">
+<li><a href="#_application.declarative.syntax">3.1. Declarative Syntax</a></li>
+<li><a href="#_application.declarative.elements">3.2. Component Elements</a></li>
+<li><a href="#_application.declarative.attributes">3.3. Component Attributes</a></li>
+<li><a href="#_application.declarative.identifiers">3.4. Component Identifiers</a></li>
+<li><a href="#_application.declarative.composite">3.5. Using Designs in Code</a></li>
+</ul>
+</li>
+<li><a href="#_application.events">4. Handling Events with Listeners</a>
+<ul class="sectlevel2">
+<li><a href="#_application.events.anonymous">4.1. Using Anonymous Classes</a></li>
+<li><a href="#_application.events.java8">4.2. Handling Events in Java 8</a></li>
+<li><a href="#_application.events.classlistener">4.3. Implementing a Listener in a Regular Class</a></li>
+<li><a href="#_application.events.differentiation">4.4. Differentiating Between Event Sources</a></li>
+</ul>
+</li>
+<li><a href="#_application.resources">5. Images and Other Resources</a>
+<ul class="sectlevel2">
+<li><a href="#_application.resources.api">5.1. Resource Interfaces and Classes</a></li>
+<li><a href="#_application.resources.file">5.2. File Resources</a></li>
+<li><a href="#_application.resources.class">5.3. Class Loader Resources</a></li>
+<li><a href="#_application.resources.theme">5.4. Theme Resources</a></li>
+<li><a href="#_application.resources.stream">5.5. Stream Resources</a></li>
+</ul>
+</li>
+<li><a href="#_application.errors">6. Handling Errors</a>
+<ul class="sectlevel2">
+<li><a href="#_application.errors.error_indicator">6.1. Error Indicator and Message</a></li>
+<li><a href="#_application.errors.systemmessages">6.2. Customizing System Messages</a></li>
+<li><a href="#_application.errors.unchecked_exceptions">6.3. Handling Uncaught Exceptions</a></li>
+</ul>
+</li>
+<li><a href="#_application.notifications">7. Notifications</a>
+<ul class="sectlevel2">
+<li><a href="#_application.notifications.type">7.1. Notification Type</a></li>
+<li><a href="#_application.notifications.customization">7.2. Customizing Notifications</a></li>
+<li><a href="#_application.notifications.css">7.3. Styling with CSS</a></li>
+</ul>
+</li>
+<li><a href="#_application.lifecycle">8. Application Lifecycle</a>
+<ul class="sectlevel2">
+<li><a href="#_application.lifecycle.deployment">8.1. Deployment</a></li>
+<li><a href="#_application.lifecycle.servlet_service">8.2. Vaadin Servlet, Portlet, and Service</a></li>
+<li><a href="#_application.lifecycle.session">8.3. User Session</a></li>
+<li><a href="#_application.lifecycle.ui">8.4. Loading a UI</a></li>
+<li><a href="#_application.lifecycle.ui_expiration">8.5. UI Expiration</a></li>
+<li><a href="#_application.lifecycle.ui_closing">8.6. Closing UIs Explicitly</a></li>
+<li><a href="#_application.lifecycle.session_expiration">8.7. Session Expiration</a></li>
+<li><a href="#_application.lifecycle.session_closing">8.8. Closing a Session</a></li>
+</ul>
+</li>
+<li><a href="#_application.environment">9. Deploying an Application</a>
+<ul class="sectlevel2">
+<li><a href="#_application.environment.war_eclipse">9.1. Creating Deployable WAR in Eclipse</a></li>
+<li><a href="#_application.environment.war">9.2. Web Application Contents</a></li>
+<li><a href="#_application.environment.webservlet">9.3. Web Servlet Class</a></li>
+<li><a href="#_application.environment.web_xml">9.4. Using a <em class="path">web.xml</em> Deployment Descriptor</a></li>
+<li><a href="#_application.environment.servlet_mapping">9.5. Servlet Mapping with URL Patterns</a></li>
+<li><a href="#_application.environment.parameters">9.6. Other Servlet Configuration Parameters</a></li>
+<li><a href="#_application.environment.configuration">9.7. Deployment Configuration</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This chapter provides the fundamentals of server-side web application development with Vaadin, concentrating on the basic elements of an application from a practical point-of-view.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_application.overview">1. Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A server-side Vaadin application runs as a Java Servlet in a servlet container.
+The Java Servlet API is, however, hidden behind the framework.
+The user interface of the application is implemented as a <em>_ class, which needs to create and manage the user interface components that make up the user interface.
+User input is handled with event listeners, although it is also possible to bind the user interface components directly to data.
+The visual style of the application is defined in themes as CSS or Sass.
+Icons, other images, and downloadable files are handled as _resources</em>, which can be external or served by the application server or the application itself.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="img/application/application-architecture-lo.png" alt="application architecture lo">
+</div>
+<div class="title">Figure 1. Server-Side Application Architecture</div>
+</div>
+<div class="paragraph">
+<p><a href="#_figure.application.architecture">figure.application.architecture</a> illustrates the basic architecture of an application made with the Vaadin Framework, with all the major elements, which are introduced below and discussed in detail in this chapter.</p>
+</div>
+<div class="paragraph">
+<p>First of all, a Vaadin application must have one or more  classes that extend the abstract <span class="class">com.vaadin.ui.</span> class and implement the <span class="method">init()</span> method.
+A custom theme can be defined as an annotation for the .</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>@Theme("hellotheme")
+public class HelloWorld extends UI {
+    protected void init(VaadinRequest request) {
+        ... initialization code goes here ...
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A  is a viewport to a Vaadin application running in a web page.
+A web page can actually have multiple such s within it.
+Such situation is typical especially with portlets in a portal.
+An application can run in multiple browser windows, each having a distinct <span class="class">UI</span>            instance.
+The UIs of an application can be the same UI class or different.</p>
+</div>
+<div class="paragraph">
+<p>Vaadin framework handles servlet requests internally and associates the requests with user sessions and a UI state.
+Because of this, you can develop Vaadin applications much like you would develop desktop applications.</p>
+</div>
+<div class="paragraph">
+<p>The most important task in the initialization is the creation of the initial user interface.
+This, and the deployment of a UI as a Java Servlet in the Servlet container, as described in <a href="#_application.environment">application.environment</a>, are the minimal requirements for an application.</p>
+</div>
+<div class="paragraph">
+<p>Below is a short overview of the other basic elements of an application besides :</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"></dt>
+<dd>
+<p>A __ represents an HTML fragment in which a Vaadin application runs in a web page.
+It typically fills the entire page, but can also be just a part of a page.
+You normally develop a Vaadin application by extending the <span class="class">+ class and adding content to it.
+A is essentially a viewport connected to a user session of an application, and you can have many such views, especially in a multi-window application.
+Normally, when the user opens a new page with the URL of the Vaadin UI, a new [class]+UI</span>                        (and the associated <span class="class">Page</span> object) is automatically created for it.
+All of them share the same user session.</p>
+</dd>
+<dt class="hdlist1">Page</dt>
+<dd>
+<p>A <span class="class">+ is associated with a [class]+Page</span> object that represents the web page as well as the browser window in which the  runs.</p>
+</dd>
+<dt class="hdlist1">Vaadin Session</dt>
+<dd>
+<p>A <span class="class">VaadinSession</span> object represents a user session with one or more UIs open in the application.
+A session starts when a user first opens a UI of a Vaadin application, and closes when the session expires in the server or when it is closed explicitly.</p>
+</dd>
+<dt class="hdlist1">User Interface Components</dt>
+<dd>
+<p>The user interface consists of components that are created by the application.
+They are laid out hierarchically using special <em>layout components</em>, with a content root layout at the top of the hierarchy.
+User interaction with the components causes <em>events</em> related to the component, which the application can handle. <em>Field components</em>                        are intended for inputting values and can be directly bound to data using the Vaadin Data Model.
+You can make your own user interface components through either inheritance or composition.
+For a thorough reference of user interface components, see <a href="#_components">components</a>, for layout components, see <a href="#_layout">layout</a>, and for compositing components, see <a href="#_components.customcomponent">components.customcomponent</a>.</p>
+</dd>
+<dt class="hdlist1">Events and Listeners</dt>
+<dd>
+<p>Vaadin follows an event-driven programming paradigm, in which events, and listeners that handle the events, are the basis of handling user interaction in an application (although also server push is possible as described in <a href="#_advanced.push">advanced.push</a>). <a href="#_architecture.events">architecture.events</a>                        gave an introduction to events and listeners from an architectural point-of-view, while <a href="#_application.events">application.events</a> later in this chapter takes a more practical view.</p>
+</dd>
+<dt class="hdlist1">Resources</dt>
+<dd>
+<p>A user interface can display images or have links to web pages or downloadable documents.
+These are handled as <em>resources</em>, which can be external or provided by the web server or the application itself. <a href="#_application.resources">application.resources</a> gives a practical overview of the different types of resources.</p>
+</dd>
+<dt class="hdlist1">Themes</dt>
+<dd>
+<p>The presentation and logic of the user interface are separated.
+While the UI logic is handled as Java code, the presentation is defined in <em>themes</em> as CSS or SCSS.
+Vaadin includes some built-in themes.
+User-defined themes can, in addition to style sheets, include HTML templates that define custom layouts and other theme resources, such as images.
+Themes are discussed in detail in <a href="#_themes">themes</a>, custom layouts in <a href="#_layout.customlayout">layout.customlayout</a>, and theme resources in <a href="#_application.resources.theme">application.resources.theme</a>.</p>
+</dd>
+<dt class="hdlist1">Data Binding</dt>
+<dd>
+<p>Field components are essentially views to data, represented in the <em>Vaadin Data Model</em>.
+Using the data model, the components can get their values from and update user input to the data model directly, without the need for any control code.
+A field component is always bound to a <em>property</em>                        and a group of fields to an <em>item</em> that holds the properties.
+Items can be collected in a <em>container</em>, which can act as a data source for some components such as tables or lists.
+While all the components have a default data model, they can be bound to a user-defined data source.
+For example, you can bind a <span class="class">Table</span> component to an SQL query response.
+For a complete overview of data binding in Vaadin, please refer to <a href="#_datamodel">datamodel</a>.</p>
+</dd>
+</dl>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_application.architecture">2. Building the UI</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Vaadin user interfaces are built hierarchically from components, so that the leaf components are contained within layout components and other component containers.
+Building the hierarchy starts from the top (or bottom - whichever way you like to think about it), from the <span class="class">UI</span> class of the application.
+You normally set a layout component as the content of the UI and fill it with other components.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>public class MyHierarchicalUI extends UI {
+    @Override
+    protected void init(VaadinRequest request) {
+        // The root of the component hierarchy
+        VerticalLayout content = new VerticalLayout();
+        content.setSizeFull(); // Use entire window
+        setContent(content);   // Attach to the UI
+
+        // Add some component
+        content.addComponent(new Label("Hello!"));
+
+        // Layout inside layout
+        HorizontalLayout hor = new HorizontalLayout();
+        hor.setSizeFull(); // Use all available space
+
+        // Couple of horizontally laid out components
+        Tree tree = new Tree("My Tree",
+                TreeExample.createTreeContent());
+        hor.addComponent(tree);
+
+        Table table = new Table("My Table",
+                TableExample.generateContent());
+        table.setSizeFull();
+        hor.addComponent(table);
+        hor.setExpandRatio(table, 1); // Expand to fill
+
+        content.addComponent(hor);
+        content.setExpandRatio(hor, 1); // Expand to fill
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The component hierarchy could be illustrated with a tree as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>UI
+ `-- VerticalLayout
+   |-- Label
+   `-- HorizontalLayout
+     |-- Tree
+     `-- Table</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The result is shown in <a href="#_figure.application.architecture.example">figure.application.architecture.example</a>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="img/application/ui-architecture-hierarchical.png" alt="ui architecture hierarchical">
+</div>
+<div class="title">Figure 2. Simple Hierarchical UI</div>
+</div>
+<div class="paragraph">
+<p>Instead of building the layout in Java, you can also use a declarative design, as described later in <a href="#_application.declarative">application.declarative</a>.
+The examples given for the declarative layouts give exactly the same UI layout as built from the components above.</p>
+</div>
+<div class="paragraph">
+<p>The built-in components are described in <a href="#_components">components</a> and the layout components in <a href="#_layout">layout</a>.</p>
+</div>
+<div class="paragraph">
+<p>The example application described above just is, it does not do anything.
+User interaction is handled with event listeners, as described a bit later in <a href="#_application.events">application.events</a>.</p>
+</div>
+<div class="sect2">
+<h3 id="_application.architecture.architecture">2.1. Application Architecture</h3>
+<div class="paragraph">
+<p>Once your application grows beyond a dozen or so lines, which is usually quite soon, you need to start considering the application architecture more closely.
+You are free to use any object-oriented techniques available in Java to organize your code in methods, classes, packages, and libraries.
+An architecture defines how these modules communicate together and what sort of dependencies they have between them.
+It also defines the scope of the application.
+The scope of this book, however, only gives a possibility to mention some of the most common architectural patterns in Vaadin applications.</p>
+</div>
+<div class="paragraph">
+<p>The subsequent sections describe some basic application patterns.
+For more information about common architectures, see <a href="#_advanced.architecture">advanced.architecture</a>, which discusses layered architectures, the Model-View-Presenter (MVP) pattern, and so forth. The <a href="#_advanced.global">advanced.global</a> discusses the problem of passing essentially global references around, a common problem which is also visited in <a href="#_application.architecture.accessing">application.architecture.accessing</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application.architecture.composition">2.2. Compositing Components</h3>
+<div class="paragraph">
+<p>User interfaces typically contain many user interface components in a layout hierarchy.
+Vaadin provides many layout components for laying contained components vertically, horizontally, in a grid, and in many other ways.
+You can extend layout components to create composite components.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>class MyView extends VerticalLayout {
+    TextField entry   = new TextField("Enter this");
+    Label     display = new Label("See this");
+    Button    click   = new Button("Click This");
+
+    public MyView() {
+        addComponent(entry);
+        addComponent(display);
+        addComponent(click);
+
+        // Configure it a bit
+        setSizeFull();
+        addStyleName("myview");
+    }
+}
+
+// Use it
+Layout myview = new MyView();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This composition pattern is especially supported for creating forms, as described in <a href="#_datamodel.itembinding.formclass">datamodel.itembinding.formclass</a>.</p>
+</div>
+<div class="paragraph">
+<p>While extending layouts is an easy way to make component composition, it is a good practice to encapsulate implementation details, such as the exact layout component used.
+Otherwise, the users of such a composite could begin to rely on such implementation details, which would make changes harder.
+For this purpose, Vaadin has a special <span class="class">CustomComponent</span> wrapper, which hides the content representation.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>class MyView extends CustomComponent {
+    TextField entry   = new TextField("Enter this");
+    Label     display = new Label("See this");
+    Button    click   = new Button("Click This");
+
+    public MyView() {
+        Layout layout = new VerticalLayout();
+
+        layout.addComponent(entry);
+        layout.addComponent(display);
+        layout.addComponent(click);
+
+        setCompositionRoot(layout);
+
+        setSizeFull();
+    }
+}
+
+// Use it
+MyView myview = new MyView();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For a more detailed description of the <span class="class">CustomComponent</span>, see <a href="#_components.customcomponent">components.customcomponent</a>.
+The Vaadin Plugin for Eclipse also includes a visual editor for composite components, as described in <a href="#_eclipse">eclipse</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application.architecture.navigation">2.3. View Navigation</h3>
+<div class="paragraph">
+<p>While the most simple applications have just a single <em>view</em> (or <em>screen</em>), perhaps most have many.
+Even in a single view, you often want to have sub-views, for example to display different content. <a href="#_figure.application.architecture.navigation">figure.application.architecture.navigation</a> illustrates a typical navigation between different top-level views of an application, and a main view with sub-views.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="img/application/view-navigation-lo.png" alt="view navigation lo">
+</div>
+<div class="title">Figure 3. Navigation Between Views</div>
+</div>
+<div class="paragraph">
+<p>The <span class="class">Navigator</span> described in <a href="#_advanced.navigator">advanced.navigator</a> is a view manager that provides a flexible way to navigate between views and sub-views, while managing the URI fragment in the page URL to allow bookmarking, linking, and going back in browser history.</p>
+</div>
+<div class="paragraph">
+<p>Often Vaadin application views are part of something bigger.
+In such cases, you may need to integrate the Vaadin applications with the other website.
+You can use the embedding techniques described in <a href="#_advanced.embedding">advanced.embedding</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application.architecture.accessing">2.4. Accessing , Page, Session, and Service</h3>
+<div class="paragraph">
+<p>You can get the UI and the page to which a component is attached to with <span class="method">getUI()</span> and <span class="method">getPage()</span>.</p>
+</div>
+<div class="paragraph">
+<p>However, the values are <span class="literal">null</span> until the component is attached to the UI, and typically, when you need it in constructors, it is not.
+It is therefore preferable to access the current , page, session, and service objects from anywhere in the application using the static <span class="method">getCurrent()</span> methods in the respective <span class="class">+, [class]+Page</span>, <span class="class">VaadinSession</span>, and <span class="class">VaadinService</span> classes.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>// Set the default locale of the UI
+UI.getCurrent().setLocale(new Locale("en"));
+
+// Set the page title (window or tab caption)
+Page.getCurrent().setTitle("My Page");
+
+// Set a session attribute
+VaadinSession.getCurrent().setAttribute("myattrib", "hello");
+
+// Access the HTTP service parameters
+File baseDir = VaadinService.getCurrent().getBaseDirectory();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can get the page and the session also from a <span class="class">UI</span>                with <span class="method">getPage()</span> and <span class="method">getSession()</span> and the service from <span class="class">VaadinSession</span> with <span class="method">getService()</span>.</p>
+</div>
+<div class="paragraph">
+<p>The static methods use the built-in ThreadLocal support in the classes.The pattern is described in <a href="#_advanced.global.threadlocal">advanced.global.threadlocal</a>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_application.declarative">3. Designing UIs Declaratively</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Declarative definition of composites and even entire UIs makes it easy for developers and especially graphical designers to work on visual designs without any coding.
+Designs can be modified even while the application is running, as can be the associated themes.
+A design is a representation of a component hierarcy, which can be accessed from Java code to implement dynamic UI logic, as well as data binding.</p>
+</div>
+<div class="paragraph">
+<p>For example, considering the following layout in Java:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>VerticalLayout vertical = new VerticalLayout ();
+vertical.addComponent(new TextField("Name"));
+vertical.addComponent(new TextField("Street address"));
+vertical.addComponent(new TextField("Postal code"));
+layout.addComponent(vertical);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You could define it declaractively with the following equivalent design:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>&lt;v-vertical-layout&gt;
+  &lt;v-text-field caption="Name"/&gt;
+  &lt;v-text-field caption="Street address"/&gt;
+  &lt;v-text-field caption="Postal code"/&gt;
+&lt;/v-vertical-layout&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Declarative designs can be crafted by hand, but are most conveniently created with the Vaadin Designer.</p>
+</div>
+<div class="paragraph">
+<p>In the following, we first go through the syntax of the declarative design files, and then see how to use them in applications by binding them to data and handling user interaction events.</p>
+</div>
+<div class="sect2">
+<h3 id="_application.declarative.syntax">3.1. Declarative Syntax</h3>
+<div class="paragraph">
+<p>A design is an HTML document with custom elements for representing components and their configuration.
+A design has a single root component inside the HTML body element.
+Enclosing <span class="literal">html</span>, <span class="literal">head</span>, <span class="literal">body</span> are optional, but necessary if you need to make namespace definitions for custom components.
+Other regular HTML elements may not be used in the file, except inside components that specifically accept HTML content.</p>
+</div>
+<div class="paragraph">
+<p>In a design, each nested element corresponds to a Vaadin component in a component tree.
+Components can have explicitly given IDs to enable binding them to variables in the Java code, as well as optional attributes.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;body&gt;
+    &lt;v-vertical-layout size-full&gt;
+      &lt;!-- Label with HTML content --&gt;
+      &lt;v-label&gt;&lt;b&gt;Hello!&lt;/b&gt; - How are you?&lt;/v-label&gt;
+
+      &lt;v-horizontal-layout size-full :expand&gt;
+        &lt;v-tree _id="mytree" caption="My Tree"
+                width-auto height-full/&gt;
+        &lt;v-table _id="mytable" caption="My Table"
+                 size-full :expand/&gt;
+      &lt;/v-horizontal-layout&gt;
+    &lt;/v-vertical-layout&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The DOCTYPE is not required, neither is the <span class="literal">html</span>, or <span class="literal">body</span>                elements.
+Nevertheless, there may only be one design root element.</p>
+</div>
+<div class="paragraph">
+<p>The above design defines the same UI layout as done earlier with Java code, and illustrated in <a href="#_figure.application.architecture.example">figure.application.architecture.example</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application.declarative.elements">3.2. Component Elements</h3>
+<div class="paragraph">
+<p>HTML elements of the declarative syntax are directly mapped to Vaadin components according to their Java class names.
+The tag of a component element has a namespace prefix separated by a dash.
+Vaadin core components, which are defined in the                 package, have <span class="literal">v-</span> prefix.
+The rest of an element tag is determined from the Java class name of the component, by making it lower-case, while adding a dash (<span class="literal">-</span>) before every previously upper-case letter as a word separator.
+For example, <span class="class">ComboBox</span> component has declarative element tag <span class="literal">v-combo-box</span>.</p>
+</div>
+<div class="sect3">
+<h4 id="_application.declarative.elements.prefix">3.2.1. Component Prefix to Package Mapping</h4>
+<div class="paragraph">
+<p>You can use any components in a design: components extending Vaadin components, composite components, and add-on components.
+To do so, you need to define a mapping from an element prefix to the Java package of the component.
+The prefix is used as a sort of a namespace.</p>
+</div>
+<div class="paragraph">
+<p>The mappings are defined in <span class="literal">meta name="package-mapping"
+                    ...</span> elements in the HTML head.
+A  attribute defines a mapping, in notation with a prefix separated from the corresponding Java package name with a colon, such as "<span class="literal">my:com.example.myapp</span>".</p>
+</div>
+<div class="paragraph">
+<p>For example, consider that you have the following composite class <span class="class">com.example.myapp.ExampleComponent</span>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>package com.example.myapp;
+
+public class ExampleComponent extends CustomComponent {
+    public ExampleComponent() {
+        setCompositionRoot(new Label("I am an example."));
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You would make the package prefix mapping and then use the component as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>!DOCTYPE html
+html
+  head
+    meta name="package-mapping"
+          content="my:com.example.myapp" /
+  /head
+
+  body
+    v-vertical-layout
+      v-labelbHello!/b - How are you?/v-label
+
+      !-- Use it here --
+      my-example-component/
+    /v-vertical-layout
+  /body
+/html</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_application.declarative.elements.inline">3.2.2. Inline Content and Data</h4>
+<div class="paragraph">
+<p>The element content can be used for certain default attributes, such as a button caption.
+For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>&lt;v-button&gt;&lt;b&gt;OK&lt;/b&gt;&lt;/v-button&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Some components, such as selection components, allow defining inline data within the element.
+For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>&lt;v-native-select&gt;
+  &lt;option&gt;Mercury&lt;/option&gt;
+  &lt;option&gt;Venus&lt;/option&gt;
+  &lt;option selected&gt;Earth&lt;/option&gt;
+&lt;/v-native-select&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The declarative syntax of each component type is described in the JavaDoc API documentation of Vaadin.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application.declarative.attributes">3.3. Component Attributes</h3>
+<div class="sect3">
+<h4 id="_application.declarative.attributes.mapping">3.3.1. Attribute-to-Property Mapping</h4>
+<div class="paragraph">
+<p>Component properties are directly mapped to the attributes of the HTML elements according to the names of the properties.
+Attributes are written in lower-case letters and dash is used for word separation instead of upper-case letters in the Java methods, so that <span class="literal">input-prompt</span> attribute is equivalent to <span class="method">setInputPrompt()</span>.</p>
+</div>
+<div class="paragraph">
+<p>For example, the <em>caption</em> property, which you can set with <span class="method">setCaption()</span>, is represented as <span class="literal">caption</span> attribute.
+You can find the component properties by the setter methods in the &lt;&lt;,JavaDoc API documentation&gt;&gt;                    of the component classes.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>&lt;v-text-field caption="Name" input-prompt="Enter Name"/&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_application.declarative.attributes.parameters">3.3.2. Attribute Values</h4>
+<div class="paragraph">
+<p>Attribute parameters must be enclosed in quotes and the value given as a string must be convertible to the type of the property (string, integer, boolean, or enumeration). Object types are not supported.</p>
+</div>
+<div class="paragraph">
+<p>Some attribute names are given by a shorthand.
+For example,  property of the <span class="class">Image</span> component, which you would set with <span class="method">setAlternateText()</span>, is given as the <span class="literal">alt</span> attribute.</p>
+</div>
+<div class="paragraph">
+<p>Boolean values must be either "<span class="literal">true</span>" or "<span class="literal">false</span>". The value can be omitted, in which case <span class="literal">true</span> is assumed.
+For example, the <span class="literal">enabled</span> attribute is boolean and has default value "<span class="literal">true</span>", so <span class="literal">enabled="true"</span> and <span class="literal">enabled</span> and equivalent.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>&lt;v-button caption="OK" enabled="false"/&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_application.declarative.attributes.parent">3.3.3. Parent Component Settings</h4>
+<div class="paragraph">
+<p>Certain settings, such as a component&#8217;s alignment in a layout, are not done in the component itself, but in the layout.
+Attributes prefixed with colon (<span class="literal">:</span>) are passed to the containing component, with the component as a target parameter.
+For example, <span class="literal">:expand="1"</span> given for a component  is equivalent to calling <span class="method">setExpandRatio(c, 1)</span> for the containing layout.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>v-vertical-layout size-full
+  !-- Align right in the containing layout --
+  v-label width-auto :rightHello!/v-label
+
+  !-- Expands to take up all remaining vertical space --
+  v-horizontal-layout size-full :expand
+    !-- Automatic width - shrinks horizontally --
+    v-tree width-auto height-full/
+
+    !-- Expands horizontally to take remaining space --
+    v-table size-full :expand/
+  /v-horizontal-layout
+/v-vertical-layout</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Again, compare the above declaration to the Java code given in <a href="#_application.architecture">application.architecture</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application.declarative.identifiers">3.4. Component Identifiers</h3>
+<div class="paragraph">
+<p>Components can be identified by either an identifier or a caption.
+There are two types of identifiers: page-global and local.
+This allows accessing them from Java code and binding them to components, as described later in <a href="#_application.declarative.composite">application.declarative.composite</a>.</p>
+</div>
+<div class="paragraph">
+<p>The <span class="literal">id</span> attribute can be used to define a page-global identifier, which must be unique within the page.
+Another design or UI shown simultaneously in the same page may not have components sharing the same ID.
+Using global identifiers is therefore not recommended, except in special cases where uniqueness is ensured.</p>
+</div>
+<div class="paragraph">
+<p>The <span class="literal">_id</span> attribute defines a local identifier used only within the design.
+This is the recommended way to identifying components.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>&lt;v-tree _id="mytree" caption="My Tree"/&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application.declarative.composite">3.5. Using Designs in Code</h3>
+<div class="paragraph">
+<p>The main use of declarative designs is in building application views, sub-views, dialogs, and forms through composition.
+The two main tasks are filling the designs with application data and handling user interaction events.</p>
+</div>
+<div class="sect3">
+<h4 id="_application.declarative.composite.designroot">3.5.1. Binding to a Design Root</h4>
+<div class="paragraph">
+<p>You can bind any component container as the root component of a design with the <span class="class">@DesignRoot</span> annotation.
+The class must match or extend the class of the root element in the design.</p>
+</div>
+<div class="paragraph">
+<p>The member variables are automatically initialized from the design according to the component identifiers (see <a href="#_application.declarative.identifiers">application.declarative.identifiers</a>), which must match the variable names.</p>
+</div>
+<div class="paragraph">
+<p>For example, the following class could be used to bind the design given earlier.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>@DesignRoot
+public class MyViewDesign extends VerticalLayout {
+    Tree mytree;
+    Table mytable;
+
+    public MyViewDesign() {
+        Design.read("MyDeclarativeUI.html", this);
+
+        // Show some (example) data
+        mytree.setContainerDataSource(
+            TreeExample.createTreeContent());
+        mytable.setContainerDataSource(
+            TableExample.generateContent());
+
+        // Some interaction
+        mytree.addItemClickListener(event -&gt; // Java 8
+            Notification.show("Selected " +
+                event.getItemId()));
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The design root class must match or extend the root element class of the design.
+For example, earlier we had <span class="literal">v-vertical-layout</span> element in the HTML file, which can be bound to a class extending <span class="class">VerticalLayout</span>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_application.declarative.composite.using">3.5.2. Using a Design</h4>
+<div class="paragraph">
+<p>The fact that a component is defined declaratively is not visible in its API, so you can create and use such it just like any other component.</p>
+</div>
+<div class="paragraph">
+<p>For example, to use the previously defined design root component as the content of the entire UI:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>public class DeclarativeViewUI extends UI {
+    @Override
+    protected void init(VaadinRequest request) {
+        setContent(new MyViewDesign());
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_application.declarative.composite.viewnavigation">3.5.3. Designs in View Navigation</h4>
+<div class="paragraph">
+<p>To use a design in view navigation, as described in <a href="#_advanced.navigator">advanced.navigator</a>, you just need to implement the <span class="interface">View</span> interface.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>@DesignRoot
+public class MainView extends VerticalLayout
+                      implements View {
+    public MainView() {
+        Design.read(this);
+        ...
+    }
+    ...
+}
+
+...
+// Use the view by precreating it
+navigator.addView(MAINVIEW, new MainView());</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>See <a href="#_advanced.navigator.urifragment">advanced.navigator.urifragment</a> for a complete example.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_application.events">4. Handling Events with Listeners</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Let us put into practice what we learned of event handling in <a href="#_architecture.events">architecture.events</a>.
+You can implement listener interfaces in a regular class, but it brings the problem with differentiating between different event sources.
+Using anonymous class for listeners is recommended in most cases.</p>
+</div>
+<div class="sect2">
+<h3 id="_application.events.anonymous">4.1. Using Anonymous Classes</h3>
+<div class="paragraph">
+<p>By far the easiest and the most common way to handle events in Java 6 and 7 is to use anonymous local classes.
+It encapsulates the handling of events to where the component is defined and does not require cumbering the managing class with interface implementations.
+The following example defines an anonymous class that inherits the <span class="class">Button.ClickListener</span> interface.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>// Have a component that fires click events
+final Button button = new Button("Click Me!");
+
+// Handle the events with an anonymous class
+button.addClickListener(new Button.ClickListener() {
+    public void buttonClick(ClickEvent event) {
+        button.setCaption("You made me click!");
+    }
+});</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Local objects referenced from within an anonymous class, such as the <span class="class">Button</span> object in the above example, must be declared <span class="literal">final</span>.</p>
+</div>
+<div class="paragraph">
+<p>Most components allow passing a listener to the constructor, thereby losing a line or two.
+However, notice that if accessing the component that is constructed from an anonymous class, you must use a reference that is declared before the constructor is executed, for example as a member variable in the outer class.
+If it is declared in the same expression where the constructor is called, it doesn&#8217;t yet exist.
+In such cases, you need to get a reference to the component from the event object.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>final Button button = new Button("Click It!",
+  new Button.ClickListener() {
+    @Override
+    public void buttonClick(ClickEvent event) {
+        event.getButton().setCaption("Done!");
+    }
+  });</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application.events.java8">4.2. Handling Events in Java 8</h3>
+<div class="paragraph">
+<p>Java 8 introduced lambda expressions, which offer a replacement for listeners.
+You can directly use lambda expressions in place of listeners that have only one method to implement.</p>
+</div>
+<div class="paragraph">
+<p>For example, in the following, we use a lambda expression to handle button click events in the constructor:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>layout.addComponent(new Button("Click Me!",
+    event -&gt; event.getButton().setCaption("You made click!")));</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Java 8 is the future that is already here, and as Vaadin API uses event listeners extensively, using lambda expressions makes UI code much more readable.</p>
+</div>
+<div class="paragraph">
+<p>Directing events to handler methods is easy with method references:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>public class Java8Buttons extends CustomComponent {
+    public Java8Buttons() {
+        setCompositionRoot(new HorizontalLayout(
+            new Button("OK", this::ok),
+            new Button("Cancel", this::cancel)));
+    }
+
+    public void ok(ClickEvent event) {
+        event.getButton().setCaption ("OK!");
+    }
+
+    public void cancel(ClickEvent event) {
+        event.getButton().setCaption ("Not OK!");
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application.events.classlistener">4.3. Implementing a Listener in a Regular Class</h3>
+<div class="paragraph">
+<p>The following example follows a typical pattern where you have a <span class="class">Button</span> component and a listener that handles user interaction (clicks) communicated to the application as events.
+Here we define a class that listens to click events.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>public class MyComposite extends CustomComponent
+             implements Button.ClickListener {
+    Button button; // Defined here for access
+
+    public MyComposite() {
+        Layout layout = new HorizontalLayout();
+
+        // Just a single component in this composition
+        button = new Button("Do not push this");
+        button.addClickListener(this);
+        layout.addComponent(button);
+
+        setCompositionRoot(layout);
+    }
+
+    // The listener method implementation
+    public void buttonClick(ClickEvent event) {
+        button.setCaption("Do not push this again");
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application.events.differentiation">4.4. Differentiating Between Event Sources</h3>
+<div class="paragraph">
+<p>If an application receives events of the same type from multiple sources, such as multiple buttons, it has to be able to distinguish between the sources.
+If using a regular class listener, distinguishing between the components can be done by comparing the source of the event with each of the components.
+The method for identifying the source depends on the event type.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>public class TheButtons extends CustomComponent
+       implements Button.ClickListener {
+    Button onebutton;
+    Button toobutton;
+
+    public TheButtons() {
+        onebutton = new Button("Button One", this);
+        toobutton = new Button("A Button Too", this);
+
+        // Put them in some layout
+        Layout root = new HorizontalLayout();
+        root.addComponent(onebutton);
+        root.addComponent(toobutton);
+        setCompositionRoot(root);
+    }
+
+    @Override
+    public void buttonClick(ClickEvent event) {
+        // Differentiate targets by event source
+        if (event.getButton() == onebutton)
+            onebutton.setCaption ("Pushed one");
+        else if (event.getButton() == toobutton)
+            toobutton.setCaption ("Pushed too");
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Other techniques exist for separating between event sources, such as using object properties, names, or captions to separate between them.
+Using captions or any other visible text is generally discouraged, as it may create problems for internationalization.
+Using other symbolic strings can also be dangerous, because the syntax of such strings is checked only at runtime.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_application.resources">5. Images and Other Resources</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Web applications can display various <em>resources</em>, such as images, other embedded content, or downloadable files, that the browser has to load from the server.
+Image resources are typically displayed with the <span class="class">Image</span> component or as component icons.
+Flash animations can be displayed with <span class="class">Flash</span>, embedded browser frames with <span class="class">BrowserFrame</span>, and other content with the <span class="class">Embedded</span> component, as described in <a href="#_components.embedded">components.embedded</a>.
+Downloadable files are usually provided by clicking a <span class="class">Link</span>.</p>
+</div>
+<div class="paragraph">
+<p>There are several ways to how such resources can be provided by the web server.
+Static resources can be provided without having to ask for them from the application.
+For dynamic resources, the user application must be able to create them dynamically.
+The resource request interfaces in Vaadin allow applications to both refer to static resources as well as dynamically create them.
+The dynamic creation includes the <span class="class">StreamResource</span>            class and the <span class="interface">RequestHandler</span> described in <a href="#_advanced.requesthandler">advanced.requesthandler</a>.</p>
+</div>
+<div class="paragraph">
+<p>Vaadin also provides low-level facilities for retrieving the URI and other parameters of a HTTP request.
+We will first look into how applications can provide various kinds of resources and then look into low-level interfaces for handling URIs and parameters to provide resources and functionalities.</p>
+</div>
+<div class="paragraph">
+<p>Notice that using request handlers to create "pages" is not normally meaningful in Vaadin or in AJAX applications generally.
+Please see <a href="#_architecture.technology.ajax">architecture.technology.ajax</a> for a detailed explanation.</p>
+</div>
+<div class="sect2">
+<h3 id="_application.resources.api">5.1. Resource Interfaces and Classes</h3>
+<div class="paragraph">
+<p>The resource classes in Vaadin are grouped under two interfaces: a generic <span class="class">Resource</span> interface and a more specific <span class="class">ConnectorResource</span> interface for resources provided by the servlet.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="img/application/resource_classdiagram-lo.png" alt="resource classdiagram lo">
+</div>
+<div class="title">Figure 4. Resource Interface and Class Diagram</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application.resources.file">5.2. File Resources</h3>
+<div class="paragraph">
+<p>File resources are files stored anywhere in the file system.
+As such, they can not be retrieved by a regular URL from the server, but need to be requested through the Vaadin servlet.
+The use of file resources is typically necessary for persistent user data that is not packaged in the web application, which would not be persistent over redeployments.</p>
+</div>
+<div class="paragraph">
+<p>A file object that can be accessed as a file resource is defined with the standard <span class="class">java.io.File</span> class.
+You can create the file either with an absolute or relative path, but the base path of the relative path depends on the installation of the web server.
+For example, with Apache Tomcat, the default current directory would be the installation path of Tomcat.</p>
+</div>
+<div class="paragraph">
+<p>In the following example, we provide an image resource from a file stored in the web application.
+Notice that the image is stored under the <em class="path">WEB-INF</em> folder, which is a special folder that is never accessible using an URL, unlike the other folders of a web application.
+This is a security solution - another would be to store the resource elsewhere in the file system.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>// Find the application directory
+String basepath = VaadinService.getCurrent()
+                  .getBaseDirectory().getAbsolutePath();
+
+// Image as a file resource
+FileResource resource = new FileResource(new File(basepath +
+                        "/WEB-INF/images/image.png"));
+
+// Show the image in the application
+Image image = new Image("Image from file", resource);
+
+// Let the user view the file in browser or download it
+Link link = new Link("Link to the image file", resource);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The result, as well as the folder structure where the file is stored under a regular Eclipse Vaadin project, is shown in <a href="#_figure.application.resources.file">figure.application.resources.file</a>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="img/application/resource-fileresource.png" alt="resource fileresource">
+</div>
+<div class="title">Figure 5. File Resource</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application.resources.class">5.3. Class Loader Resources</h3>
+<div class="paragraph">
+<p>The <span class="class">ClassResource</span> allows resources to be loaded from the class path using Java Class Loader.
+Normally, the relevant class path entry is the <em class="path">WEB-INF/classes</em> folder under the web application, where the Java compilation should compile the Java classes and copy other files from the source tree.</p>
+</div>
+<div class="paragraph">
+<p>The one-line example below loads an image resource from the application package and displays it in an <span class="class">Image</span> component.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>layout.addComponent(new Image(null,
+        new ClassResource("smiley.jpg")));</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application.resources.theme">5.4. Theme Resources</h3>
+<div class="paragraph">
+<p>Theme resources of <span class="class">ThemeResource</span> class are files, typically images, included in a theme.
+A theme is located with the path <em class="path">VAADIN/themes/themename</em> in a web application.
+The name of a theme resource is given as the parameter for the constructor, with a path relative to the theme folder.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>// A theme resource in the current theme ("mytheme")
+// Located in: VAADIN/themes/mytheme/img/themeimage.png
+ThemeResource resource = new ThemeResource("img/themeimage.png");
+
+// Use the resource
+Image image = new Image("My Theme Image", resource);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The result is shown in <a href="#_figure.application.resources.theme">figure.application.resources.theme</a>, also illustrating the folder structure for the theme resource file in an Eclipse project.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="img/application/resource-themeimage.png" alt="resource themeimage">
+</div>
+<div class="title">Figure 6. Theme Resources</div>
+</div>
+<div class="paragraph">
+<p>To use theme resources, you must set the theme for the UI.
+See <a href="#_themes">themes</a> for more information regarding themes.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application.resources.stream">5.5. Stream Resources</h3>
+<div class="paragraph">
+<p>Stream resources allow creating dynamic resource content.
+Charts are typical examples of dynamic images.
+To define a stream resource, you need to implement the <span class="class">StreamResource.StreamSource</span>				interface and its <span class="method">getStream()</span> method.
+The method needs to return an <span class="class">InputStream</span> from which the stream can be read.</p>
+</div>
+<div class="paragraph">
+<p>The following example demonstrates the creation of a simple image in PNG image format.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>import java.awt.image.*;
+
+public class MyImageSource
+             implements StreamResource.StreamSource {
+    ByteArrayOutputStream imagebuffer = null;
+    int reloads = 0;
+
+    /* We need to implement this method that returns
+     * the resource as a stream. */
+    public InputStream getStream () {
+        /* Create an image and draw something on it. */
+        BufferedImage image = new BufferedImage (200, 200,
+                               BufferedImage.TYPE_INT_RGB);
+        Graphics drawable = image.getGraphics();
+        drawable.setColor(Color.lightGray);
+        drawable.fillRect(0,0,200,200);
+        drawable.setColor(Color.yellow);
+        drawable.fillOval(25,25,150,150);
+        drawable.setColor(Color.blue);
+        drawable.drawRect(0,0,199,199);
+        drawable.setColor(Color.black);
+        drawable.drawString("Reloads="+reloads, 75, 100);
+        reloads++;
+
+        try {
+            /* Write the image to a buffer. */
+            imagebuffer = new ByteArrayOutputStream();
+            ImageIO.write(image, "png", imagebuffer);
+
+            /* Return a stream from the buffer. */
+            return new ByteArrayInputStream(
+                         imagebuffer.toByteArray());
+        } catch (IOException e) {
+            return null;
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The content of the generated image is dynamic, as it updates the reloads counter with every call.
+The <span class="class">ImageIO</span>.<span class="method">write()</span>				method writes the image to an output stream, while we had to return an input stream, so we stored the image contents to a temporary buffer.</p>
+</div>
+<div class="paragraph">
+<p>Below we display the image with the <span class="class">Image</span>				component.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>// Create an instance of our stream source.
+StreamResource.StreamSource imagesource = new MyImageSource ();
+
+// Create a resource that uses the stream source and give it a name.
+// The constructor will automatically register the resource in
+// the application.
+StreamResource resource =
+        new StreamResource(imagesource, "myimage.png");
+
+// Create an image component that gets its contents
+// from the resource.
+layout.addComponent(new Image("Image title", resource));</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The resulting image is shown in <a href="#_figure.application.resource.stream">figure.application.resource.stream</a>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="img/application/application_streamresource.png" alt="application streamresource">
+</div>
+<div class="title">Figure 7. A Stream Resource</div>
+</div>
+<div class="paragraph">
+<p>Another way to create dynamic content is a request handler, described in <a href="#_advanced.requesthandler">advanced.requesthandler</a>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_application.errors">6. Handling Errors</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_application.errors.error_indicator">6.1. Error Indicator and Message</h3>
+<div class="paragraph">
+<p>All components have a built-in error indicator that is turned on if validating the component fails, and can be set explicitly with <span class="method">setComponentError()</span>.
+Usually, the error indicator is placed right of the component caption.
+The error indicator is part of the component caption, so its placement is usually managed by the layout in which the component is contained, but some components handle it themselves.
+Hovering the mouse pointer over the field displays the error message.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>textfield.setComponentError(new UserError("Bad value"));
+button.setComponentError(new UserError("Bad click"));</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The result is shown in <a href="#_figure.application.errors.error_indicator">figure.application.errors.error-indicator</a>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="img/application/errorindicator-example2.png" alt="errorindicator example2">
+</div>
+<div class="title">Figure 8. Error Indicator Active</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application.errors.systemmessages">6.2. Customizing System Messages</h3>
+<div class="paragraph">
+<p>System messages are notifications that indicate a major invalid state that usually requires restarting the application.
+Session timeout is perhaps the most typical such state.</p>
+</div>
+<div class="paragraph">
+<p>System messages are strings managed in the <span class="class">SystemMessages</span> class.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">sessionExpired</dt>
+<dd>
+<p>                                                        Application servlet session expired.
+A session expires if no server requests are made during the session timeout period.
+The session timeout can be configured with the  parameter in <em class="path">web.xml</em>, as described in <a href="#_application.environment.web_xml">application.environment.web-xml</a>.</p>
+</dd>
+<dt class="hdlist1">communicationError</dt>
+<dd>
+<p>An unspecified communication problem between the Vaadin Client-Side Engine and the application server.
+The server may be unavailable or there is some other problem.</p>
+</dd>
+<dt class="hdlist1">authenticationError</dt>
+<dd>
+<p>This error occurs if 401 (Unauthorized) response to a request is received from the server.</p>
+</dd>
+<dt class="hdlist1">internalError</dt>
+<dd>
+<p>A serious internal problem, possibly indicating a bug in Vaadin Client-Side Engine or in some custom client-side code.</p>
+</dd>
+<dt class="hdlist1">outOfSync</dt>
+<dd>
+<p>The client-side state is invalid with respect to server-side state.</p>
+</dd>
+<dt class="hdlist1">cookiesDisabled</dt>
+<dd>
+<p>Informs the user that cookies are disabled in the browser and the application does not work without them.</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>Each message has four properties: a short caption, the actual message, a URL to which to redirect after displaying the message, and property indicating whether the notification is enabled.</p>
+</div>
+<div class="paragraph">
+<p>Additional details may be written (in English) to the debug console window described in <a href="#_advanced.debug">advanced.debug</a>.</p>
+</div>
+<div class="paragraph">
+<p>You can override the default system messages by setting the <span class="interface">SystemMessagesProvider</span> in the <span class="class">VaadinService</span>.
+You need to implement the <span class="method">getSystemMessages()</span> method, which should return a <span class="class">SystemMessages</span> object.
+The easiest way to customize the messages is to use a <span class="class">CustomizedSystemMessages</span>                object.</p>
+</div>
+<div class="paragraph">
+<p>You can set the system message provider in the <span class="method">servletInitialized()</span> method of a custom servlet class, for example as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>getService().setSystemMessagesProvider(
+    new SystemMessagesProvider() {
+    @Override
+    public SystemMessages getSystemMessages(
+        SystemMessagesInfo systemMessagesInfo) {
+        CustomizedSystemMessages messages =
+                new CustomizedSystemMessages();
+        messages.setCommunicationErrorCaption("Comm Err");
+        messages.setCommunicationErrorMessage("This is bad.");
+        messages.setCommunicationErrorNotificationEnabled(true);
+        messages.setCommunicationErrorURL("http://vaadin.com/");
+        return messages;
+    }
+});</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>See <a href="#_application.lifecycle.servlet_service">application.lifecycle.servlet-service</a> for information about customizing Vaadin servlets.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application.errors.unchecked_exceptions">6.3. Handling Uncaught Exceptions</h3>
+<div class="paragraph">
+<p>Handling events can result in exceptions either in the application logic or in the framework itself, but some of them may not be caught properly by the application.
+Any such exceptions are eventually caught by the framework.
+It delegates the exceptions to the <span class="class">DefaultErrorHandler</span>, which displays the error as a component error, that is, with a small red "!" -sign (depending on the theme). If the user hovers the mouse pointer over it, the entire backtrace of the exception is shown in a large tooltip box, as illustrated in <a href="#_figure.application.errors.unchecked_exceptions">figure.application.errors.unchecked-exceptions</a>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="img/application/errorindicator-exception.png" alt="errorindicator exception">
+</div>
+<div class="title">Figure 9. Uncaught Exception in Component Error Indicator</div>
+</div>
+<div class="paragraph">
+<p>You can customize the default error handling by implementing a custom <span class="interface">ErrorHandler</span> and enabling it with <span class="method">setErrorHandler()</span> in any of the components in the component hierarchy, including the <span class="class">UI</span>, or in the <span class="class">VaadinSession</span> object.
+You can either implement the <span class="interface">ErrorHandler</span> or extend the <span class="class">DefaultErrorHandler</span>.
+In the following example, we modify the behavior of the default handler.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>// Here's some code that produces an uncaught exception
+final VerticalLayout layout = new VerticalLayout();
+final Button button = new Button("Click Me!",
+    new Button.ClickListener() {
+    public void buttonClick(ClickEvent event) {
+        ((String)null).length(); // Null-pointer exception
+    }
+});
+layout.addComponent(button);
+
+// Configure the error handler for the UI
+UI.getCurrent().setErrorHandler(new DefaultErrorHandler() {
+    @Override
+    public void error(com.vaadin.server.ErrorEvent event) {
+        // Find the final cause
+        String cause = "&lt;b&gt;The click failed because:&lt;/b&gt;&lt;br/&gt;";
+        for (Throwable t = event.getThrowable(); t != null;
+             t = t.getCause())
+            if (t.getCause() == null) // We're at final cause
+                cause += t.getClass().getName() + "&lt;br/&gt;";
+
+        // Display the error message in a custom fashion
+        layout.addComponent(new Label(cause, ContentMode.HTML));
+
+        // Do the default error handling (optional)
+        doDefault(event);
+    }
+});</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The above example also demonstrates how to dig up the final cause from the cause stack.</p>
+</div>
+<div class="paragraph">
+<p>When extending <span class="class">DefaultErrorHandler</span>, you can call <span class="method">doDefault()</span> as was done above to run the default error handling, such as set the component error for the component where the exception was thrown.
+See the source code of the implementation for more details.
+You can call <span class="method">findAbstractComponent(event)</span> to find the component that caused the error.
+If the error is not associated with a component, it returns null.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_application.notifications">7. Notifications</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Notifications are error or information boxes that appear briefly, typically at the center of the screen.
+A notification box has a caption and an optional description and icon.
+The box stays on the screen either for a preset time or until the user clicks it.
+The notification type defines the default appearance and behaviour of a notification.</p>
+</div>
+<div class="paragraph">
+<p>There are two ways to create a notification.
+The easiest is to use a static shorthand <span class="method">Notification.show()</span> method, which takes the caption of the notification as a parameter, and an optional description and notification type, and displays it in the current page.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>Notification.show("This is the caption",
+                  "This is the description",
+                  Notification.Type.WARNING_MESSAGE);</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="img/application/notification-example2.png" alt="notification example2">
+</div>
+<div class="title">Figure 10. Notification</div>
+</div>
+<div class="paragraph">
+<p>For more control, you can create a <span class="class">Notification</span>            object.
+Different constructors exist for taking just the caption, and optionally the description, notification type, and whether HTML is allowed or not.
+Notifications are shown in a <span class="class">Page</span>, typically the current page.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>new Notification("This is a warning",
+    "&lt;br/&gt;This is the &lt;i&gt;last&lt;/i&gt; warning",
+    Notification.TYPE_WARNING_MESSAGE, true)
+    .show(Page.getCurrent());</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The caption and description are by default written on the same line.
+If you want to have a line break between them, use the HTML line break markup "<span class="literal">br/</span>" if HTML is enabled, or "<span class="literal">\n</span>" if not.
+HTML is disabled by default, but can be enabled with <span class="method">setHtmlContentAllowed(true)</span>.
+When enabled, you can use any HTML markup in the caption and description of a notification.
+If it is in any way possible to get the notification content from user input, you should either disallow HTML or sanitize the content carefully, as noted in <a href="#_advanced.security.sanitizing">advanced.security.sanitizing</a>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="img/application/notification-example3.png" alt="notification example3">
+</div>
+<div class="title">Figure 11. Notification with HTML Formatting</div>
+</div>
+<div class="sect2">
+<h3 id="_application.notifications.type">7.1. Notification Type</h3>
+<div class="paragraph">
+<p>The notification type defines the overall default style and behaviour of a notification.
+If no notification type is given, the "humanized" type is used as the default.
+The notification types, listed below, are defined in the <span class="class">Notification.Type</span> class.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><span class="image"><img src="img/application/notification-humanized.png" alt="notification-humanized"></span></dt>
+<dd>
+<p>A user-friendly message that does not annoy too much: it does not require confirmation by clicking and disappears quickly.
+It is centered and has a neutral gray color.</p>
+</dd>
+<dt class="hdlist1"><span class="image"><img src="img/application/notification-warning.png" alt="notification-warning"></span></dt>
+<dd>
+<p>Warnings are messages of medium importance.
+They are displayed with colors that are neither neutral nor too distractive.
+A warning is displayed for 1.5 seconds, but the user can click the message box to dismiss it.
+The user can continue to interact with the application while the warning is displayed.</p>
+</dd>
+<dt class="hdlist1"><span class="image"><img src="img/application/notification-error.png" alt="notification-error"></span></dt>
+<dd>
+<p>Error messages are notifications that require the highest user attention, with alert colors, and they require the user to click the message to dismiss it.
+The error message box does not itself include an instruction to click the message, although the close box in the upper right corner indicates it visually.
+Unlike with other notifications, the user can not interact with the application while the error message is displayed.</p>
+</dd>
+<dt class="hdlist1"><span class="image"><img src="img/application/notification-tray.png" alt="notification-tray"></span></dt>
+<dd>
+<p>Tray notifications are displayed in the "system tray" area, that is, in the lower-right corner of the browser view.
+As they do not usually obscure any user interface, they are displayed longer than humanized or warning messages, 3 seconds by default.
+The user can continue to interact with the application normally while the tray notification is displayed.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application.notifications.customization">7.2. Customizing Notifications</h3>
+<div class="paragraph">
+<p>All of the features of specific notification types can be controlled with the <span class="class">Notification</span> properties.
+Once configured, you need to show it in the current page.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>// Notification with default settings for a warning
+Notification notif = new Notification(
+    "Warning",
+    "&lt;br/&gt;Area of reindeer husbandry",
+    Notification.TYPE_WARNING_MESSAGE);
+
+// Customize it
+notif.setDelayMsec(20000);
+notif.setPosition(Position.BOTTOM_RIGHT);
+notif.setStyleName("mystyle");
+notif.setIcon(new ThemeResource("img/reindeer.png"));
+
+// Show it in the page
+notif.show(Page.getCurrent());</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <span class="method">setPosition()</span> method allows setting the positioning of the notification.
+The position can be specified by any of the constants defined in the <span class="class">Position</span> enum.</p>
+</div>
+<div class="paragraph">
+<p>The <span class="method">setDelayMSec()</span> allows setting the time for how long the notification is displayed in milliseconds.
+Parameter value <span class="literal">-1</span> means that the message is displayed until the user clicks the message box.
+It also prevents interaction with other parts of the application window, which is the default behaviour for error notifications.
+It does not, however, add a close box that the error notification has.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application.notifications.css">7.3. Styling with CSS</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>.v-Notification {}
+  .popupContent {}
+    .gwt-HTML {}
+      h1 {}
+      p  {}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The notification box is a floating <span class="literal">div</span> element under the <span class="literal">body</span> element of the page.
+It has an overall <span class="literal">v-Notification</span> style.
+The content is wrapped inside an element with <span class="literal">popupContent</span> style.
+The caption is enclosed within an <span class="literal">h1</span> element and the description in a <span class="literal">p</span> element.</p>
+</div>
+<div class="paragraph">
+<p>To customize it, add a style for the <span class="class">Notification</span>                object with <span class="method">setStyleName("mystyle")</span>, and make the settings in the theme, for example as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>.v-Notification.mystyle {
+    background: #FFFF00;
+    border: 10px solid #C00000;
+    color: black;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The result is shown, with the icon set earlier in the customization example, in <a href="#_figure.application.errors.notifications.css">figure.application.errors.notifications.css</a>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="img/application/notification-customization.png" alt="notification customization">
+</div>
+<div class="title">Figure 12. A Styled Notification</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_application.lifecycle">8. Application Lifecycle</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section, we look into more technical details of application deployment, user sessions, and UI instance lifecycle.
+These details are not generally needed for writing Vaadin applications, but may be useful for understanding how they actually work and, especially, in what circumstances their execution ends.</p>
+</div>
+<div class="sect2">
+<h3 id="_application.lifecycle.deployment">8.1. Deployment</h3>
+<div class="paragraph">
+<p>Before a Vaadin application can be used, it has to be deployed to a Java web server, as described in <a href="#_application.environment">application.environment</a>.
+Deploying reads the servlet classes annotated with the <span class="literal">@WebServlet</span> annotation (Servlet 3.0) or the <em class="path">web.xml</em> deployment descriptor (Servlet 2.4) in the application to register servlets for specific URL paths and loads the classes.
+Deployment does not yet normally run any code in the application, although static blocks in classes are executed when they are loaded.</p>
+</div>
+<div class="sect3">
+<h4 id="_application.lifecycle.deployment.redeployment">8.1.1. Undeploying and Redeploying</h4>
+<div class="paragraph">
+<p>Applications are undeployed when the server shuts down, during redeployment, and when they are explicitly undeployed.
+Undeploying a server-side Vaadin application ends its execution, all application classes are unloaded, and the heap space allocated by the application is freed for garbage-collection.</p>
+</div>
+<div class="paragraph">
+<p>If any user sessions are open at this point, the client-side state of the UIs is left hanging and an Out of Sync error is displayed on the next server request.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_application.lifecycle.deployment.serialization">8.1.2. Redeployment and Serialization</h4>
+<div class="paragraph">
+<p>Some servers, such as Tomcat, support <em>hot
+                    deployment</em>, where the classes are reloaded while preserving the memory state of the application.
+This is done by serializing the application state and then deserializing it after the classes are reloaded.
+This is, in fact, done with the basic Eclipse setup with Tomcat and if a UI is marked as <span class="class">@PreserveOnRefresh</span>, you may actually need to give the <span class="literal">?restartApplication</span> URL parameter to force it to restart when you reload the page.
+Tools such as JRebel go even further by reloading the code in place without need for serialization.
+The server can also serialize the application state when shutting down and restarting, thereby preserving sessions over restarts.</p>
+</div>
+<div class="paragraph">
+<p>Serialization requires that the applications are <em>serializable</em>, that is, all classes implement the <span class="interface">Serializable</span> interface.
+All Vaadin classes do.
+If you extend them or implement interfaces, you can provide an optional serialization key, which is automatically generated by Eclipse if you use it.
+Serialization is also used for clustering and cloud computing, such as with Google App Engine, as described in <a href="#_advanced.gae">advanced.gae</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application.lifecycle.servlet_service">8.2. Vaadin Servlet, Portlet, and Service</h3>
+<div class="paragraph">
+<p>The <span class="class">VaadinServlet</span>, or <span class="class">VaadinPortlet</span> in a portal, receives all server requests mapped to it by its URL, as defined in the deployment configuration, and associates them with sessions.
+The sessions further associate the requests with particular UIs.</p>
+</div>
+<div class="paragraph">
+<p>When servicing requests, the Vaadin servlet or portlet handles all tasks common to both servlets and portlets in a <span class="class">VaadinService</span>.
+It manages sessions, gives access to the deployment configuration information, handles system messages, and does various other tasks.
+Any further servlet or portlet specific tasks are handled in the corresponding <span class="class">VaadinServletService</span> or <span class="class">VaadinPortletService</span>.
+The service acts as the primary low-level customization layer for processing requests.</p>
+</div>
+<div class="sect3">
+<h4 id="_application.lifecycle.servlet_service.servletcustomization">8.2.1. Customizing Vaadin Servlet</h4>
+<div class="paragraph">
+<p>Many common configuration tasks need to be done in the servlet class, which you already have if you are using the <span class="literal">@WebServlet</span> annotation for Servlet 3.0 to deploy the application.
+You can handle most customization by overriding the <span class="method">servletInitialized()</span> method, where the <span class="class">VaadinService</span> object is available with <span class="method">getService()</span> (it would not be available in a constructor). You should always call <span class="method">super.servletInitialized()</span> in the beginning.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>public class MyServlet extends VaadinServlet {
+    @Override
+    protected void servletInitialized()
+            throws ServletException {
+        super.servletInitialized();
+
+        ...
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To add custom functionality around request handling, you can override the <span class="method">service()</span> method.</p>
+</div>
+<div class="paragraph">
+<p>To use the custom servlet class in a Servlet 2.4 project, you need to define it in the <em class="path">web.xml</em> deployment descriptor instead of the regular <span class="class">VaadinServlet</span> class, as described in <a href="#_application.environment.web_xml">application.environment.web-xml</a>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_application.lifecycle.servlet_service.portletcustomization">8.2.2. Customizing Vaadin Portlet</h4>
+<div class="paragraph">
+<p><em>To Be Done</em></p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_application.lifecycle.servlet_service.servicecustomization">8.2.3. Customizing Vaadin Service</h4>
+<div class="paragraph">
+<p>To customize <span class="class">VaadinService</span>, you first need to extend the <span class="class">VaadinServlet</span> or -<span class="class">Portlet</span> class and override the <span class="method">createServletService()</span> to create a custom service object.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application.lifecycle.session">8.3. User Session</h3>
+<div class="paragraph">
+<p></p>
+</div>
+<div class="paragraph">
+<p>A user session begins when a user first makes a request to a Vaadin servlet or portlet by opening the URL for a particular <span class="class">UI</span>.
+All server requests belonging to a particular UI class are processed by the <span class="class">VaadinServlet</span> or <span class="class">VaadinPortlet</span> class.
+When a new client connects, it creates a new user session, represented by an instance of <span class="class">VaadinSession</span>.
+Sessions are tracked using cookies stored in the browser.</p>
+</div>
+<div class="paragraph">
+<p>You can obtain the <span class="class">VaadinSession</span> of a <span class="class">UI</span> with <span class="method">getSession()</span> or globally with <span class="method">VaadinSession.getCurrent()</span>.
+It also provides access to the lower-level session objects, <span class="interface">HttpSession</span> and <span class="interface">PortletSession</span>, through a <span class="class">WrappedSession</span>.
+You can also access the deployment configuration through <span class="class">VaadinSession</span>, as described in <a href="#_application.environment.configuration">application.environment.configuration</a>.</p>
+</div>
+<div class="paragraph">
+<p>A session ends after the last <span class="class">UI</span> instance expires or is closed, as described later.</p>
+</div>
+<div class="sect3">
+<h4 id="_application.lifecycle.session.init">8.3.1. Handling Session Initialization and Destruction</h4>
+<div class="paragraph">
+<p>
+</p>
+</div>
+<div class="paragraph">
+<p>                    You can handle session initialization and destruction by implementing a <span class="interface">SessionInitListener</span> or <span class="interface">SessionDestroyListener</span>, respectively, to the <span class="class">VaadinService</span>.</p>
+</div>
+<div class="paragraph">
+<p>
+                    You can do that best by extending <span class="class">VaadinServlet</span>                    and overriding the <span class="method">servletInitialized()</span>                    method, as outlined in <a href="#_application.lifecycle.servlet_service">application.lifecycle.servlet-service</a>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>public class MyServlet extends VaadinServlet
+    implements SessionInitListener, SessionDestroyListener {
+
+    @Override
+    protected void servletInitialized() throws ServletException {
+        super.servletInitialized();
+        getService().addSessionInitListener(this);
+        getService().addSessionDestroyListener(this);
+    }
+
+    @Override
+    public void sessionInit(SessionInitEvent event)
+            throws ServiceException {
+        // Do session start stuff here
+    }
+
+    @Override
+    public void sessionDestroy(SessionDestroyEvent event) {
+        // Do session end stuff here
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If using Servlet 2.4, you need to configure the custom servlet class in the  parameter in the <em class="path">web.xml</em> descriptor instead of the <span class="class">VaadinServlet</span>, as described in <a href="#_application.environment.web_xml">application.environment.web-xml</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application.lifecycle.ui">8.4. Loading a UI</h3>
+<div class="paragraph">
+<p></p>
+</div>
+<div class="paragraph">
+<p>When a browser first accesses a URL mapped to the servlet of a particular UI class, the Vaadin servlet generates a loader page.
+The page loads the client-side engine (widget set), which in turn loads the UI in a separate request to the Vaadin servlet.</p>
+</div>
+<div class="paragraph">
+<p>
+                A <span class="class">UI</span> instance is created when the client-side engine makes its first request.
+The servlet creates the UIs using a <span class="class">UIProvider</span>                registered in the <span class="class">VaadinSession</span> instance.
+A session has at least a <span class="class">DefaultUIProvider</span> for managing UIs opened by the user.
+If the application lets the user open popup windows with a <span class="class">BrowserWindowOpener</span>, each of them has a dedicated special UI provider.</p>
+</div>
+<div class="paragraph">
+<p>
+                Once a new UI is created, its <span class="method">init()</span> method is called.
+The method gets the request as a <span class="class">VaadinRequest</span>.</p>
+</div>
+<div class="sect3">
+<h4 id="_application.lifecycle.ui.loaderpage">8.4.1. Customizing the Loader Page</h4>
+<div class="paragraph">
+<p>The HTML content of the loader page is generated as an HTML DOM object, which can be customized by implementing a <span class="interface">BootstrapListener</span> that modifies the DOM object.
+To do so, you need to extend the <span class="class">VaadinServlet</span> and add a <span class="interface">SessionInitListener</span> to the service object, as outlined in <a href="#_application.lifecycle.session">application.lifecycle.session</a>.
+You can then add the bootstrap listener to a session with <span class="method">addBootstrapListener()</span> when the session is initialized.</p>
+</div>
+<div class="paragraph">
+<p>Loading the widget set is handled in the loader page with functions defined in a separate <em class="path">vaadinBootstrap.js</em> script.</p>
+</div>
+<div class="paragraph">
+<p>You can also use entirely custom loader code, such as in a static HTML page, as described in <a href="#_advanced.embedding">advanced.embedding</a>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_application.lifecycle.ui.uiprovider">8.4.2. Custom UI Providers</h4>
+<div class="paragraph">
+<p></p>
+</div>
+<div class="paragraph">
+<p>You can create UI objects dynamically according to their request parameters, such as the URL path, by defining a custom <span class="interface">UIProvider</span>.
+You need to add custom UI providers to the session object which calls them.
+The providers are chained so that they are requested starting from the one added last, until one returns a UI (otherwise they return null). You can add a UI provider to a session most conveniently by implementing a custom servlet and adding the UI provider to sessions in a <span class="interface">SessionInitListener</span>.</p>
+</div>
+<div class="paragraph">
+<p>You can find an example of custom UI providers in <a href="#_mobile.features.fallback">mobile.features.fallback</a>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_application.lifecycle.ui.preserving">8.4.3. Preserving UI on Refresh</h4>
+<div class="paragraph">
+<p></p>
+</div>
+<div class="paragraph">
+<p>Reloading a page in the browser normally spawns a new <span class="class">UI</span> instance and the old UI is left hanging, until cleaned up after a while.
+This can be undesired as it resets the UI state for the user.
+To preserve the UI, you can use the <span class="class">@PreserveOnRefresh</span> annotation for the UI class.
+You can also use a <span class="class">UIProvider</span> with a custom implementation of <span class="method">isUiPreserved()</span>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>@PreserveOnRefresh
+public class MyUI extends UI {</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Adding the  parameter in the URL tells the Vaadin servlet to create a new <span class="class">UI</span> instance when loading the page, thereby overriding the <span class="class">@PreserveOnRefresh</span>.
+This is often necessary when developing such a UI in Eclipse, when you need to restart it after redeploying, because Eclipse likes to persist the application state between redeployments.
+If you also include a URI fragment, the parameter should be given before the fragment.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application.lifecycle.ui_expiration">8.5. UI Expiration</h3>
+<div class="paragraph">
+<p></p>
+</div>
+<div class="paragraph">
+<p><span class="class">UI</span> instances are cleaned up if no communication is received from them after some time.
+If no other server requests are made, the client-side sends keep-alive heartbeat requests.
+A UI is kept alive for as long as requests or heartbeats are received from it.
+It expires if three consecutive heartbeats are missed.</p>
+</div>
+<div class="paragraph">
+<p>The heartbeats occur at an interval of 5 minutes, which can be changed with the  parameter of the servlet.
+You can configure the parameter in <span class="class">@VaadinServletConfiguration</span> or in <em class="path">web.xml</em> as described in <a href="#_application.environment.parameters">application.environment.parameters</a>.</p>
+</div>
+<div class="paragraph">
+<p>When the UI cleanup happens, a <span class="class">DetachEvent</span> is sent to all <span class="class">DetachListener+s added to the UI.
+When the [class]+UI</span> is detached from the session, <span class="method">detach()</span> is called for it.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application.lifecycle.ui_closing">8.6. Closing UIs Explicitly</h3>
+<div class="paragraph">
+<p>                You can explicitly close a UI with <span class="method">close()</span>.
+The method marks the UI to be detached from the session after processing the current request.
+Therefore, the method does not invalidate the UI instance immediately and the response is sent as usual.</p>
+</div>
+<div class="paragraph">
+<p>Detaching a UI does not close the page or browser window in which the UI is running and further server request will cause error.
+Typically, you either want to close the window, reload it, or redirect it to another URL.
+If the page is a regular browser window or tab, browsers generally do not allow closing them programmatically, but redirection is possible.
+You can redirect the window to another URL with <span class="method">setLocation()</span>, as is done in the examples in <a href="#_application.lifecycle.session_closing">application.lifecycle.session-closing</a>.
+You can close popup windows by making JavaScript <span class="method">close()</span> call for them, as described in <a href="#_advanced.windows.popup_closing">advanced.windows.popup-closing</a>.</p>
+</div>
+<div class="paragraph">
+<p>If you close other UI than the one associated with the current request, they will not be detached at the end of the current request, but after next request from the particular UI.
+You can make that occur quicker by making the UI heartbeat faster or immediately by using server push.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application.lifecycle.session_expiration">8.7. Session Expiration</h3>
+<div class="paragraph">
+<p>A session is kept alive by server requests caused by user interaction with the application as well as the heartbeat monitoring of the UIs.
+Once all UIs have expired, the session still remains.
+It is cleaned up from the server when the session timeout configured in the web application expires.</p>
+</div>
+<div class="paragraph">
+<p>                If there are active UIs in an application, their heartbeat keeps the session alive indefinitely.
+You may want to have the sessions timeout if the user is inactive long enough, which is the original purpose of the session timeout setting.</p>
+</div>
+<div class="paragraph">
+<p>                                If the                 parameter of the servlet is set to <span class="literal">true</span> in the <em class="path">web.xml</em>, as described in <a href="#_application.environment.web_xml">application.environment.web-xml</a>, the session and all of its UIs are closed when the timeout specified by the  parameter of the servlet expires after the last non-heartbeat request.
+Once the session is gone, the browser will show an Out Of Sync error on the next server request.</p>
+</div>
+<div class="paragraph">
+<p>                 To avoid the ugly message, you may want to set a redirect URL for the UIs, as described in <a href="#_application.errors.systemmessages">application.errors.systemmessages</a>.</p>
+</div>
+<div class="paragraph">
+<p>The related configuration parameters are described in <a href="#_application.environment.parameters">application.environment.parameters</a>.</p>
+</div>
+<div class="paragraph">
+<p>                You can handle session expiration on the server-side with a <span class="interface">SessionDestroyListener</span>, as described in <a href="#_application.lifecycle.session">application.lifecycle.session</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application.lifecycle.session_closing">8.8. Closing a Session</h3>
+<div class="paragraph">
+<p></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>                You can close a session by calling [method]+close()+ on the [class]+VaadinSession+.
+It is typically used when logging a user out and the session and all the UIs belonging to the session should be closed.
+The session is closed immediately and any objects related to it are not available after calling the method.</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When closing the session from a UI, you typically want to redirect the user to another URL.</p>
+</div>
+<div class="paragraph">
+<p>
+
+                You can do the redirect using the <span class="method">setLocation()</span>                method in <span class="class">Page</span>.
+This needs to be done before closing the session, as the UI or page are not available after that.
+In the following example, we display a logout button, which closes the user session.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>public class MyUI extends UI {
+    @Override
+    protected void init(VaadinRequest request) {
+        setContent(new Button("Logout", event -&gt; {// Java 8
+            // Redirect this page immediately
+            getPage().setLocation("/myapp/logout.html");
+
+            // Close the session
+            getSession().close();
+        }));
+
+        // Notice quickly if other UIs are closed
+        setPollInterval(3000);
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is not enough.
+When a session is closed from one UI, any other UIs attached to it are left hanging.
+When the client-side engine notices that a UI and the session are gone on the server-side, it displays a "Session Expired" message and, by default, reloads the UI when the message is clicked.</p>
+</div>
+<div class="paragraph">
+<p>
+                You can customize the message and the redirect URL in the system messages, as described in <a href="#_application.errors.systemmessages">application.errors.systemmessages</a>.</p>
+</div>
+<div class="paragraph">
+<p>
+
+                The client-side engine notices the expiration when user interaction causes a server request to be made or when the keep-alive heartbeat occurs.
+To make the UIs detect the situation faster, you need to make the heart beat faster, as was done in the example above.
+You can also use server push to close the other UIs immediately, as is done in the following example.
+Access to the UIs must be synchronized as described in <a href="#_advanced.push">advanced.push</a>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>@Push
+public class MyPushyUI extends UI {
+    @Override
+    protected void init(VaadinRequest request) {
+        setContent(new Button("Logout", event -&gt; {// Java 8
+            for (UI ui: VaadinSession.getCurrent().getUIs())
+                ui.access(() -&gt; {
+                    // Redirect from the page
+                    ui.getPage().setLocation("/logout.html");
+                });
+
+            getSession().close();
+        }));
+    }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the above example, we assume that all UIs in the session have push enabled and that they should be redirected; popups you might want to close instead of redirecting.
+It is not necessary to call <span class="method">close()</span> for them individually, as we close the entire session afterwards.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_application.environment">9. Deploying an Application</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Vaadin applications are deployed as <em>Java web
+			applications</em>, which can contain a number of servlets, each of which can be a Vaadin application or some other servlet, and static resources such as HTML files.
+Such a web application is normally packaged as a WAR (Web application ARchive) file, which can be deployed to a Java application server (or a servlet container to be exact). A WAR file, which has the <em class="path">.war</em> extension, is a subtype of JAR (Java ARchive), and like a regular JAR, is a ZIP-compressed file with a special content structure.</p>
+</div>
+<div class="paragraph">
+<p>For a detailed tutorial on how web applications are packaged, please refer to any Java book that discusses Java Servlets.</p>
+</div>
+<div class="paragraph">
+<p>In the Java Servlet parlance, a "web application" means a collection of Java servlets or portlets, JSP and static HTML pages, and various other resources that form an application.
+Such a Java web application is typically packaged as a WAR package for deployment.
+Server-side Vaadin UIs run as servlets within such a Java web application.
+There exists also other kinds of web applications.
+To avoid confusion with the general meaning of "web application", we often refer to Java web applications with the slight misnomer "WAR" in this book.</p>
+</div>
+<div class="sect2">
+<h3 id="_application.environment.war_eclipse">9.1. Creating Deployable WAR in Eclipse</h3>
+<div class="paragraph">
+<p>To deploy an application to a web server, you need to create a WAR package.
+Here we give the instructions for Eclipse.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Select                         and then .
+Or, right-click the project in the Project Explorer and select .</p>
+</li>
+<li>
+<p>Select the <span class="label">Web project</span> to export.
+Enter <span class="label">Destination</span> file name (<em class="path">.war</em>).</p>
+</li>
+<li>
+<p>Make any other settings in the dialog, and click <b class="button">Finish</b>.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application.environment.war">9.2. Web Application Contents</h3>
+<div class="paragraph">
+<p>The following files are required in a web application in order to run it.</p>
+</div>
+<div class="dlist">
+<div class="title">Web Application Organization[path]<em>WEB-INF/web.xml</em> (optional with Servlet 3.0)</div>
+<dl>
+<dt class="hdlist1"></dt>
+<dd>
+<p>This is the web application descriptor that defines how the application is organized, that is, what servlets and such it has.
+You can refer to any Java book about the contents of this file.
+It is not needed if you define the Vaadin servlet with the <span class="literal">@WebServlet</span> annotation in Servlet API 3.0.</p>
+</dd>
+</dl>
+</div>
+<div class="paragraph">
+<p>[path]_
+							WEB-INF/lib/*.jar
+						_::
+  These are the Vaadin libraries and their dependencies.
+  They can be found in the installation package or as loaded by a dependency management system such as Maven or Ivy.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Your UI classes</dt>
+<dd>
+<p>You must include your UI classes either in a JAR file in <em class="path">WEB-INF/lib</em>                            or as classes in <em class="path">WEB-INF/classes</em></p>
+</dd>
+<dt class="hdlist1">Your own theme files (OPTIONAL)</dt>
+<dd>
+<p>If your application uses a special theme (look and feel), you must include it in <em class="path">VAADIN/themes/themename</em>                            directory.</p>
+</dd>
+<dt class="hdlist1">Widget sets (OPTIONAL)</dt>
+<dd>
+<p>If your application uses a project-specific widget set, it must be compiled in the <em class="path">VAADIN/widgetset/</em> directory.</p>
+</dd>
+</dl>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application.environment.webservlet">9.3. Web Servlet Class</h3>
+<div class="paragraph">
+<p>When using the Servlet 3.0 API, you normally declare the Vaadin servlet classes with the <span class="literal">@WebServlet</span> annotation.
+The Vaadin UI associated with the servlet and other Vaadin-specific parameters are declared with a separate <span class="literal">@VaadinServletConfiguration</span>                annotation.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>@WebServlet(value = "/*",
+            asyncSupported = true)
+@VaadinServletConfiguration(
+        productionMode = false,
+        ui = MyProjectUI.class)
+public class MyProjectServlet extends VaadinServlet {
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The Vaadin Plugin for Eclipse creates the servlet class as a static inner class of the UI class.
+Normally, you may want to have it as a separate regular class.</p>
+</div>
+<div class="paragraph">
+<p>The  parameter is the URL pattern for mapping request URLs to the servlet, as described in <a href="#_application.environment.servlet_mapping">application.environment.servlet-mapping</a>.
+The  parameter is the UI class.
+Production mode is disabled by default, which enabled on-the-fly theme compilation, debug window, and other such development features.
+See the subsequent sections for details on the different servlet and Vaadin configuration parameters.</p>
+</div>
+<div class="paragraph">
+<p>You can also use a <em class="path">web.xml</em> deployment descriptor in Servlet 3.0 projects.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application.environment.web_xml">9.4. Using a <em class="path">web.xml</em> Deployment Descriptor</h3>
+<div class="paragraph">
+<p>A deployment descriptor is an XML file with the name <em class="path">web.xml</em> in the <em class="path">WEB-INF</em>				sub-directory of a web application.
+It is a standard component in Java EE describing how a web application should be deployed.
+The descriptor is not required with Servlet API 3.0, where you can also define servlets with the <span class="class">@WebServlet</span> annotation as decribed earlier, as web fragments, or programmatically.
+You can use both a <em class="path">web.xml</em> and WebServlet in the same application.
+Settings in the <em class="path">web.xml</em> override the ones given in annotations.</p>
+</div>
+<div class="paragraph">
+<p>The following example shows the basic contents of a deployment descriptor for a Servlet 2.4 application.
+You simply specify the UI class with the  parameter for the <span class="class">com.vaadin.server.VaadinServlet</span>.
+The servlet is then mapped to a URL path in a standard way for Java Servlets.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>?xml version="1.0" encoding="UTF-8"?
+web-app
+  id="WebApp_ID" version="2.4"
+  xmlns="http://java.sun.com/xml/ns/j2ee"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee
+     http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
+
+  servlet
+    servlet-namemyservlet/servlet-name
+    servlet-class
+        com.vaadin.server.VaadinServlet
+    /servlet-class
+
+    init-param
+      param-name/param-name
+      param-valuecom.ex.myprj.MyUI/param-value
+    /init-param
+
+    !-- If not using the default widget set--
+    init-param
+      param-namewidgetset/param-name
+      param-valuecom.ex.myprj.MyWidgetSet/param-value
+    /init-param
+  /servlet
+
+  servlet-mapping
+    servlet-namemyservlet/servlet-name
+    url-pattern/*/url-pattern
+  /servlet-mapping
+/web-app</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The descriptor defines a servlet with the name <em class="path">myservlet</em>.
+The servlet class, <span class="class">com.vaadin.server.VaadinServlet</span>, is provided by Vaadin framework and is normally the same for all Vaadin projects.
+For some purposes, you may need to use a custom servlet class that extends the <span class="class">VaadinServlet</span>.
+The class name must include the full package path.</p>
+</div>
+<div class="sect3">
+<h4 id="_application.environment.web_xml.servlet">9.4.1. Servlet API Version</h4>
+<div class="paragraph">
+<p>The descriptor example given above was for Servlet 2.4.
+For a later version, such as Servlet 3.0, you should use:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>web-app
+  id="WebApp_ID" version="3.0"
+  xmlns="http://java.sun.com/xml/ns/j2ee"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+      http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Servlet 3.0 support is useful for at least server push.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_application.environment.web_xml.widgetset">9.4.2. Widget Set</h4>
+<div class="paragraph">
+<p>If the UI uses add-on components or custom widgets, it needs a custom widget set, which can be specified with the  parameter for the servlet.
+Alternatively, you can defined it with the <span class="class">@WidgetSet</span> annotation for the UI class.
+The parameter is a class name with the same path but without the <em class="path">.gwt.xml</em> extension as the widget set definition file.
+If the parameter is not given, the <span class="class">com.vaadin.DefaultWidgetSet</span> is used, which contains all the widgets for the built-in Vaadin components.</p>
+</div>
+<div class="paragraph">
+<p>Unless using the default widget set (which is included in the <em class="path">vaadin-client-compiled</em> JAR), the widget set must be compiled, as described in <a href="#_addons">addons</a> or <a href="#_clientside.compiling">clientside.compiling</a>, and properly deployed with the application.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application.environment.servlet_mapping">9.5. Servlet Mapping with URL Patterns</h3>
+<div class="paragraph">
+<p>The servlet needs to be mapped to an URL path, which requests it is to handle.</p>
+</div>
+<div class="paragraph">
+<p>With <span class="class">@WebServlet</span> annotation for the servlet class:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>@WebServlet(value = "/*", asyncSupported = true)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In a <em class="path">web.xml</em>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>  servlet-mapping
+    servlet-namemyservlet/servlet-name
+    url-pattern/*/url-pattern
+  /servlet-mapping</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The URL pattern is defined in the above examples as <span class="literal">/*</span>.
+This matches any URL under the project context.
+We defined above the project context as <span class="literal">myproject</span> so the URL for the page of the  will be .</p>
+</div>
+<div class="sect3">
+<h4 id="_application.environment.servlet_mapping.sub_paths">9.5.1. Mapping Sub-Paths</h4>
+<div class="paragraph">
+<p>If an application has multiple s or servlets, they have to be given different paths in the URL, matched by a different URL pattern.
+Also, you may need to have statically served content under some path.
+Having an URL pattern <span class="literal">/myui/*</span> would match a URL such as .
+Notice that the slash and the asterisk <em>must</em> be included at the end of the pattern.
+In such case, you also need to map URLs with <span class="literal">/VAADIN/*</span> to a servlet (unless you are serving it statically as noted below).</p>
+</div>
+<div class="paragraph">
+<p>With a <span class="class">@WebServlet</span> annotation for a servlet class, you can define multiple mappings as a list enclosed in curly braces as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>@WebServlet(value = {"/myui/*", "/VAADIN/*"},
+            asyncSupported = true)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In a <em class="path">web.xml</em>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>    ...
+    servlet-mapping
+        servlet-namemyservlet/servlet-name
+        url-pattern/myui/*/url-pattern
+    /servlet-mapping
+
+    servlet-mapping
+        servlet-namemyservlet/servlet-name
+        url-pattern/VAADIN/*/url-pattern
+    /servlet-mapping</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you have multiple servlets, you should specify only one <span class="literal">/VAADIN/*</span> mapping.
+It does not matter which servlet you map the pattern to, as long as it is a Vaadin servlet.</p>
+</div>
+<div class="paragraph">
+<p>You do not have to provide the above <span class="literal">/VAADIN/*</span>                    mapping if you serve both the widget sets and (custom and default) themes statically in the <em class="path">/VAADIN</em> directory in the web application.
+The mapping simply allows serving them dynamically from the Vaadin JAR.
+Serving them statically is recommended for production environments as it is faster.
+If you serve the content from within the same web application, you may not have the root pattern <span class="literal">/*</span> for the Vaadin servlet, as then all the requests would be mapped to the servlet.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application.environment.parameters">9.6. Other Servlet Configuration Parameters</h3>
+<div class="paragraph">
+<p>The servlet class or deployment descriptor can have many parameters and options that control the execution of a servlet.
+You can find complete documentation of the basic servlet parameters in the appropriate &lt;&lt;,Java Servlet
+                Specification&gt;&gt;.
+  <span class="class">@VaadinServletConfiguration</span> accepts a number of special parameters, as described below.</p>
+</div>
+<div class="paragraph">
+<p>In a <em class="path">web.xml</em>, you can set most parameters either as a <span class="literal">context-param</span> for the entire web application, in which case they apply to all Vaadin servlets, or as an <span class="literal">init-param</span> for an individual servlet.
+If both are defined, servlet parameters override context parameters.</p>
+</div>
+<div class="sect3">
+<h4 id="_application.environment.parameters.production_mode">9.6.1. Production Mode</h4>
+<div class="paragraph">
+<p>By default, Vaadin applications run in <em>debug mode</em>                    (or <em>development mode</em>), which should be used during development.
+This enables various debugging features.
+For production use, you should have the <span class="literal">productionMode=true</span> setting in the <span class="class">@VaadinServletConfiguration</span>, or in <em class="path">web.xml</em>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>&lt;context-param&gt;
+  &lt;param-name&gt;productionMode&lt;/param-name&gt;
+  &lt;param-value&gt;true&lt;/param-value&gt;
+  &lt;description&gt;Vaadin production mode&lt;/description&gt;
+&lt;/context-param&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The parameter and the debug and production modes are described in more detail in <a href="#_advanced.debug">advanced.debug</a>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_application.environment.parameters.uiprovider">9.6.2. Custom UI Provider</h4>
+<div class="paragraph">
+<p>Vaadin normally uses the <span class="class">DefaultUIProvider</span> for creating <span class="class">UI</span> class instances.
+If you need to use a custom UI provider, you can define its class with the  parameter.
+The provider is registered in the <span class="class">VaadinSession</span>.</p>
+</div>
+<div class="paragraph">
+<p>In a <em class="path">web.xml</em>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>  servlet
+    ...
+    init-param
+      param-nameUIProvider/param-name
+      param-valuecom.ex.my.MyUIProvider/param-value
+    /init-param</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The parameter is logically associated with a particular servlet, but can be defined in the context as well.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_application.environment.parameters.heartbeat">9.6.3. UI Heartbeat</h4>
+<div class="paragraph">
+<p>Vaadin follows UIs using a heartbeat, as explained in <a href="#_application.lifecycle.ui_expiration">application.lifecycle.ui-expiration</a>.
+If the user closes the browser window of a Vaadin application or navigates to another page, the Client-Side Engine running in the page stops sending heartbeat to the server, and the server eventually cleans up the <span class="class">UI</span> instance.</p>
+</div>
+<div class="paragraph">
+<p>The interval of the heartbeat requests can be specified in seconds with the  parameter either as a context parameter for the entire web application or an init parameter for the individual servlet.
+The default value is 300 seconds (5 minutes).</p>
+</div>
+<div class="paragraph">
+<p>In a <em class="path">web.xml</em>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>&lt;context-param&gt;
+  &lt;param-name&gt;heartbeatInterval&lt;/param-name&gt;
+  &lt;param-value&gt;300&lt;/param-value&gt;
+&lt;/context-param&gt;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_application.environment.parameters.session_timeout">9.6.4. Session Timeout After User Inactivity</h4>
+<div class="paragraph">
+<p>In normal servlet operation, the session timeout defines the allowed time of inactivity after which the server should clean up the session.
+The inactivity is measured from the last server request.
+Different servlet containers use varying defaults for timeouts, such as 30 minutes for Apache Tomcat.
+You can set the timeout under <span class="literal">web-app</span> with:</p>
+</div>
+<div class="paragraph">
+<p>In a <em class="path">web.xml</em>:
+</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>&lt;session-config&gt;
+    &lt;session-timeout&gt;30&lt;/session-timeout&gt;
+&lt;/session-config&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>                    The session timeout should be longer than the heartbeat interval or otherwise sessions are closed before the heartbeat can keep them alive.
+As the session expiration leaves the UIs in a state where they assume that the session still exists, this would cause an Out Of Sync error notification in the browser.
+</p>
+</div>
+<div class="paragraph">
+<p>However, having a shorter heartbeat interval than the session timeout, which is the normal case, prevents the sessions from expiring.
+If the  parameter for the servlet is enabled (disabled by default), Vaadin closes the UIs and the session after the time specified in the                     parameter expires after the last non-heartbeat request.</p>
+</div>
+<div class="paragraph">
+<p>In a <em class="path">web.xml</em>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>  servlet
+    ...
+    init-param
+      param-namecloseIdleSessions/param-name
+      param-valuetrue/param-value
+    /init-param</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_application.environment.parameters.push">9.6.5. Push Mode</h4>
+<div class="paragraph">
+<p>You can enable server push, as described in <a href="#_advanced.push">advanced.push</a>, for a UI either with a <span class="class">@Push</span> annotation for the UI or in the descriptor.
+The push mode is defined with a  parameter.
+The <span class="literal">automatic</span> mode pushes changes to the browser automatically after <em>access()</em> finishes.
+With <span class="literal">manual</span> mode, you need to do the push explicitly with <span class="method">push()</span>.
+If you use a Servlet 3.0 compatible server, you also want to enable asynchronous processing with the <span class="literal">async-supported</span> parameter.</p>
+</div>
+<div class="paragraph">
+<p>In a <em class="path">web.xml</em>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>servlet
+  ...
+  init-param
+    param-namepushmode/param-name
+    param-valueautomatic/param-value
+  /init-param
+  async-supportedtrue/async-supported</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_application.environment.parameters.xsrf">9.6.6. Cross-Site Request Forgery Prevention</h4>
+<div class="paragraph">
+<p>Vaadin uses a protection mechanism to prevent malicious cross-site request forgery (XSRF or CSRF), also called one-click attacks or session riding, which is a security exploit for executing unauthorized commands in a web server.
+This protection is normally enabled.
+However, it prevents some forms of testing of Vaadin applications, such as with JMeter.
+In such cases, you can disable the protection by setting the  parameter to <span class="literal">true</span>.</p>
+</div>
+<div class="paragraph">
+<p>In a <em class="path">web.xml</em>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>&lt;context-param&gt;
+  &lt;param-name&gt;disable-xsrf-protection&lt;/param-name&gt;
+  &lt;param-value&gt;true&lt;/param-value&gt;
+&lt;/context-param&gt;</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_application.environment.configuration">9.7. Deployment Configuration</h3>
+<div class="paragraph">
+<p>The Vaadin-specific parameters defined in the deployment configuration are available from the <span class="class">DeploymentConfiguration</span> object managed by the <span class="class">VaadinSession</span>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>DeploymentConfiguration conf =
+        getSession().getConfiguration();
+
+// Heartbeat interval in seconds
+int heartbeatInterval = conf.getHeartbeatInterval();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Parameters defined in the Java Servlet definition, such as the session timeout, are available from the low-level <span class="class">HttpSession</span> or <span class="class">PortletSession</span> object, which are wrapped in a <span class="class">WrappedSession</span> in Vaadin.
+You can access the low-level session wrapper with <span class="method">getSession()</span> of the <span class="class">VaadinSession</span>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>WrappedSession session = getSession().getSession();
+int sessionTimeout = session.getMaxInactiveInterval();</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also access other <span class="class">HttpSession</span> and <span class="class">PortletSession</span> session properties through the interface, such as set and read session attributes that are shared by all servlets belonging to a particular servlet or portlet session.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Last updated 2015-03-12 09:16:13 EET
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ====================================================================== -->
+<!-- Copyright 2000-2012 Vaadin Ltd                                         -->
+<!-- All Rights Reserved                                                    -->
+<!-- This work is licensed under a Creative Commons Attribution-NoDerivs    -->
+<!-- License (CC-BY-ND) Version 3.0. Full license text is available at:     -->
+<!-- http://creativecommons.org/licenses/by-nd/3.0/legalcode                -->
+<!-- ====================================================================== -->
+
+<chapter xml:id="clientsidewidgets">
+	<title>Client-Side Widgets</title>
+
+    <para>
+        This chapter gives basic documentation on the use of the Vaadin client-side
+        framework for the purposes of creating client-side applications and writing your
+        own widgets.
+    </para>
+
+    <para>
+        <emphasis>Currently, we only give a brief introduction to the topic in this
+        chapter. Please refer to the GWT documentation for a more complete treatment of
+        the GWT widgets. </emphasis>
+    </para>
+
+    <section xml:id="clientsidewidgets.overview">
+        <title>Overview</title>
+
+        <para>
+            The Vaadin client-side API is based on the Google Web Toolkit. It involves
+            <emphasis>widgets</emphasis> for representing the user interface as Java
+            objects, which are rendered as a HTML DOM in the browser. Events caused by
+            user interaction with the page are delegated to event handlers, where you can
+            implement your UI logic. 
+        </para>
+
+        <para>
+            In general, the client-side widgets come in two categories - basic GWT widgets
+            and Vaadin-specific widgets. The library includes
+            <emphasis>connectors</emphasis> for integrating the Vaadin-specific widgets
+            with the server-side components, thereby enabling the server-side development
+            model of Vaadin. The integration is described in <xref linkend="gwt"/>.
+        </para>
+
+        <para>
+            The layout of the client-side UI is managed with <emphasis>panel</emphasis>
+            widgets, which correspond in their function with layout components in the
+            Vaadin server-side API.
+        </para>
+
+        <para>
+            In addition to the rendering API, the client-side API includes facilities for
+            making HTTP requests, logging, accessibility, internationalization, and
+            testing.
+        </para>
+
+        <para>
+            For information about the basic GWT framework, please refer to <link
+            xlink:href="https://developers.google.com/web-toolkit/overview">https://developers.google.com/web-toolkit/overview</link>.
+        </para>
+    </section>
+
+    <section xml:id="clientsidewidgets.gwt">
+        <title>GWT Widgets</title>
+
+        <para>
+            GWT widgets are user interface elements that are rendered as HTML. Rendering
+            is done either by manipulating the HTML Document Object Model (DOM) through the
+            lower-level DOM API, or simply by injecting the HTML with
+            <methodname>setInnerHTML()</methodname>. The layout of the user interface is
+            managed using special panel widgets.
+        </para>
+
+        <para>
+            For information about the basic GWT widgets, please refer to the GWT
+            Developer's Guide at <link
+            xlink:href="https://developers.google.com/web-toolkit/doc/latest/DevGuideUi">https://developers.google.com/web-toolkit/doc/latest/DevGuideUi</link>.
+        </para>
+    </section>
+
+    <section xml:id="clientsidewidgets.vaadin">
+        <title>Vaadin Widgets</title>
+
+        <para>
+            Vaadin comes with a number of Vaadin-specific widgets in addition to the GWT
+            widgets, some of which you can use in pure client-side applications. The
+            Vaadin widgets have somewhat different feature set from the GWT widgets and
+            are foremost intended for integration with the server-side components, but
+            some may prove useful for client-side applications as well.
+        </para>
+
+        <programlisting><![CDATA[public class MyEntryPoint implements EntryPoint {
+    @Override
+    public void onModuleLoad() {
+        // Add a Vaadin button
+        VButton button = new VButton();
+        button.setText("Click me!");
+        button.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent event) {
+                mywidget.setText("Clicked!");
+            }
+        });
+        
+        RootPanel.get().add(button);
+    }
+}]]></programlisting>        
+    </section>
+
+    <section xml:id="clientsidewidgets.grid">
+        <title>Grid</title>
+
+        <para>
+            The <classname>Grid</classname> widget is the client-side counterpart for the
+            server-side <classname>Grid</classname> component described in <xref
+            linkend="components.grid"/>.
+        </para>
+
+        <para>
+            The client-side API is almost identical to the server-side API, so its
+            documentation is currently omitted here and we refer you to the API
+            documentation. In the following, we go through some customization features of
+            <classname>Grid</classname>.
+        </para>
+
+        <section xml:id="clientsidewidgets.grid.renderers">
+            <title>Renderers</title>
+
+            <para>
+                As described in <xref linkend="components.grid.renderer"/>, renderers draw
+                the visual representation of data values on the client-side. They
+                implement <interfacename>Renderer</interfacename> interface and its
+                <methodname>render()</methodname> method. The method gets a reference to
+                the element of the grid cell, as well as the data value to be rendered. An
+                implementation needs to modify the element as needed.
+            </para>
+
+            <para>
+                For example, <classname>TextRenderer</classname> is implemented simply as
+                follows:
+            </para>
+
+            <programlisting><?pocket-size 75% ?><![CDATA[public class TextRenderer implements Renderer<String> {
+    @Override
+    public void render(RendererCellReference cell,
+                       String text) {
+        cell.getElement().setInnerText(text);
+    }
+}]]></programlisting>
+
+            <para>
+                The server-side renderer API should extend
+                <classname>AbstractRenderer</classname> or
+                <classname>ClickableRenderer</classname> with the data type accepted by
+                the renderer. The data type also must be given for the superclass
+                constructor.
+            </para>
+
+            <programlisting><?pocket-size 75% ?><![CDATA[public class TextRenderer extends AbstractRenderer<String> {
+    public TextRenderer() {
+        super(String.class);
+    }
+}]]></programlisting>
+
+            <para>
+                The client-side and server-side renderer need to be connected with a
+                connector extending from <classname>AbstractRendererConnector</classname>.
+            </para>
+
+            <programlisting><?pocket-size 75% ?><![CDATA[@Connect(com.vaadin.ui.renderer.TextRenderer.class)
+public class TextRendererConnector
+       extends AbstractRendererConnector<String> {
+    @Override
+    public TextRenderer getRenderer() {
+        return (TextRenderer) super.getRenderer();
+    }
+}]]></programlisting>
+
+            <para>
+                Renderers can have parameters, for which normal client-side communication
+                of extension parameters can be used. Please see the implementations of
+                different renderers for examples.
+            </para>
+        </section>
+    </section>
+</chapter>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: xml
+sgml-omittag:nil
+sgml-shorttag:nil
+sgml-namecase-general:nil
+sgml-general-insert-case:lower
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:4
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-exposed-tags:nil
+sgml-local-catalogs:("/etc/sgml/catalog" "/usr/share/xemacs21/xemacs-packages/etc/psgml-dtds/CATALOG")
+sgml-local-ecat-files:("ECAT" "~/sgml/ECAT" "/usr/share/sgml/ECAT" "/usr/local/share/sgml/ECAT" "/usr/local/lib/sgml/ECAT")
+End:
+-->
+

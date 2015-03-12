@@ -1,0 +1,60 @@
+
+:numbered!:
+
+[appendix]
+[[_vaadin6_migration]]
+= Migrating from Vaadin 6
+
+_This appendix is an incomplete draft. For the most current version,
+        please see the on-line edition available at  and
+        the Vaadin 7 Migration Guide at <<,http://dev.vaadin.com/wiki/Vaadin7/MigrationGuide>>._    
+
+[[_vaadin6_migration.overview]]
+== Overview
+
+The Vaadin 7 API is more clearly for the web.
+Earlier many web concepts were more abstracted from the developer, while now they are more easily accessible.
+For example, the [method]+init()+ method receives as a parameter HTTP request data, which was earlier more difficult to obtain.
+Also the new central concept of [class]++ is for web use where Vaadin applications are often embedded in web pages. 
+
+[[_vaadin6_migration.root]]
+== The Role of [class]++
+
+The "main window" concept in Vaadin 6 is replaced with __.
+A  is in most cases what "main window" used to be in Vaadin 6, and in most code you can simply change [class]+Window+ to [class]++. 
+
+Even more visibly, a Vaadin application does not any longer extend [class]+Application+, but [class]++. 
+
+Consider a Vaadin 6 application: 
+
+[source]
+----
+public class MyApplication extends Application {
+    @Override
+    public void init() {
+        mainWindow = new Window("Myportlet Application");
+        setMainWindow(mainWindow);
+
+        mainWindow.addComponent(new Label("Hello, world!"));
+        ...
+    }
+}
+----
+
+In Vaadin 7, the equivalent is: 
+
+[source]
+----
+
+public class MyUI extends UI {
+    @Override
+    protected void init(WrappedRequest request) {
+        addComponent(new Label("Hello, world!"));
+        ...
+    }
+}
+----
+
+The new [class]+WrappedRequest+ contains request data received in the initial request, which was previously only available by implementing  in the application class. 
+
+:numbered:

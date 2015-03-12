@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ====================================================================== -->
+<!-- Copyright 2000-2012 Vaadin Ltd                                         -->
+<!-- All Rights Reserved                                                    -->
+<!-- This work is licensed under a Creative Commons Attribution-NoDerivs    -->
+<!-- License (CC-BY-ND) Version 3.0. Full license text is available at:     -->
+<!-- http://creativecommons.org/licenses/by-nd/3.0/legalcode                -->
+<!-- ====================================================================== -->
+
+<!-- The Doctype definition must be exactly same for book-pocket.pdf -->
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V5.0//EN"
+"docbook-5.0.dtd" [
+<!ENTITY % iso-num PUBLIC "ISO 8879:1986//ENTITIES Numeric and Special Graphic//EN//XML"
+                    "http://www.oasis-open.org/docbook/xmlcharent/0.3/iso-num.ent">
+%iso-num;
+<!ENTITY book.chapter SYSTEM "chapter.xml">
+<!ENTITY book.chapter.introduction SYSTEM "chapter-introduction.xml">
+<!ENTITY book.chapter.getting-started SYSTEM "chapter-getting-started.xml">
+<!ENTITY book.chapter.architecture SYSTEM "chapter-architecture.xml">
+<!ENTITY book.chapter.application SYSTEM "chapter-application.xml">
+<!ENTITY book.chapter.eclipse SYSTEM "chapter-eclipse.xml">
+<!ENTITY book.chapter.components SYSTEM "chapter-components.xml">
+<!ENTITY book.chapter.layout SYSTEM "chapter-layout.xml">
+<!ENTITY book.chapter.themes SYSTEM "chapter-themes.xml">
+<!ENTITY book.chapter.datamodel SYSTEM "chapter-datamodel.xml">
+<!ENTITY book.chapter.clientside SYSTEM "chapter-clientside.xml">
+<!ENTITY book.chapter.clientsideapp SYSTEM "chapter-clientsideapp.xml">
+<!ENTITY book.chapter.clientsidewidgets SYSTEM "chapter-clientsidewidgets.xml">
+<!ENTITY book.chapter.gwt SYSTEM "chapter-gwt.xml">
+<!ENTITY book.chapter.advanced SYSTEM "chapter-advanced.xml">
+<!ENTITY book.chapter.portal SYSTEM "chapter-portal.xml">
+<!ENTITY book.chapter.addons SYSTEM "chapter-addons.xml">
+<!ENTITY book.chapter.sqlcontainer SYSTEM "chapter-sqlcontainer.xml">
+<!ENTITY book.chapter.calendar SYSTEM "chapter-calendar.xml">
+<!ENTITY book.chapter.charts SYSTEM "chapter-charts.xml">
+<!ENTITY book.chapter.timeline SYSTEM "chapter-timeline.xml">
+<!ENTITY book.chapter.jpacontainer SYSTEM "chapter-jpacontainer.xml">
+<!ENTITY book.chapter.mobile SYSTEM "chapter-mobile.xml">
+<!ENTITY book.chapter.spreadsheet SYSTEM "chapter-spreadsheet.xml">
+<!ENTITY book.chapter.testbench SYSTEM "chapter-testbench.xml">
+<!ENTITY book.appendix.vaadin6-migration SYSTEM "appendix-vaadin6-migration.xml">
+<!ENTITY book.chapter.vaadin SYSTEM "chapter-vaadin.xml">
+<!ENTITY book.info SYSTEM "book-info.xml">
+<!ENTITY book.preface SYSTEM "book-preface.xml">
+<!ENTITY book.vol1 SYSTEM "book-vol1.xml">
+<!ENTITY book.vol2 SYSTEM "book-vol2.xml">
+<!ENTITY ouml "ö">
+<!ENTITY auml "ä">
+<!ENTITY version.vaadin "7.x.x">
+<!ENTITY version.testbench "4.x.x">
+<!ENTITY ui "UI">
+<!ENTITY uiclass "UI">
+]>
+<set>
+    <title>Book of Vaadin</title>
+
+    <book booktoc="set" pagenum="1">
+        &book.info;
+
+        <bookinfo>
+            <volume>
+                <volumenum>1</volumenum>
+
+                <!-- Title unused at the moment.  -->
+                <!-- Formatting for title page in "volume" rule for book.titlepage.recto.mode -->
+                <!-- Formatting for ToC in toc.line template -->
+                <!-- Formatting for PDF bookmarks in xep.outline mode template -->
+                <!-- <title>Introduction, Server-Side Framework</title> -->
+            </volume>
+            <biblioid class="isbn">ISBN 978-952-68006-4-6 (print)</biblioid>
+            <biblioid class="isbn">ISBN 978-952-68006-5-3 (PDF)</biblioid>
+            <biblioid class="isbn">ISBN 978-952-68006-2-2 (volume set)</biblioid>
+        </bookinfo>
+
+        &book.preface;
+        &book.vol1;        
+    </book>
+
+    <book booktoc="volume" pagenum="273">
+        &book.info;
+
+        <bookinfo>
+            <volume>
+                <volumenum>2</volumenum>
+
+                <!-- Title unused at the moment  -->
+                <!-- <title>Advanced Server-Side Use, Client-Side Framework, Add-ons</title> -->
+            </volume>
+
+            <biblioid class="isbn">ISBN 978-952-68006-6-0 (print)</biblioid>
+            <biblioid class="isbn">ISBN 978-952-68006-7-7 (PDF)</biblioid>
+            <biblioid class="isbn">ISBN 978-952-68006-2-2 (volume set)</biblioid>
+        </bookinfo>
+
+        &book.vol2;
+
+        <setindex/>
+    </book>
+</set>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: xml
+sgml-omittag:nil
+sgml-shorttag:nil
+sgml-namecase-general:nil
+sgml-general-insert-case:lower
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:4
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-exposed-tags:nil
+sgml-local-catalogs:("/etc/sgml/catalog" "/usr/share/xemacs21/xemacs-packages/etc/psgml-dtds/CATALOG")
+sgml-local-ecat-files:("ECAT" "~/sgml/ECAT" "/usr/share/sgml/ECAT" "/usr/local/share/sgml/ECAT" "/usr/local/lib/sgml/ECAT")
+End:
+-->
+

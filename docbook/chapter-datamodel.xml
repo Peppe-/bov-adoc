@@ -1,0 +1,2279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ====================================================================== -->
+<!-- Copyright 2000-2012 Vaadin Ltd                                         -->
+<!-- All Rights Reserved                                                    -->
+<!-- This work is licensed under a Creative Commons Attribution-NoDerivs    -->
+<!-- License (CC-BY-ND) Version 3.0. Full license text is available at:     -->
+<!-- http://creativecommons.org/licenses/by-nd/3.0/legalcode                -->
+<!-- ====================================================================== -->
+
+<chapter xml:id="datamodel">
+	<title>Binding Components to Data</title>
+
+    <indexterm xml:id="term.datamodel" class="startofrange">
+        <primary>Vaadin Data Model</primary>
+    </indexterm>
+
+    <para>
+        This chapter describes the Vaadin Data Model and shows how you can use it to bind
+        components directly to data sources, such as database queries.
+    </para>
+
+	<section xml:id="datamodel.overview">
+		<title>Overview</title>
+
+		<para>
+            The Vaadin Data Model is one of the core concepts of the library. To allow the
+            view (user interface components) to access the data model of an application
+            directly, we have introduced a standard data interface.
+		</para>
+
+		<para>
+			The model allows binding user interface components directly to the data that
+			they display and possibly allow to edit. There are three nested levels of
+			hierarchy in the data model: <emphasis>property</emphasis>,
+			<emphasis>item</emphasis>, and <emphasis>container</emphasis>. Using a
+			spreadsheet application as an analogy, these would correspond to a cell, a
+			row, and a table, respectively.
+		</para>
+
+		<figure>
+			<title>Vaadin Data Model</title>
+			<mediaobject>
+				<imageobject role="html">
+					<imagedata align="center" fileref="img/arch/datamodel-sml.png"/>
+				</imageobject>
+				<imageobject role="fo">
+					<imagedata scale="20" smallscale="100%" align="center" fileref="img/arch/datamodel-whitebg.png"/>
+				</imageobject>
+			</mediaobject>
+		</figure>
+		
+		<para>
+			The Data Model is realized as a set of interfaces in the
+			<classname>com.vaadin.data</classname> package. The package contains the
+			<classname>Property</classname>, <classname>Item</classname>, and
+			<classname>Container</classname> interfaces, along with a number of more
+			specialized interfaces and classes.
+		</para>
+
+		<para>
+			Notice that the Data Model does not define data representation, but only
+			interfaces. This leaves the representation fully to the implementation of the
+			containers. The representation can be almost anything, such as a plain old Java
+			object (POJO) structure, a filesystem, or a database query.
+		</para>
+
+		<para>
+			The Data Model is used heavily in the core user interface components of
+			Vaadin, especially the field components, that is, components that implement
+			the <classname>Field</classname> interface or more typically extend
+			<classname>AbstractField</classname>, which defines many common features. A
+			key feature of all the built-in field components is that they can either
+			maintain their data by themselves or be bound to an external data source. The
+			value of a field is always available through the
+			<classname>Property</classname> interface. As more than one component can be
+			bound to the same data source, it is easy to implement various viewer-editor
+			patterns.
+		</para>
+
+        <para>
+            The relationships of the various interfaces are shown in <xref
+            linkend="figure.datamodel.overview.relationships"/>; the value change event
+            and listener interfaces are shown only for the <classname>Property</classname>
+            interface, while the notifier interfaces are omitted altogether.
+        </para>
+		
+		<figure xml:id="figure.datamodel.overview.relationships">
+			<title>Interface Relationships in Vaadin Data Model</title>
+			<mediaobject>
+				<imageobject role="html">
+					<imagedata align="center" fileref="img/datamodel/datamodel-interfaces-lo.png"/>
+				</imageobject>
+				<imageobject role="fo">
+					<imagedata scale="100" smallscale="100%" align="center" fileref="img/datamodel/datamodel-interfaces-hi.png"/>
+				</imageobject>
+			</mediaobject>
+		</figure>
+		
+		<para>
+			The Data Model has many important and useful features, such as support for
+			change notification. Especially containers have many helper interfaces,
+			including ones that allow indexing, ordering, sorting, and filtering the
+			data. Also <classname>Field</classname> components provide a number of
+			features involving the data model, such as buffering, validation, and lazy
+			loading.
+		</para>
+
+		<para>
+            Vaadin provides a number of built-in implementations of the data model
+            interfaces. The built-in implementations are used as the default data models
+            in many field components.
+        </para>
+
+		<para>
+            In addition to the built-in implementations, many data model implementations,
+            such as containers, are available as add-ons, either from the Vaadin Directory
+            or from independent sources. Both commercial and free implementations
+            exist. The JPAContainer, described in <xref linkend="jpacontainer"/>, is the
+            most often used conmmercial container add-on. The installation of add-ons is
+            described in <xref linkend="addons"/>. Notice that unlike with most regular
+            add-on components, you do not need to compile a widget set for add-ons that
+            include just data model implementations.
+        </para>
+	</section>
+
+	<section xml:id="datamodel.properties">
+		<title>Properties</title>
+
+		<para>
+			The <interfacename>Property</interfacename> interface is the base of the
+			Vaadin Data Model. It provides a standardized API for a single data value
+			object that can be read (get) and written (set). A property is always typed,
+			but can optionally support data type conversions. The type of a property can
+			be any Java class. Optionally, properties can provide value change events for
+			following their changes.
+		</para>
+
+        <para>
+            You can set the value of a property with <methodname>setValue()</methodname>
+            and read with <methodname>getValue()</methodname>.
+        </para>
+
+        <para>
+            In the following, we set and read the property value from a
+            <classname>TextField</classname> component, which implements the
+            <interfacename>Property</interfacename> interface to allow accessing the field
+            value.
+        </para>
+
+        <book-example eid="datamodel.properties.basic"></book-example>
+        <programlisting><?pocket-size 65% ?><![CDATA[final TextField tf = new TextField("Name");
+        
+// Set the value
+tf.setValue("The text field value");
+        
+// When the field value is edited by the user
+tf.addValueChangeListener(
+    new Property.ValueChangeListener() {
+    public void valueChange(ValueChangeEvent event) {
+        // Do something with the new value
+        layout.addComponent(new Label(tf.getValue()));
+    }
+});]]></programlisting>
+
+        <para>
+            Changes in the property value usually fire a
+            <classname>ValueChangeEvent</classname>, which can be handled with a
+            <classname>ValueChangeListener</classname>. The event object provides
+            reference to the property with <methodname>getProperty()</methodname>. Note
+            that its <methodname>getValue()</methodname> method returns the value with
+            <classname>Object</classname> type, so you need to cast it to the proper type.
+        </para>
+
+		<!-- TODO this might not be the best place to explain this - maybe split the paragraph? -->
+		<para>
+			Properties are in themselves unnamed. They are collected in
+			<emphasis>items</emphasis>, which associate the properties with names: the
+			<emphasis>Property Identifiers</emphasis> or <emphasis>PID</emphasis>s.  Items
+			can be further contained in containers and are identified with <emphasis>Item
+			Identifiers</emphasis> or <emphasis>IID</emphasis>s. In the spreadsheet
+			analogy, <emphasis>Property Identifiers</emphasis> would correspond to column
+			names and <emphasis>Item Identifiers</emphasis> to row names. The identifiers
+			can be arbitrary objects, but must implement the
+			<methodname>equals(Object)</methodname> and
+			<methodname>hashCode()</methodname> methods so that they can be used in any
+			standard Java <classname>Collection</classname>.
+		</para>
+
+		<para>
+			The <classname>Property</classname> interface can be utilized either by
+			implementing the interface or by using some of the built-in property
+			implementations. Vaadin includes a <classname>Property</classname> interface
+			implementation for arbitrary function pairs and bean properties, with the
+			<classname>MethodProperty</classname> class, and for simple object properties,
+			with the <classname>ObjectProperty</classname> class, as described later.
+		</para>
+
+		<para>
+			In addition to the simple components, selection components provide their
+			current selection as the property value. In single selection mode, the
+			property is a single item identifier, while in multiple selection mode it is a
+			set of item identifiers. See the documentation of the selection components for
+			further details.
+		</para>
+		
+		<para>
+			Components that can be bound to a property have an internal default data
+			source object, typically a <classname>ObjectProperty</classname>, which is
+			described later. As all such components are viewers or editors, also described
+			later, so you can rebind a component to any data source with
+			<methodname>setPropertyDataSource()</methodname>.
+		</para>
+
+        <section xml:id="datamodel.properties.viewers">
+            <title>Property Viewers and Editors</title>
+
+            <para>
+                The most important function of the <classname>Property</classname> as well
+                as of the other data model interfaces is to connect classes implementing
+                the interface directly to editor and viewer classes. This means connecting
+                a data source (model) to a user interface component (views) to allow
+                editing or viewing the data model.
+            </para>
+
+            <para>
+                A property can be bound to a component implementing the
+                <classname>Viewer</classname> interface with
+                <methodname>setPropertyDataSource()</methodname>.
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[// Have a data model
+ObjectProperty property =
+    new ObjectProperty("Hello", String.class);
+        
+// Have a component that implements Viewer
+Label viewer = new Label();
+        
+// Bind it to the data
+viewer.setPropertyDataSource(property);]]></programlisting>
+
+            <para>
+                You can use the same method in the <classname>Editor</classname> interface
+                to bind a component that allows editing a particular property type to a
+                property.
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[// Have a data model
+ObjectProperty property =
+    new ObjectProperty("Hello", String.class);
+        
+// Have a component that implements Viewer
+TextField editor = new TextField("Edit Greeting");
+        
+// Bind it to the data
+editor.setPropertyDataSource(property);
+]]></programlisting>
+
+            <para>
+                As all field components implement the <classname>Property</classname>
+                interface, you can bind any component implementing the
+                <classname>Viewer</classname> interface to any field, assuming that the
+                viewer is able the view the object type of the field. Continuing from the
+                above example, we can bind a <classname>Label</classname> to the
+                <classname>TextField</classname> value:
+            </para>
+        
+            <programlisting><?pocket-size 65% ?><![CDATA[Label viewer = new Label();
+viewer.setPropertyDataSource(editor);
+
+// The value shown in the viewer is updated immediately
+// after editing the value in the editor (once it
+// loses the focus)
+editor.setImmediate(true);]]></programlisting>
+
+            <para>
+                If a field has validators, as described in <xref
+                linkend="components.fields.validation"/>, the validators are executed
+                before writing the value to the property data source, or by calling the
+                <methodname>validate()</methodname> or <methodname>commit()</methodname>
+                for the field.
+            </para>
+        </section>
+
+        <section xml:id="datamodel.properties.objectproperty">
+            <title><classname>ObjectProperty</classname> Implementation</title>
+
+            <para>
+                The <classname>ObjectProperty</classname> class is a simple implementation
+                of the <classname>Property</classname> interface that allows storing an
+                arbitrary Java object.
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[// Have a component that implements Viewer interface
+final TextField tf = new TextField("Name");
+        
+// Have a data model with some data
+String myObject = "Hello";
+        
+// Wrap it in an ObjectProperty
+ObjectProperty property =
+    new ObjectProperty(myObject, String.class);
+        
+// Bind the property to the component
+tf.setPropertyDataSource(property);]]></programlisting>
+
+        </section>
+
+        <section xml:id="datamodel.properties.converter">
+            <title>Converting Between Property Type and Representation</title>
+
+            <para>
+                Fields allow editing a certain type, such as a
+                <classname>String</classname> or <classname>Date</classname>. The bound
+                property, on the other hand, could have some entirely different
+                type. Conversion between a representation edited by the field and the
+                model defined in the property is handler with a converter that implements
+                the <interfacename>Converter</interfacename> interface.
+            </para>
+
+            <para>
+                Most common type conversions, such as between string and integer, are
+                handled by the default converters. They are created in a converter factory
+                global in the application.
+            </para>
+
+            <section xml:id="datamodel.properties.converter.basic">
+                <title>Basic Use of Converters</title>
+
+                <para>
+                    The
+                    <methodname>setConverter(<interfacename>Converter</interfacename>)</methodname>
+                    method sets the converter for a field. The method is defined in
+                    <classname>AbstractField</classname>.
+                </para>
+
+                <programlisting><![CDATA[// Have an integer property
+final ObjectProperty<Integer> property =
+        new ObjectProperty<Integer>(42); 
+        
+// Create a TextField, which edits Strings
+final TextField tf = new TextField("Name");
+
+// Use a converter between String and Integer
+tf.setConverter(new StringToIntegerConverter());
+
+// And bind the field
+tf.setPropertyDataSource(property);]]></programlisting>
+
+                <para>
+                    The built-in converters are the following:
+                </para>
+
+                <table xml:id="datamodel.properties.converter.basic.built-in">
+                    <title>Built-in Converters</title>
+                    <tgroup cols="3" align="left">
+                        <colspec colnum="1" colname="col1" colwidth="11*"/>
+                        <colspec colnum="2" colname="col2" colwidth="7*"/>
+                        <colspec colnum="3" colname="col3" colwidth="4*"/>
+                        <thead>
+                            <row valign="top">
+                                <entry>Converter</entry>
+                                <entry>Representation</entry>
+                                <entry>Model</entry>
+                            </row>
+                        </thead>
+                        <tbody>
+                            <row valign="top">
+                                <entry><classname>StringToIntegerConverter</classname></entry>
+                                <entry><classname>String</classname></entry>
+                                <entry><classname>Integer</classname></entry>
+                            </row>
+                            <row valign="top">
+                                <entry><classname>StringToDoubleConverter</classname></entry>
+                                <entry><classname>String</classname></entry>
+                                <entry><classname>Double</classname></entry>
+                            </row>
+                            <row valign="top">
+                                <entry><classname>StringToNumberConverter</classname></entry>
+                                <entry><classname>String</classname></entry>
+                                <entry><classname>Number</classname></entry>
+                            </row>
+                            <row valign="top">
+                                <entry><classname>StringToBooleanConverter</classname></entry>
+                                <entry><classname>String</classname></entry>
+                                <entry><classname>Boolean</classname></entry>
+                            </row>
+                            <row valign="top">
+                                <entry><classname>StringToDateConverter</classname></entry>
+                                <entry><classname>String</classname></entry>
+                                <entry><classname>Date</classname></entry>
+                            </row>
+                            <row valign="top">
+                                <entry><classname>DateToLongConverter</classname></entry>
+                                <entry><classname>Date</classname></entry>
+                                <entry><classname>Long</classname></entry>
+                            </row>
+                        </tbody>
+                    </tgroup>
+                </table>
+
+                <para>
+                    In addition, there is a <classname>ReverseConverter</classname> that
+                    takes a converter as a parameter and reverses the conversion
+                    direction.
+                </para>
+
+                <para>
+                    If a converter already exists for a type, the
+                    <methodname>setConverter(<interfacename>Class</interfacename>)</methodname>
+                    retrieves the converter for the given type from the converter factory,
+                    and then sets it for the field. This method is used implicitly when
+                    binding field to a property data source.
+                </para>
+            </section>
+
+            <section xml:id="datamodel.properties.converter.custom">
+                <title>Implementing a Converter</title>
+
+                <para>
+                    A conversion always occurs between a <emphasis>representation
+                    type</emphasis>, edited by the field component, and a <emphasis>model
+                    type</emphasis>, that is, the type of the property data
+                    source. Converters implement the
+                    <interfacename>Converter</interfacename> interface defined in the
+                    <package>com.vaadin.data.util.converter</package> package.
+                </para>
+
+                <para>
+                    For example, let us assume that we have a simple
+                    <classname>Complex</classname> type for storing complex values.
+                </para>
+
+                <programlisting><?pocket-size 65% ?><![CDATA[public class ComplexConverter
+       implements Converter<String, Complex> {
+    @Override
+    public Complex convertToModel(String value, Locale locale)
+            throws ConversionException {
+        String parts[] =
+            value.replaceAll("[\\(\\)]", "").split(",");
+        if (parts.length != 2)
+            throw new ConversionException(
+                    "Unable to parse String to Complex");
+        return new Complex(Double.parseDouble(parts[0]),
+                           Double.parseDouble(parts[1]));
+    }
+
+    @Override
+    public String convertToPresentation(Complex value,
+                                        Locale locale)
+            throws ConversionException {
+        return "("+value.getReal()+","+value.getImag()+")";
+    }
+
+    @Override
+    public Class<Complex> getModelType() {
+        return Complex.class;
+    }
+
+    @Override
+    public Class<String> getPresentationType() {
+        return String.class;
+    }
+}]]></programlisting>
+
+                <para>
+                    The conversion methods get the locale for the conversion as a
+                    parameter.
+                </para>
+            </section>
+
+            <section xml:id="datamodel.properties.converter.converterfactory">
+                <title>Converter Factory</title>
+
+                <para>
+                    If a field does not directly allow editing a property type, a default
+                    converter is attempted to create using an application-global converter
+                    factory. If you define your own converters that you wish to include in
+                    the converter factory, you need to implement one yourself. While you
+                    could implement the <interfacename>ConverterFactory</interfacename>
+                    interface, it is usually easier to just extend
+                    <classname>DefaultConverterFactory</classname>.
+                </para>
+
+                <programlisting><?pocket-size 65% ?><![CDATA[class MyConverterFactory extends DefaultConverterFactory {
+    @Override
+    public <PRESENTATION, MODEL> Converter<PRESENTATION, MODEL>
+            createConverter(Class<PRESENTATION> presentationType,
+                            Class<MODEL> modelType) {
+        // Handle one particular type conversion
+        if (String.class == presentationType &&
+            Complex.class == modelType)
+            return (Converter<PRESENTATION, MODEL>)
+                   new ComplexConverter();
+
+        // Default to the supertype
+        return super.createConverter(presentationType,
+                                     modelType);
+    }
+}
+
+// Use the factory globally in the application
+Application.getCurrentApplication().setConverterFactory(
+        new MyConverterFactory());]]></programlisting>
+            </section>
+        </section>
+
+        <section xml:id="datamodel.properties.implementing">
+            <title>Implementing the <classname>Property</classname> Interface</title>
+
+            <para>
+                Implementation of the <classname>Property</classname> interface requires
+                defining setters and getters for the value and the
+                <emphasis>read-only</emphasis> mode. Only a getter is needed for the
+                property type, as the type is often fixed in property implementations.
+            </para>
+
+            <para>
+                The following example shows a simple implementation of the
+                <classname>Property</classname> interface:
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[class MyProperty implements Property {
+    Integer data     = 0;
+    boolean readOnly = false;
+    
+    // Return the data type of the model
+    public Class<?> getType() {
+        return Integer.class;
+    }
+
+    public Object getValue() {
+        return data;
+    }
+    
+    // Override the default implementation in Object
+    @Override
+    public String toString() {
+        return Integer.toHexString(data);
+    }
+
+    public boolean isReadOnly() {
+        return readOnly;
+    }
+
+    public void setReadOnly(boolean newStatus) {
+        readOnly = newStatus;
+    }
+
+    public void setValue(Object newValue)
+            throws ReadOnlyException, ConversionException {
+        if (readOnly)
+            throw new ReadOnlyException();
+            
+        // Already the same type as the internal representation
+        if (newValue instanceof Integer)
+            data = (Integer) newValue;
+        
+        // Conversion from a string is required
+        else if (newValue instanceof String)
+            try {
+                data = Integer.parseInt((String) newValue, 16);
+            } catch (NumberFormatException e) {
+                throw new ConversionException();
+            }
+        else
+             // Don't know how to convert any other types
+            throw new ConversionException();
+
+        // Reverse decode the hexadecimal value
+    }
+}
+        
+// Instantiate the property and set its data
+MyProperty property = new MyProperty();
+property.setValue(42);
+        
+// Bind it to a component
+final TextField tf = new TextField("Name", property);]]></programlisting>
+
+            <para>
+                The components get the displayed value by the
+                <methodname>toString()</methodname> method, so it is necessary to override
+                it. To allow editing the value, value returned in the
+                <methodname>toString()</methodname> must be in a format that is accepted
+                by the <methodname>setValue()</methodname> method, unless the property is
+                read-only. The <methodname>toString()</methodname> can perform any type
+                conversion necessary to make the internal type a string, and the
+                <methodname>setValue()</methodname> must be able to make a reverse
+                conversion.
+            </para>
+
+            <para>
+                The implementation example does not notify about changes in the property
+                value or in the read-only mode. You should normally also implement at
+                least the <classname>Property.ValueChangeNotifier</classname> and
+                <classname>Property.ReadOnlyStatusChangeNotifier</classname>. See the
+                <classname>ObjectProperty</classname> class for an example of the
+                implementation.
+            </para>
+        </section>
+	</section>
+
+	<section xml:id="datamodel.items">
+		<title>Holding properties in Items</title>
+
+		<para>
+			The <classname>Item</classname> interface provides access to a set of named
+			properties. Each property is identified by a <emphasis>property
+			identifier</emphasis> (PID) and a reference to such a property can be queried
+			from an <classname>Item</classname> with
+			<methodname>getItemProperty()</methodname> using the identifier.
+        </para>
+
+        <para>
+            Examples on the use of items include rows in a <classname>Table</classname>,
+            with the properties corresponding to table columns, nodes in a
+            <classname>Tree</classname>, and the the data bound to a
+            <classname>Form</classname>, with item's properties bound to individual form
+            fields.
+		</para>
+		
+		<para>
+			Items are generally equivalent to objects in the object-oriented model, but
+			with the exception that they are configurable and provide an event handling
+			mechanism. The simplest way to utilize <classname>Item</classname> interface
+			is to use existing implementations. Provided utility classes include a
+			configurable property set (<classname>PropertysetItem</classname>) and a
+			bean-to-item adapter (<classname>BeanItem</classname>). Also, a
+			<classname>Form</classname> implements the interface and can therefore be used
+			directly as an item.
+		</para>
+
+		<para>
+			In addition to being used indirectly by many user interface components, items
+			provide the basic data model underlying the <classname>Form</classname>
+			component.  In simple cases, forms can even be generated automatically from
+			items.  The properties of the item correspond to the fields of the form.
+		</para>
+
+        <para>
+            The <classname>Item</classname> interface defines inner interfaces for
+            maintaining the item property set and listening changes made to
+            it. <classname>PropertySetChangeEvent</classname> events can be emitted by a
+            class implementing the <classname>PropertySetChangeNotifier</classname>
+            interface. They can be received through the
+            <classname>PropertySetChangeListener</classname> interface.
+        </para>
+
+        <section xml:id="datamodel.items.propertysetitem">
+            <title>The <classname>PropertysetItem</classname> Implementation</title>
+
+            <para>
+                The <classname>PropertysetItem</classname> is a generic implementation of
+                the <classname>Item</classname> interface that allows storing
+                properties. The properties are added with
+                <methodname>addItemProperty()</methodname>, which takes a name and the
+                property as parameters.
+            </para>
+
+            <para>
+                The following example demonstrates a typical case of collecting
+                <classname>ObjectProperty</classname> properties in an item:
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[PropertysetItem item = new PropertysetItem();
+item.addItemProperty("name", new ObjectProperty("Zaphod"));
+item.addItemProperty("age", new ObjectProperty(42));
+        
+// Bind it to a component
+Form form = new Form();
+form.setItemDataSource(item);]]></programlisting>
+
+        </section>
+
+        <section xml:id="datamodel.items.beanitem">
+            <title>Wrapping a Bean in a <classname>BeanItem</classname></title>
+
+            <para>
+                The <classname>BeanItem</classname> implementation of the
+                <classname>Item</classname> interface is a wrapper for Java Bean
+                objects. In fact, only the setters and getters are required while
+                serialization and other bean features are not, so you can wrap almost any
+                POJOs with minimal requirements.
+            </para>
+
+<programlisting><?pocket-size 65% ?><![CDATA[// Here is a bean (or more exactly a POJO)
+class Person {
+    String name;
+    int    age;
+    
+    public String getName() {
+        return name;
+    }
+    
+    public void setName(String name) {
+        this.name = name;
+    }
+    
+    public Integer getAge() {
+        return age;
+    }
+    
+    public void setAge(Integer age) {
+        this.age = age.intValue();
+    }
+}
+
+// Create an instance of the bean
+Person bean = new Person();
+        
+// Wrap it in a BeanItem
+BeanItem<Person> item = new BeanItem<Person>(bean);
+        
+// Bind it to a component
+Form form = new Form();
+form.setItemDataSource(item);]]></programlisting>
+
+            <para>
+                You can use the <methodname>getBean()</methodname> method to get a
+                reference to the underlying bean.
+            </para>
+
+            <section xml:id="datamodel.items.beanitem.nested">
+                <title>Nested Beans</title>
+
+                <para>
+                    You may often have composite classes where one class "has a" another
+                    class. For example, consider the following
+                    <classname>Planet</classname> class which "has a" discoverer:
+                </para>
+
+                <programlisting><?pocket-size 65% ?><![CDATA[// Here is a bean with two nested beans
+public class Planet implements Serializable {
+    String name;
+    Person discoverer;
+    
+    public Planet(String name, Person discoverer) {
+        this.name = name;
+        this.discoverer = discoverer;
+    }
+
+    ... getters and setters ...
+}
+
+...
+// Create an instance of the bean
+Planet planet = new Planet("Uranus",
+                    new Person("William Herschel", 1738));]]></programlisting>
+
+                <para>
+                    When shown in a <classname>Form</classname>, for example, you would
+                    want to list the properties of the nested bean along the properties of
+                    the composite bean. You can do that by binding the properties of the
+                    nested bean individually with a <classname>MethodProperty</classname>
+                    or <classname>NestedMethodProperty</classname>. You should usually
+                    hide the nested bean from binding as a property by listing only the
+                    bound properties in the constructor.
+                </para>
+
+                <programlisting><?pocket-size 65% ?><![CDATA[// Wrap it in a BeanItem and hide the nested bean property
+BeanItem<Planet> item = new BeanItem<Planet>(planet,
+        new String[]{"name"});
+    
+// Bind the nested properties.
+// Use NestedMethodProperty to bind using dot notation.
+item.addItemProperty("discoverername",
+    new NestedMethodProperty(planet, "discoverer.name"));
+    
+// The other way is to use regular MethodProperty.
+item.addItemProperty("discovererborn",
+     new MethodProperty<Person>(planet.getDiscoverer(),
+                                "born"));]]></programlisting>
+
+                <para>
+                    The difference is that <classname>NestedMethodProperty</classname>
+                    does not access the nested bean immediately but only when accessing
+                    the property values, while when using
+                    <classname>MethodProperty</classname> the nested bean is accessed when
+                    creating the method property. The difference is only significant if
+                    the nested bean can be null or be changed later.
+                </para>
+
+                <para>
+                    You can use such a bean item for example in a
+                    <classname>Form</classname> as follows:
+                </para>
+
+                <programlisting><?pocket-size 65% ?><![CDATA[// Bind it to a component
+Form form = new Form();
+form.setItemDataSource(item);
+    
+// Nicer captions
+form.getField("discoverername").setCaption("Discoverer");
+form.getField("discovererborn").setCaption("Born");]]></programlisting>
+
+                <figure xml:id="figure.datamodel.items.beanitem.nested">
+                    <title>A <classname>Form</classname> with Nested Bean Properties</title>
+                    <mediaobject>
+                        <imageobject>
+                            <imagedata smallscale="70%" align="center" fileref="img/datamodel/beanitem-nested-beans.png"/>
+                        </imageobject>
+                    </mediaobject>
+                </figure>
+
+                <para>
+                    The <classname>BeanContainer</classname> and
+                    <classname>BeanItemContainer</classname> allow easy definition of
+                    nested bean properties with
+                    <methodname>addNestedContainerProperty()</methodname>, as described in
+                    <xref linkend="datamodel.container.beancontainer.nestedproperties"/>.
+                </para>
+            </section>
+        </section>
+
+    </section>
+
+    <section xml:id="datamodel.itembinding">
+        <title>Creating Forms by Binding Fields to Items</title>
+
+		<para>
+            <emphasis>Because of pressing release schedules to get this edition to your
+            hands, we were unable to completely update this chapter. Some form handling is
+            still under work, especially form validation.</emphasis>
+        </para>
+
+        <para>
+            Most applications in existence have forms of some sort. Forms contain fields,
+            which you want to bind to a data source, an item in the Vaadin data
+            model. <classname>FieldGroup</classname> provides an easy way to bind fields
+            to the properties of an item. You can use it by first creating a layout with
+            some fields, and then call it to bind the fields to the data source. You can
+            also let the <classname>FieldGroup</classname> create the fields using a field
+            factory. It can also handle commits. Notice that
+            <classname>FieldGroup</classname> is not a user interface component, so you
+            can not add it to a layout.
+        </para>
+
+        <section xml:id="datamodel.itembinding.simple">
+            <title>Simple Binding</title>
+
+            <!-- TODO Vaadin 7 -->
+            <para>
+                Let us start with a data model that has an item with a couple of
+                properties. The item could be any item type, as described earlier.
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[// Have an item
+PropertysetItem item = new PropertysetItem();
+item.addItemProperty("name", new ObjectProperty<String>("Zaphod"));
+item.addItemProperty("age", new ObjectProperty<Integer>(42));]]></programlisting>
+
+            <para>
+                Next, you would design a form for editing the data. The
+                <classname>FormLayout</classname> (<xref linkend="layout.formlayout"/> is
+                ideal for forms, but you could use any other layout as well.
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[// Have some layout and create the fields
+FormLayout form = new FormLayout();
+
+TextField nameField = new TextField("Name");
+form.addComponent(nameField);
+
+TextField ageField = new TextField("Age");
+form.addComponent(ageField);]]></programlisting>
+
+            <para>
+                Then, we can bind the fields to the data as follows:
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[// Now create the binder and bind the fields
+FieldGroup binder = new FieldGroup(item);
+binder.bind(nameField, "name");
+binder.bind(ageField, "age");]]></programlisting>
+
+            <para>
+                The above way of binding is not different from simply calling
+                <methodname>setPropertyDataSource()</methodname> for the fields. It does,
+                however, register the fields in the field group, which for example enables
+                buffering or validation of the fields using the field group, as described
+                in <xref linkend="datamodel.itembinding.buffering"/>.
+            </para>
+
+            <para>
+                Next, we consider more practical uses for a
+                <classname>FieldGroup</classname>.
+            </para>
+
+            <!-- TODO Vaadin 7: What's the point??? -->
+        </section>
+
+        <section xml:id="datamodel.itembinding.fieldfactory">
+            <title>Using a <interfacename>FieldFactory</interfacename> to Build and Bind Fields</title>
+
+            <para>
+                Using the <methodname>buildAndBind()</methodname> methods,
+                <classname>FieldGroup</classname> can create fields for you using a
+                <interfacename>FieldGroupFieldFactory</interfacename>, but you still have
+                to add them to the correct position in your layout.
+            </para>
+
+            <programlisting><?pocket-size 75% ?><![CDATA[// Have some layout
+FormLayout form = new FormLayout();
+        
+// Now create a binder that can also create the fields
+// using the default field factory
+FieldGroup binder = new FieldGroup(item);
+form.addComponent(binder.buildAndBind("Name", "name"));
+form.addComponent(binder.buildAndBind("Age", "age"));]]></programlisting>
+        </section>
+
+        <section xml:id="datamodel.itembinding.formclass">
+            <title>Binding Member Fields</title>
+
+            <para>
+                The <methodname>bindMemberFields()</methodname> method in
+                <classname>FieldGroup</classname> uses reflection to bind the properties of an
+                item to field components that are member variables of a class. Hence, if
+                you implement a form as a class with the fields stored as member
+                variables, you can use this method to bind them super-easy.
+            </para>
+
+            <para>
+                The item properties are mapped to the members by the property ID and the
+                name of the member variable. If you want to map a property with a
+                different ID to a member, you can use the <literal>@PropertyId</literal>
+                annotation for the member, with the property ID as the parameter.
+            </para>
+
+            <para>
+                For example:
+            </para>
+
+            <book-example eid="datamodel.itembinding.formclass.extended"></book-example>
+            <programlisting><?pocket-size 65% ?><![CDATA[// Have an item
+PropertysetItem item = new PropertysetItem();
+item.addItemProperty("name", new ObjectProperty<String>("Zaphod"));
+item.addItemProperty("age", new ObjectProperty<Integer>(42));
+
+// Define a form as a class that extends some layout
+class MyForm extends FormLayout {
+    // Member that will bind to the "name" property
+    TextField name = new TextField("Name");
+    
+    // Member that will bind to the "age" property 
+    @PropertyId("age")
+    TextField ageField = new TextField("Age");
+    
+    public MyForm() {
+        // Customize the layout a bit
+        setSpacing(true);
+        
+        // Add the fields
+        addComponent(name);
+        addComponent(ageField);
+    }
+}
+        
+// Create one
+MyForm form = new MyForm();
+        
+// Now create a binder that can also creates the fields
+// using the default field factory
+FieldGroup binder = new FieldGroup(item);
+binder.bindMemberFields(form);
+
+// And the form can be used in an higher-level layout
+layout.addComponent(form);]]></programlisting>
+
+            <section xml:id="datamodel.itembinding.formclass.customcomponent">
+                <title>Encapsulating in <classname>CustomComponent</classname></title>
+
+                <para>
+                    Using a <classname>CustomComponent</classname> can be better for hiding
+                    the implementation details than extending a layout. Also, the use of the
+                    <classname>FieldGroup</classname> can be encapsulated in the form class.
+                </para>
+
+                <para>
+                    Consider the following as an alternative for the form implementation
+                    presented earlier:
+                </para>
+
+                <book-example eid="datamodel.itembinding.formclass.customcomponent"></book-example>
+                <programlisting><?pocket-size 75% ?><![CDATA[// A form component that allows editing an item
+class MyForm extends CustomComponent {
+    // Member that will bind to the "name" property
+    TextField name = new TextField("Name");
+    
+    // Member that will bind to the "age" property 
+    @PropertyId("age")
+    TextField ageField = new TextField("Age");
+    
+    public MyForm(Item item) {
+        FormLayout layout = new FormLayout();
+        layout.addComponent(name);
+        layout.addComponent(ageField);
+        
+        // Now use a binder to bind the members
+        FieldGroup binder = new FieldGroup(item);
+        binder.bindMemberFields(this);
+
+        setCompositionRoot(layout);
+    }
+}
+        
+// And the form can be used as a component
+layout.addComponent(new MyForm(item));]]></programlisting>
+            </section>
+        </section>
+
+        <section xml:id="datamodel.itembinding.buffering">
+            <title>Buffering Forms</title>
+
+            <para>
+                Just like for individual fields, as described in <xref
+                linkend="components.fields.buffering"/>, a
+                <classname>FieldGroup</classname> can handle buffering the form content so
+                that it is written to the item data source only when
+                <methodname>commit()</methodname> is called for the group. It runs
+                validation for all fields in the group and writes their values to the item
+                data source only if all fields pass the validation. Edits can be
+                discarded, so that the field values are reloaded from the data source, by
+                calling <methodname>discard()</methodname>. Buffering is enabled by
+                default, but can be disabled by calling
+                <methodname>setBuffered(false)</methodname> for the
+                <classname>FieldGroup</classname>.
+            </para>
+
+            <book-example eid="datamodel.itembinding.formclass.customcomponent"></book-example>
+            <programlisting><?pocket-size 65% ?><![CDATA[// Have an item of some sort
+final PropertysetItem item = new PropertysetItem();
+item.addItemProperty("name", new ObjectProperty<String>("Q"));
+item.addItemProperty("age",  new ObjectProperty<Integer>(42));
+
+// Have some layout and create the fields
+Panel form = new Panel("Buffered Form");
+form.setContent(new FormLayout());
+
+// Build and bind the fields using the default field factory
+final FieldGroup binder = new FieldGroup(item);
+form.addComponent(binder.buildAndBind("Name", "name"));
+form.addComponent(binder.buildAndBind("Age",  "age"));
+
+// Enable buffering (actually enabled by default)
+binder.setBuffered(true);
+        
+// A button to commit the buffer
+form.addComponent(new Button("OK", new ClickListener() {
+    @Override
+    public void buttonClick(ClickEvent event) {
+        try {
+            binder.commit();
+            Notification.show("Thanks!");
+        } catch (CommitException e) {
+            Notification.show("You fail!");
+        }
+    }
+}));
+
+// A button to discard the buffer
+form.addComponent(new Button("Discard", new ClickListener() {
+    @Override
+    public void buttonClick(ClickEvent event) {
+        binder.discard();
+        Notification.show("Discarded!");
+    }
+}));]]></programlisting>
+        </section>
+
+        <section xml:id="datamodel.itembinding.beans">
+            <title>Binding Fields to a Bean</title>
+
+            <para>
+                The <classname>BeanFieldGroup</classname> makes it easier to bind fields
+                to a bean. It also handles binding to nested beans properties. The build a
+                field bound to a nested bean property, identify the property with dot
+                notation. For example, if a <classname>Person</classname> bean has a
+                <literal>address</literal> property with an <classname>Address</classname>
+                type, which in turn has a <literal>street</literal> property, you could
+                build a field bound to the property with
+                <methodname>buildAndBind("Street", "address.street")</methodname>.
+            </para>
+
+            <para>
+                The input to fields bound to a bean can be validated using the Java Bean
+                Validation API, as described in <xref
+                linkend="datamodel.itembinding.beanvalidation"/>. The
+                <classname>BeanFieldGroup</classname> automatically adds a
+                <classname>BeanValidator</classname> to every field if a bean validation
+                implementation is included in the classpath.
+            </para>
+        </section>
+
+        <section xml:id="datamodel.itembinding.beanvalidation">
+            <title>Bean Validation</title>
+
+            <para>
+                Vaadin allows using the Java Bean Validation API 1.0 (JSR-303) for
+                validating input from fields bound to bean properties before the values
+                are committed to the bean. The validation is done based on annotations on
+                the bean properties, which are used for creating the actual validators
+                automatically. See <xref linkend="components.fields.validation"/> for
+                general information about validation.
+            </para>
+            
+            <para>
+                Using bean validation requires an implementation of the Bean Validation
+                API, such as Hibernate Validator
+                (<filename>hibernate-validator-4.2.0.Final.jar</filename> or later) or
+                Apache Bean Validation. The implementation JAR must be included in the
+                project classpath when using the bean validation, or otherwise an internal
+                error is thrown.
+            </para>
+            
+            <para>
+                Bean validation is especially useful when persisting entity beans with the
+                Vaadin JPAContainer, described in <xref linkend="jpacontainer"/>.
+            </para>
+
+            <section xml:id="datamodel.itembinding.beanvalidation.annotations">
+                <title>Annotations</title>
+
+                <para>
+                    The validation constraints are defined as annotations. For example,
+                    consider the following bean:
+                </para>
+
+                <programlisting><?pocket-size 65% ?><![CDATA[// Here is a bean
+public class Person implements Serializable {
+    @NotNull
+    @javax.validation.constraints.Size(min=2, max=10)
+    String name;
+    
+    @Min(1)
+    @Max(130)
+    int age;
+    
+    // ... setters and getters ...
+}]]></programlisting>
+
+                <para>
+                    For a complete list of allowed constraints for different data types,
+                    please see the <link
+                    xlink:href="http://docs.oracle.com/javaee/6/tutorial/doc/gircz.html">Bean
+                    Validation API documentation</link>.
+                </para>
+            </section>
+
+            <section xml:id="datamodel.itembinding.beanvalidation.validating">
+                <title>Validating the Beans</title>
+
+                <para>
+                    Validating a bean is done with a <classname>BeanValidator</classname>,
+                    which you initialize with the name of the bean property it should
+                    validate and add it the the editor field.
+                </para>
+
+                <para>
+                    In the following example, we validate a single unbuffered field:
+                </para>
+
+                <programlisting><?pocket-size 65% ?><![CDATA[Person bean = new Person("Mung bean", 100);
+BeanItem<Person> item = new BeanItem<Person> (bean);
+    
+// Create an editor bound to a bean field
+TextField firstName = new TextField("First Name",
+        item.getItemProperty("name"));
+    
+// Add the bean validator
+firstName.addValidator(new BeanValidator(Person.class, "name"));
+    
+firstName.setImmediate(true);
+layout.addComponent(firstName);]]></programlisting>
+
+                <para>
+                    In this case, the validation is done immediately after focus leaves
+                    the field. You could do the same for the other field as well.
+                </para>
+
+                <para>
+                    Bean validators are automatically created when using a
+                    <classname>BeanFieldGroup</classname>.
+                </para>
+
+                <programlisting><?pocket-size 65% ?><![CDATA[// Have a bean
+Person bean = new Person("Mung bean", 100);
+        
+// Form for editing the bean
+final BeanFieldGroup<Person> binder =
+        new BeanFieldGroup<Person>(Person.class);
+binder.setItemDataSource(bean);
+layout.addComponent(binder.buildAndBind("Name", "name"));
+layout.addComponent(binder.buildAndBind("Age", "age"));
+
+// Buffer the form content
+binder.setBuffered(true);
+layout.addComponent(new Button("OK", new ClickListener() {
+    @Override
+    public void buttonClick(ClickEvent event) {
+        try {
+            binder.commit();
+        } catch (CommitException e) {
+        }
+    }
+}));]]></programlisting>
+            </section>
+
+            <section xml:id="datamodel.itembinding.beanvalidation.locale">
+                <title>Locale Setting for Bean Validation</title>
+
+                <para>
+                    The validation error messages are defined in the bean validation
+                    implementation, in a
+                    <filename>ValidationMessages.properties</filename> file. The message
+                    is shown in the language specified with the locale setting for the
+                    form. The default language is English, but for example Hibernate
+                    Validator contains translations of the messages for a number of
+                    languages. If other languages are needed, you need to provide a
+                    translation of the properties file.
+                </para>
+            </section>
+        </section>
+    </section>
+
+	<section xml:id="datamodel.container">
+		<title>Collecting Items in Containers</title>
+
+        <indexterm xml:id="term.datamodel.container" class="startofrange">
+            <primary><classname>Container</classname></primary>
+        </indexterm>
+
+        <para>
+            The <classname>Container</classname> interface is the highest containment
+            level of the Vaadin data model, for containing items (rows) which in turn
+            contain properties (columns). Containers can therefore represent tabular data,
+            which can be viewed in a <classname>Table</classname> or some other selection
+            component, as well as hierarchical data.
+        </para>
+
+        <para>
+            The items contained in a container are identified by an <emphasis>item
+            identifier</emphasis> or <emphasis>IID</emphasis>, and the properties by a
+            <emphasis>property identifier</emphasis> or <emphasis>PID</emphasis>.
+        </para>
+
+        <section xml:id="datamodel.container.intro">
+            <title>Basic Use of Containers</title>
+
+            <para>
+                The basic use of containers involves creating one, adding items to it, and
+                binding it as a container data source of a component.
+            </para>
+
+            <section xml:id="datamodel.container.intro.default">
+                <title>Default Containers and Delegation</title>
+
+                <para>
+                    Before saying anything about creation of containers, it should be
+                    noted that all components that can be bound to a container data source
+                    are by default bound to a default container. For example,
+                    <classname>Table</classname> is bound to a
+                    <classname>IndexedContainer</classname>, <classname>Tree</classname>
+                    to a <classname>HierarchicalContainer</classname>, and so forth.
+                </para>
+
+                <para>
+                    All of the user interface components using containers also implement
+                    the relevant container interfaces themselves, so that the access to
+                    the underlying data source is delegated through the component.
+                </para>
+
+                <programlisting><?pocket-size 75% ?><![CDATA[// Create a table with one column
+Table table = new Table("My Table");
+table.addContainerProperty("col1", String.class, null);
+
+// Access items and properties through the component
+table.addItem("row1"); // Create item by explicit ID
+Item item1 = table.getItem("row1");
+Property property1 = item1.getItemProperty("col1");
+property1.setValue("some given value");
+
+// Equivalent access through the container
+Container container = table.getContainerDataSource();
+container.addItem("row2");
+Item item2 = container.getItem("row2");
+Property property2 = item2.getItemProperty("col1");
+property2.setValue("another given value");]]></programlisting>
+            </section>
+
+            <section xml:id="datamodel.container.intro.creating">
+                <title>Creating and Binding a Container</title>
+
+                <para>
+                    A container is created and bound to a component as follows:
+                </para>
+
+                <programlisting><?pocket-size 70% ?><![CDATA[// Create a container of some type
+Container container = new IndexedContainer();
+
+// Initialize the container as required by the container type
+container.addContainerProperty("name", String.class, "none");
+container.addContainerProperty("volume", Double.class, 0.0);
+
+... add items ...
+
+// Bind it to a component
+Table table = new Table("My Table");
+table.setContainerDataSource(container);]]></programlisting>
+
+                <para>
+                    Most components that can be bound to a container allow passing it also
+                    in the constructor, in addition to using
+                    <methodname>setContainerDataSource()</methodname>. Creation of the
+                    container depends on its type. For some containers, such as the
+                    <classname>IndexedContainer</classname>, you need to define the
+                    contained properties (columns) as was done above, while some others
+                    determine them otherwise. The definition of a property with
+                    <methodname>addContainerProperty()</methodname> requires a unique
+                    property ID, type, and a default value. You can also give
+                    <parameter>null</parameter>.
+                </para>
+
+                <para>
+                    Vaadin has a several built-in in-memory container implementations,
+                    such as <classname>IndexedContainer</classname> and
+                    <classname>BeanItemContainer</classname>, which are easy to use for
+                    setting up nonpersistent data storages. For persistent data, either
+                    the built-in <classname>SQLContainer</classname> or the
+                    <classname>JPAContainer</classname> add-on container can be used.
+                </para>
+            </section>
+
+            <section xml:id="datamodel.container.intro.adding">
+                <title>Adding Items and Accessing Properties</title>
+
+                <para>
+                    Items can be added to a container with the
+                    <methodname>addItem()</methodname> method. The parameterless version
+                    of the method automatically generates the item ID.
+                </para>
+
+                <programlisting><![CDATA[// Create an item
+Object itemId = container.addItem();]]></programlisting>
+
+                <para>
+                    Properties can be requested from container by first requesting an item
+                    with <methodname>getItem()</methodname> and then getting the
+                    properties from the item with
+                    <methodname>getItemProperty()</methodname>.
+                </para>
+
+
+                <programlisting><![CDATA[// Get the item object
+Item item = container.getItem(itemId);
+
+// Access a property in the item
+Property<String> nameProperty =
+        item.getItemProperty("name");
+
+// Do something with the property
+nameProperty.setValue("box");]]></programlisting>
+
+                <para>
+                    You can also get a property directly by the item and property ids with
+                    <methodname>getContainerProperty()</methodname>.
+                </para>
+
+                <programlisting><?pocket-size 65% ?><![CDATA[container.getContainerProperty(itemId, "volume").setValue(5.0);]]></programlisting>
+            </section>
+
+            <section xml:id="datamodel.container.intro.givenid">
+                <title>Adding Items by Given ID</title>
+
+                <para>
+                    Some containers, such as <classname>IndexedContainer</classname> and
+                    <classname>HierarchicalContainer</classname>, allow adding items by a
+                    given ID, which can be any <classname>Object</classname>.
+                </para>
+
+                <programlisting><![CDATA[Item item = container.addItem("agivenid");
+item.getItemProperty("name").setValue("barrel");
+Item.getItemProperty("volume").setValue(119.2);]]></programlisting>
+
+                <para>
+                    Notice that the actual item <emphasis>is not</emphasis> given as a
+                    parameter to the method, only its ID, as the interface assumes that
+                    the container itself creates all the items it contains. Some container
+                    implementations can provide methods to add externally created items,
+                    and they can even assume that the item ID object is also the item
+                    itself. Lazy containers might not create the item immediately, but
+                    lazily when it is accessed by its ID.
+                </para>
+            </section>
+        </section>
+
+        <section xml:id="datamodel.container.inner">
+            <title>Container Subinterfaces</title>
+
+            <para>
+                The <classname>Container</classname> interface contains inner interfaces
+                that container implementations can implement to fulfill different features
+                required by components that present container data.
+            </para>
+
+            <variablelist>
+                <varlistentry>
+                    <term><interfacename>Container.Filterable</interfacename></term>
+                    <listitem>
+                        <para>
+                            Filterable containers allow filtering the contained items by
+                            filters, as described in <xref
+                            linkend="datamodel.container.filtered"/>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><interfacename>Container.Hierarchical</interfacename></term>
+                    <listitem>
+                        <para>
+                            Hierarchical containers allow representing hierarchical
+                            relationships between items and are required by the
+                            <classname>Tree</classname> and
+                            <classname>TreeTable</classname> components. The
+                            <classname>HierarchicalContainer</classname> is a built-in
+                            in-memory container for hierarchical data, and is used as the
+                            default container for the tree components. The
+                            <classname>FilesystemContainer</classname> provides access to
+                            browsing the content of a file system. Also
+                            <classname>JPAContainer</classname> is hierarchical, as
+                            described in <xref
+                            linkend="jpacontainer.usage.hierarchical"/>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><interfacename>Container.Indexed</interfacename></term>
+                    <listitem>
+                        <para>
+                            An indexed container allows accessing items by an index
+                            number, not just their item ID. This feature is required by
+                            some components, especially <classname>Table</classname>,
+                            which needs to provide lazy access to large containers. The
+                            <classname>IndexedContainer</classname> is a basic in-memory
+                            implementation, as described in <xref
+                            linkend="datamodel.container.indexedcontainer"/>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><interfacename>Container.Ordered</interfacename></term>
+                    <listitem>
+                        <para>
+                            An ordered container allows traversing the items in successive
+                            order in either direction. Most built-in containers are
+                            ordered.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><interfacename>Container.SimpleFilterable</interfacename></term>
+                    <listitem>
+                        <para>
+                            This interface enables filtering a container by string
+                            matching with
+                            <methodname>addContainerFilter()</methodname>. The filtering
+                            is done by either searching the given string anywhere in a
+                            property value, or as its prefix.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><interfacename>Container.Sortable</interfacename></term>
+                    <listitem>
+                        <para>
+                            A sortable container is required by some components that allow
+                            sorting the content, such as <classname>Table</classname>,
+                            where the user can click a column header to sort the table by
+                            the column. Some other components, such as
+                            <classname>Calendar</classname>, may require that the content
+                            is sorted to be able to display it properly. Depending on the
+                            implementation, sorting can be done only when the
+                            <methodname>sort()</methodname> method is called, or the
+                            container is automatically kept in order according to the last
+                            call of the method.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+
+            <para>
+                See the API documentation for a detailed description of the interfaces.
+            </para>
+        </section>
+
+        <section xml:id="datamodel.container.indexedcontainer">
+            <title><classname>IndexedContainer</classname></title>
+
+            <para>
+                The <classname>IndexedContainer</classname> is an in-memory container that
+                implements the <interfacename>Indexed</interfacename> interface to allow
+                referencing the items by an index. <classname>IndexedContainer</classname> is
+                used as the default container in most selection components in Vaadin.
+            </para>
+
+            <para>
+                The properties need to be defined with
+                <methodname>addContainerProperty()</methodname>, which takes the property
+                ID, type, and a default value. This must be done before any items are
+                added to the container.
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[// Create the container
+IndexedContainer container = new IndexedContainer();
+        
+// Define the properties (columns)
+container.addContainerProperty("name", String.class, "noname");
+container.addContainerProperty("volume", Double.class, -1.0d);
+
+// Add some items
+Object content[][] = {{"jar", 2.0}, {"bottle", 0.75},
+                      {"can", 1.5}};
+for (Object[] row: content) {
+    Item newItem = container.getItem(container.addItem());
+    newItem.getItemProperty("name").setValue(row[0]);
+    newItem.getItemProperty("volume").setValue(row[1]);
+}]]></programlisting>
+
+            <para>
+                New items are added with <methodname>addItem()</methodname>, which returns
+                the item ID of the new item, or by giving the item ID as a parameter as
+                was described earlier. Note that the <classname>Table</classname>
+                component, which has <classname>IndexedContainer</classname> as its
+                default container, has a conveniency <methodname>addItem()</methodname>
+                method that allows adding items as object vectors containing the property
+                values.
+            </para>
+
+            <para>
+                The container implements the
+                <interfacename>Container.Indexed</interfacename> feature to allow
+                accessing the item IDs by their index number, with
+                <methodname>getIdByIndex()</methodname>, etc. The feature is required
+                mainly for internal purposes of some components, such as
+                <classname>Table</classname>, which uses it to enable lazy transmission of
+                table data to the client-side.
+            </para>
+        </section>
+
+        <section xml:id="datamodel.container.beancontainer">
+            <title><classname>BeanContainer</classname></title>
+
+            <para>
+                The <classname>BeanContainer</classname> is an in-memory container for
+                JavaBean objects. Each contained bean is wrapped inside a
+                <classname>BeanItem</classname> wrapper. The item properties are
+                determined automatically by inspecting the getter and setter methods of
+                the class. This requires that the bean class has public visibility, local
+                classes for example are not allowed. Only beans of the same type can be
+                added to the container.
+            </para>
+
+            <para>
+                The generic has two parameters: a bean type and an item identifier type.
+                The item identifiers can be obtained by defining a custom resolver, using
+                a specific item property for the IDs, or by giving item IDs explicitly. As
+                such, it is more general than the
+                <classname>BeanItemContainer</classname>, which uses the bean object
+                itself as the item identifier, making the use usually simpler. Managing the item
+                IDs makes <classname>BeanContainer</classname> more complex to use, but it
+                is necessary in some cases where the <methodname>equals()</methodname> or
+                <methodname>hashCode()</methodname> methods have been reimplemented in the
+                bean.
+            </para>
+
+            <book-example eid="datamodel.container.beancontainer.basic" style="float: right"></book-example>
+            <programlisting><?pocket-size 65% ?><![CDATA[// Here is a JavaBean
+public class Bean implements Serializable {
+    String name;
+    double energy; // Energy content in kJ/100g
+    
+    public Bean(String name, double energy) {
+        this.name   = name;
+        this.energy = energy;
+    }
+    
+    public String getName() {
+        return name;
+    }
+    
+    public void setName(String name) {
+        this.name = name;
+    }
+    
+    public double getEnergy() {
+        return energy;
+    }
+    
+    public void setEnergy(double energy) {
+        this.energy = energy;
+    }
+}
+
+void basic(VerticalLayout layout) {
+    // Create a container for such beans with
+    // strings as item IDs.
+    BeanContainer<String, Bean> beans =
+        new BeanContainer<String, Bean>(Bean.class);
+    
+    // Use the name property as the item ID of the bean
+    beans.setBeanIdProperty("name");
+
+    // Add some beans to it
+    beans.addBean(new Bean("Mung bean",   1452.0));
+    beans.addBean(new Bean("Chickpea",    686.0));
+    beans.addBean(new Bean("Lentil",      1477.0));
+    beans.addBean(new Bean("Common bean", 129.0));
+    beans.addBean(new Bean("Soybean",     1866.0));
+
+    // Bind a table to it
+    Table table = new Table("Beans of All Sorts", beans);
+    layout.addComponent(table);
+}]]></programlisting>
+            
+            <para>
+                To use explicit item IDs, use the methods <methodname>addItem(Object,
+                Object)</methodname>, <methodname>addItemAfter(Object, Object,
+                Object)</methodname>, and <methodname>addItemAt(int, Object,
+                Object)</methodname>.
+            </para>
+
+            <para>
+                It is not possible to add additional properties to the container, except
+                properties in a nested bean.
+            </para>
+
+            <section xml:id="datamodel.container.beancontainer.nestedproperties">
+                <title>Nested Properties</title>
+
+                <indexterm xml:id="term.datamodel.container.beancontainer.nestedproperties" class="startofrange">
+                    <primary>nested bean properties</primary>
+                </indexterm>
+
+                <para>
+                    If you have a nested bean with an 1:1 relationship inside a bean type
+                    contained in a <classname>BeanContainer</classname> or
+                    <classname>BeanItemContainer</classname>, you can add its properties
+                    to the container by specifying them with
+                    <methodname>addNestedContainerProperty()</methodname>. The feature is
+                    defined at the level of <classname>AbstractBeanContainer</classname>.
+
+                    <indexterm><primary><methodname>addNestedContainerProperty()</methodname></primary></indexterm>
+                </para>
+
+                <para>
+                    As with the bean in a bean container, also a nested bean must have
+                    public visibility or otherwise an access exception is thrown. An
+                    intermediate reference from a bean in the bean container to a nested
+                    bean may have a null value.
+                </para>
+
+                <para>
+                    For example, let us assume that we have the following two beans with
+                    the first one nested inside the second one.
+                </para>
+ 
+                <book-example eid="datamodel.container.beanitemcontainer.nestedbean" style="float: right"></book-example>
+                <programlisting><?pocket-size 75% ?><![CDATA[/** Bean to be nested */
+public class EqCoord implements Serializable {
+    double rightAscension; /* In angle hours */
+    double declination;    /* In degrees     */
+
+    ... setters and getters for the properties ...
+}
+
+/** Bean referencing a nested bean */
+public class Star implements Serializable {
+    String  name;
+    EqCoord equatorial; /* Nested bean */
+
+    ... setters and getters for the properties ...
+}]]></programlisting>
+
+                <para>
+                    After creating the container, you can declare the nested properties by
+                    specifying their property identifiers with the
+                    <methodname>addNestedContainerProperty()</methodname> in dot
+                    notation.
+                </para>
+
+                <book-example eid="datamodel.container.beanitemcontainer.nestedbean" style="float: right"></book-example>
+                <programlisting><?pocket-size 65% ?><![CDATA[// Create a container for beans
+BeanItemContainer<Star> stars =
+    new BeanItemContainer<Star>(Star.class);
+
+// Declare the nested properties to be used in the container
+stars.addNestedContainerProperty("equatorial.rightAscension");
+stars.addNestedContainerProperty("equatorial.declination");
+
+// Add some items
+stars.addBean(new Star("Sirius",  new EqCoord(6.75, 16.71611)));
+stars.addBean(new Star("Polaris", new EqCoord(2.52, 89.26417)));
+
+// Here the nested bean reference is null
+stars.addBean(new Star("Vega", null));]]></programlisting>
+
+                <para>
+                    If you bind such a container to a <classname>Table</classname>, you
+                    probably also need to set the column headers. Notice that the entire
+                    nested bean itself is still a property in the container and would be
+                    displayed in its own column. The <methodname>toString()</methodname>
+                    method is used for obtaining the displayed value, which is by default
+                    an object reference. You normally do not want this, so you can hide
+                    the column with <methodname>setVisibleColumns()</methodname>.
+
+                    <indexterm><primary><methodname>setVisibleColumns()</methodname></primary></indexterm>
+                </para>
+
+                <book-example eid="datamodel.container.beanitemcontainer.nestedbean" style="float: right"></book-example>
+                <programlisting><?pocket-size 65% ?><![CDATA[// Put them in a table
+Table table = new Table("Stars", stars);
+table.setColumnHeader("equatorial.rightAscension", "RA");
+table.setColumnHeader("equatorial.declination",    "Decl");
+table.setPageLength(table.size());
+
+// Have to set explicitly to hide the "equatorial" property
+table.setVisibleColumns("name",
+    "equatorial.rightAscension", "equatorial.declination");]]></programlisting>
+
+                <para>
+                    The resulting table is shown in <xref
+                    linkend="figure.datamodel.container.beancontainer.nestedproperties"/>.
+                </para>
+
+                <figure xml:id="figure.datamodel.container.beancontainer.nestedproperties">
+                    <title><classname>Table</classname> Bound to a <classname>BeanContainer</classname> with Nested Properties</title>
+                    <mediaobject>
+                        <imageobject role="html">
+                            <imagedata align="center" fileref="img/datamodel/beanitemcontainer-nested-beans.png"/>
+                        </imageobject>
+                        <imageobject role="fo">
+                            <imagedata scale="100" smallscale="40%" align="center" fileref="img/datamodel/beanitemcontainer-nested-beans.png"/>
+                        </imageobject>
+                    </mediaobject>
+                </figure>
+
+                <para>
+                    The bean binding in <classname>AbstractBeanContainer</classname>
+                    normally uses the <classname>MethodProperty</classname> implementation
+                    of the <classname>Property</classname> interface to access the bean
+                    properties using the setter and getter methods. For nested properties,
+                    the <classname>NestedMethodProperty</classname> implementation is
+                    used.
+                    
+                    <indexterm><primary><classname>MethodProperty</classname></primary></indexterm>
+                    <indexterm><primary><classname>NestedMethodProperty</classname></primary></indexterm>
+                </para>
+
+                <indexterm startref="term.datamodel.container.beancontainer.nestedproperties" class="endofrange"/>
+            </section>
+
+            <section xml:id="datamodel.container.beancontainer.idresolver">
+                <title>Defining a Bean ID Resolver</title>
+
+                <para>
+                    If a bean ID resolver is set using
+                    <methodname>setBeanIdResolver()</methodname> or
+                    <methodname>setBeanIdProperty()</methodname>, the methods
+                    <methodname>addBean()</methodname>,
+                    <methodname>addBeanAfter()</methodname>,
+                    <methodname>addBeanAt()</methodname> and
+                    <methodname>addAll()</methodname> can be used to add items to the
+                    container. If one of these methods is called, the resolver is used to
+                    generate an identifier for the item (must not return
+                    <parameter>null</parameter>).
+                </para>
+
+                <para>
+                    Note that explicit item identifiers can also be used when a resolver has
+                    been set by calling the <methodname>addItem*()</methodname> methods - the
+                    resolver is only used when adding beans using the
+                    <methodname>addBean*()</methodname> or
+                    <methodname>addAll(Collection)</methodname> methods.
+                </para>
+            </section>
+        </section>
+
+        <section xml:id="datamodel.container.beanitemcontainer">
+            <title><classname>BeanItemContainer</classname></title>
+
+            <para>
+                <classname>BeanItemContainer</classname> is a container for JavaBean
+                objects where each bean is wrapped inside a
+                <classname>BeanItem</classname> wrapper. The item properties are
+                determined automatically by inspecting the getter and setter methods of
+                the class. This requires that the bean class has public visibility, local
+                classes for example are not allowed. Only beans of the same type can be
+                added to the container.
+            </para>
+
+            <para>
+                <classname>BeanItemContainer</classname> is a specialized version of the
+                <classname>BeanContainer</classname> described in <xref
+                linkend="datamodel.container.beancontainer"/>. It uses the bean itself as
+                the item identifier, which makes it a bit easier to use than
+                <classname>BeanContainer</classname> in many cases. The latter is,
+                however, needed if the bean has reimplemented the
+                <methodname>equals()</methodname> or <methodname>hashCode()</methodname>
+                methods.
+            </para>
+
+            <para>
+                Let us revisit the example given in <xref
+                linkend="datamodel.container.beancontainer"/> using the
+                <classname>BeanItemContainer</classname>.
+            </para>
+
+            <book-example eid="datamodel.container.beanitemcontainer.basic" style="float: right"></book-example>
+            <programlisting><?pocket-size 75% ?><![CDATA[// Create a container for the beans
+BeanItemContainer<Bean> beans =
+    new BeanItemContainer<Bean>(Bean.class);
+    
+// Add some beans to it
+beans.addBean(new Bean("Mung bean",   1452.0));
+beans.addBean(new Bean("Chickpea",    686.0));
+beans.addBean(new Bean("Lentil",      1477.0));
+beans.addBean(new Bean("Common bean", 129.0));
+beans.addBean(new Bean("Soybean",     1866.0));
+
+// Bind a table to it
+Table table = new Table("Beans of All Sorts", beans);]]></programlisting>
+
+            <para>
+                It is not possible to add additional properties to a
+                <classname>BeanItemContainer</classname>, except properties in a nested
+                bean, as described in <xref linkend="datamodel.container.beancontainer"/>.
+
+                <indexterm><primary>nested bean properties</primary></indexterm>
+            </para>
+        </section>
+
+        <section>
+            <title>Iterating Over a Container</title>
+
+            <para>
+                As the items in a <classname>Container</classname> are not necessarily
+                indexed, iterating over the items has to be done using an
+                <classname>Iterator</classname>. The <methodname>getItemIds()</methodname>
+                method of <classname>Container</classname> returns a
+                <classname>Collection</classname> of item identifiers over which you can
+                iterate. The following example demonstrates a typical case where you
+                iterate over the values of check boxes in a column of a
+                <classname>Table</classname> component. The context of the example is the
+                example used in <xref linkend="components.table"/>.
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[// Collect the results of the iteration into this string.
+String items = "";
+
+// Iterate over the item identifiers of the table.
+for (Iterator i = table.getItemIds().iterator(); i.hasNext();) {
+    // Get the current item identifier, which is an integer.
+    int iid = (Integer) i.next();
+    
+    // Now get the actual item from the table.
+    Item item = table.getItem(iid);
+    
+    // And now we can get to the actual checkbox object.
+    Button button = (Button)
+            (item.getItemProperty("ismember").getValue());
+    
+    // If the checkbox is selected.
+    if ((Boolean)button.getValue() == true) {
+        // Do something with the selected item; collect the
+        // first names in a string.
+        items += item.getItemProperty("First Name")
+                     .getValue() + " ";
+    }
+}
+
+// Do something with the results; display the selected items.
+layout.addComponent (new Label("Selected items: " + items));]]></programlisting>
+
+            <para>
+                Notice that the <methodname>getItemIds()</methodname> returns an
+                <emphasis>unmodifiable collection</emphasis>, so the
+                <classname>Container</classname> may not be modified during iteration. You
+                can not, for example, remove items from the
+                <classname>Container</classname> during iteration. The modification
+                includes modification in another thread. If the
+                <classname>Container</classname> is modified during iteration, a
+                <classname>ConcurrentModificationException</classname> is thrown and the
+                iterator may be left in an undefined state.
+            </para>
+        </section>
+
+        <section xml:id="datamodel.container.gpc">
+            <title><classname>GeneratedPropertyContainer</classname></title>
+
+            <para>
+                <classname>GeneratedPropertyContainer</classname> is a container wrapper
+                that allows defining generated values for properties (columns). The
+                generated properties can shadow properties with the same IDs in the
+                wrapped container. Removing a property from the wrapper hides it.
+            </para>
+
+            <para>
+                The container is especially useful with <classname>Grid</classname>, which
+                does not support generated columns or hiding columns like
+                <classname>Table</classname> does.
+            </para>
+
+            <section xml:id="datamodel.container.gpc.wrapping">
+                <title>Wrapping a Container</title>
+                
+                <para>
+                    A container to be wrapped must be a
+                    <interfacename>Container.Indexed</interfacename>. It can optionally
+                    also implement <interfacename>Container.Sortable</interfacename> or
+                    <interfacename>Container.Filterable</interfacename> to enable sorting
+                    and filtering the container, respectively.
+                </para>
+
+                <para>
+                    For example, let us consider the following container with some regular
+                    columns:
+                </para>
+
+                <programlisting><?pocket-size 65% ?><![CDATA[IndexedContainer container = new IndexedContainer();
+container.addContainerProperty("firstname", String.class, null);
+container.addContainerProperty("lastname", String.class, null);
+container.addContainerProperty("born", Integer.class, null);
+container.addContainerProperty("died", Integer.class, null);
+
+// Wrap it
+GeneratedPropertyContainer gpcontainer =
+    new GeneratedPropertyContainer(container);]]></programlisting>
+            </section>
+
+            <section xml:id="datamodel.container.gpc.properties">
+                <title><classname>GeneratedPropertyContainer</classname></title>
+
+                <para>
+                    Now, you can add generated properties in the container with
+                    <methodname>addGeneratedProperty()</methodname> by specifying a
+                    property ID and a
+                    <interfacename>PropertyValueGenerator</interfacename>. The method
+                    takes the ID of the generated property as first parameter; you can use
+                    a same ID as in the wrapped container to shadow its properties.
+                </para>
+
+                <para>
+                    You need to implement <methodname>getType()</methodname>, which must
+                    return the class object of the value type of the property, and
+                    <methodname>getValue()</methodname>, which returns the property value
+                    for the given item. The item ID and the property ID of the generated
+                    property are also given in case they are needed. You can access other
+                    properties of the item to compute the property value.
+                </para>
+
+                <programlisting><?pocket-size 70% ?><![CDATA[gpcontainer.addGeneratedProperty("lived",
+    new PropertyValueGenerator<Integer>() {
+    @Override
+    public Integer getValue(Item item, Object itemId,
+                            Object propertyId) {
+        int born = (Integer)
+                   item.getItemProperty("born").getValue();
+        int died = (Integer)
+                   item.getItemProperty("died").getValue();
+        return Integer.valueOf(died - born);
+    }
+
+    @Override
+    public Class<Integer> getType() {
+        return Integer.class;
+    }
+});]]></programlisting>
+
+                <para>
+                    You can access other items in the container, also their generated
+                    properties, although you should beware of accidental recursion.
+                </para>
+            </section>
+
+            <section xml:id="datamodel.container.gpc.using">
+                <title>Using <classname>GeneratedPropertyContainer</classname></title>
+
+                <para>
+                    Finally, you need to bind the
+                    <classname>GeneratedPropertyContainer</classname> to the component
+                    instead of the wrapped container.
+                </para>
+
+                <programlisting><?pocket-size 75% ?><![CDATA[Grid grid = new Grid(gpcontainer);]]></programlisting>
+
+                <para>
+                    When using <classname>GeneratedPropertyContainer</classname> in
+                    <classname>Grid</classname>, notice that generated columns are
+                    read-only, so you can not add grid rows with
+                    <methodname>addRow()</methodname>. In editable mode, editor fields are
+                    not generated for generated columns.
+                </para>
+            </section>
+
+            <section xml:id="datamodel.container.gpc.sorting">
+                <title>Sorting</title>
+
+                <para>
+                    Even though the <classname>GeneratedPropertyContainer</classname>
+                    implements <interfacename>Container.Sortable</interfacename>, the
+                    wrapped container must also support it or otherwise sorting is
+                    disabled. Also, the generated properties are not normally sortable,
+                    but require special handling to enable sorting.
+                </para>
+            </section>
+        </section>
+
+        <section xml:id="datamodel.container.filtered">
+            <title><classname>Filterable</classname> Containers</title>
+
+            <indexterm xml:id="term.datamodel.container.filtered.filterable" class="startofrange">
+                <primary>Container</primary>
+                <secondary>Filterable</secondary>
+            </indexterm>
+            <indexterm xml:id="term.datamodel.container.filtered.filters" class="startofrange">
+                <primary><classname>Filter</classname> (in <classname>Container</classname>)</primary>
+            </indexterm>
+
+            <para>
+                Containers that implement the <classname>Container.Filterable</classname>
+                interface can be filtered. For example, the built-in
+                <classname>IndexedContainer</classname> and the bean item containers
+                implement it. Filtering is typically used for filtering the content of a
+                <classname>Table</classname>.
+
+                <indexterm><primary><classname>IndexedContainer</classname></primary></indexterm>
+                <indexterm><primary><classname>Table</classname></primary></indexterm>
+            </para>
+
+            <para>
+                Filters implement the <classname>Filter</classname> interface and you add
+                them to a filterable container with the
+                <methodname>addContainerFilter()</methodname> method. Container items that
+                pass the filter condition are kept and shown in the filterable component.
+
+                <indexterm><primary><methodname>addContainerFilter()</methodname></primary></indexterm>
+            </para>
+
+            <book-example eid="datamodel.container.filter.basic" style="float: right"></book-example>
+
+            <programlisting><![CDATA[Filter filter = new SimpleStringFilter("name",
+        "Douglas", true, false);
+table.addContainerFilter(filter);]]></programlisting>
+
+            <para>
+                If multiple filters are added to a container, they are evaluated using the
+                logical AND operator so that only items that are passed by all the filters
+                are kept.
+            </para>
+
+            <section xml:id="datamodel.container.filtered.composite">
+                <title>Atomic and Composite Filters</title>
+
+                <para>
+                    Filters can be classified as <emphasis>atomic</emphasis> and
+                    <emphasis>composite</emphasis>. Atomic filters, such as
+                    <classname>SimpleStringFilter</classname>, define a single condition,
+                    usually for a specific container property. Composite filters make
+                    filtering decisions based on the result of one or more other
+                    filters. The built-in composite filters implement the logical
+                    operators AND, OR, or NOT.
+                </para>
+
+                <para>
+                    For example, the following composite filter would filter out items where
+                    the <literal>name</literal> property contains the name "Douglas" somewhere
+                    <emphasis>or</emphasis> where the <literal>age</literal> property has
+                    value less than 42. The properties must have <classname>String</classname>
+                    and <classname>Integer</classname> types, respectively.
+                </para>
+
+                <programlisting><![CDATA[
+filter = new Or(new SimpleStringFilter("name",
+        "Douglas", true, false),
+        new Compare.Less("age", 42));]]></programlisting>
+            </section>
+
+            <section xml:id="datamodel.container.filtered.builtin">
+                <title>Built-In Filter Types</title>
+
+                <para>
+                    The built-in filter types are the following:
+                </para>
+
+                <variablelist>
+                    <varlistentry>
+                        <term><classname>SimpleStringFilter</classname></term>
+                        <listitem>
+                            <indexterm><primary><classname>SimpleStringFilter</classname></primary></indexterm>
+                            <para>
+                                Passes items where the specified property, that must be of
+                                <classname>String</classname> type, contains the given
+                                <parameter>filterString</parameter> as a substring. If
+                                <parameter>ignoreCase</parameter> is
+                                <parameter>true</parameter>, the search is case
+                                insensitive. If the <parameter>onlyMatchPrefix</parameter> is
+                                <parameter>true</parameter>, the substring may only be in the
+                                beginning of the string, otherwise it may be elsewhere as
+                                well.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><classname>IsNull</classname></term>
+                        <listitem>
+                            <indexterm><primary><classname>IsNull</classname> (filter)</primary></indexterm>
+                            <para>
+                                Passes items where the specified property has null value. For
+                                in-memory filtering, a simple <literal>==</literal> check is
+                                performed. For other containers, the comparison implementation
+                                is container dependent, but should correspond to the in-memory
+                                null check.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><classname>Equal</classname>,
+                            <classname>Greater</classname>,
+                            <classname>Less</classname>,
+                            <classname>GreaterOrEqual</classname>, and
+                            <classname>LessOrEqual</classname></term>
+                        <listitem>
+                            <indexterm><primary><classname>Equal</classname> (filter)</primary></indexterm>
+                            <indexterm><primary><classname>Greater</classname> (filter)</primary></indexterm>
+                            <indexterm><primary><classname>Less</classname> (filter)</primary></indexterm>
+                            <indexterm><primary><classname>GreaterOrEqual</classname> (filter)</primary></indexterm>
+                            <indexterm><primary><classname>LessOrEqual</classname> (filter)</primary></indexterm>
+                            <para>
+                                The comparison filter implementations compare the specified
+                                property value to the given constant and pass items for which
+                                the comparison result is true. The comparison operators are
+                                included in the abstract <classname>Compare</classname> class.
+                            </para>
+                            <para>
+                                For the <classname>Equal</classname> filter, the
+                                <methodname>equals()</methodname> method for the property is
+                                used in built-in in-memory containers. In other types of
+                                containers, the comparison is container dependent and may use,
+                                for example, database comparison operations.
+                            </para>
+                            <para>
+                                For the other filters, the property value type must implement
+                                the <classname>Comparable</classname> interface to work with
+                                the built-in in-memory containers. Again for the other types
+                                of containers, the comparison is container dependent.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><classname>And</classname> and <classname>Or</classname></term>
+                        <listitem>
+                            <indexterm><primary><classname>And</classname> (filter)</primary></indexterm>
+                            <indexterm><primary><classname>Or</classname> (filter)</primary></indexterm>
+                            <para>
+                                These logical operator filters are composite filters that
+                                combine multiple other filters.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><classname>Not</classname></term>
+                        <listitem>
+                            <indexterm><primary><classname>Not</classname> (filter)</primary></indexterm>
+                            <para>
+                                The logical unary operator filter negates which items are
+                                passed by the filter given as the parameter.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                </variablelist>
+            </section>
+
+            <section xml:id="datamodel.container.filtered.custom">
+                <title>Implementing Custom Filters</title>
+
+                <para>
+                    A custom filter needs to implement the
+                    <classname>Container.Filter</classname> interface.
+                </para>
+
+                <para>
+                    A filter can use a single or multiple properties for the filtering
+                    logic. The properties used by the filter must be returned with the
+                    <methodname>appliesToProperty()</methodname> method. If the filter
+                    applies to a user-defined property or properties, it is customary to
+                    give the properties as the first argument for the constructor of the
+                    filter.
+                </para>
+
+                <book-example eid="datamodel.container.filter.custom" style="float: right"></book-example>
+                <programlisting><?pocket-size 65% ?><![CDATA[class MyCustomFilter implements Container.Filter {
+    protected String propertyId;
+    protected String regex;
+    
+    public MyCustomFilter(String propertyId, String regex) {
+        this.propertyId = propertyId;
+        this.regex      = regex;
+    }
+
+    /** Tells if this filter works on the given property. */
+    @Override
+    public boolean appliesToProperty(Object propertyId) {
+        return propertyId != null &&
+               propertyId.equals(this.propertyId);
+    }]]></programlisting>
+
+                <para>
+                    The actual filtering logic is done in the
+                    <methodname>passesFilter()</methodname> method, which simply returns
+                    <literal>true</literal> if the item should pass the filter and
+                    <literal>false</literal> if it should be filtered out.
+                </para>
+
+                <book-example eid="datamodel.container.filter.custom" style="float: right"></book-example>
+                <programlisting><?pocket-size 65% ?><![CDATA[    /** Apply the filter on an item to check if it passes. */
+    @Override
+    public boolean passesFilter(Object itemId, Item item)
+            throws UnsupportedOperationException {
+        // Acquire the relevant property from the item object
+        Property p = item.getItemProperty(propertyId);
+        
+        // Should always check validity
+        if (p == null || !p.getType().equals(String.class))
+            return false;
+        String value = (String) p.getValue();
+        
+        // The actual filter logic
+        return value.matches(regex);
+    }
+}]]></programlisting>
+
+				<?dbfo-need height="4cm" ?>
+                <para>
+                    You can use such a custom filter just like any other:
+                </para>
+
+                <programlisting><?pocket-size 75% ?><![CDATA[c.addContainerFilter(
+    new MyCustomFilter("Name", (String) tf.getValue()));]]></programlisting>
+
+            </section>
+
+            <indexterm startref="term.datamodel.container.filtered.filters" class="endofrange"/>
+            <indexterm startref="term.datamodel.container.filtered.filterable" class="endofrange"/>
+        </section>
+
+        <indexterm startref="term.datamodel.container" class="endofrange"/>
+	</section>
+
+    <indexterm startref="term.datamodel" class="endofrange"/>
+</chapter>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: xml
+sgml-omittag:nil
+sgml-shorttag:nil
+sgml-namecase-general:nil
+sgml-general-insert-case:lower
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:4
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-exposed-tags:nil
+sgml-local-catalogs:("/etc/sgml/catalog" "/usr/share/xemacs21/xemacs-packages/etc/psgml-dtds/CATALOG")
+sgml-local-ecat-files:("ECAT" "~/sgml/ECAT" "/usr/share/sgml/ECAT" "/usr/local/share/sgml/ECAT" "/usr/local/lib/sgml/ECAT")
+End:
+-->
+

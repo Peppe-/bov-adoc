@@ -1,0 +1,2947 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ====================================================================== -->
+<!-- Copyright 2000-2012 Vaadin Ltd                                         -->
+<!-- All Rights Reserved                                                    -->
+<!-- This work is licensed under a Creative Commons Attribution-NoDerivs    -->
+<!-- License (CC-BY-ND) Version 3.0. Full license text is available at:     -->
+<!-- http://creativecommons.org/licenses/by-nd/3.0/legalcode                -->
+<!-- ====================================================================== -->
+
+<chapter xml:id="layout">
+	<title>Managing Layout</title>
+
+		<para>
+			Ever since the ancient xeroxians invented graphical user interfaces,
+			programmers have wanted to make GUI programming ever easier for
+			themselves. Solutions started simple. When GUIs appeared on PC
+			desktops, practically all screens were of the VGA type and fixed into
+			640x480 size. Mac or X Window System on UNIX were not much
+			different. Everyone was so happy with such awesome graphics
+			resolutions that they never thought that an application would have to
+			work on a radically different screen size. At worst, screens could
+			only grow, they thought, giving more space for more windows. In the
+			80s, the idea of having a computer screen in your pocket was simply
+			not realistic. Hence, the GUI APIs allowed placing UI components
+			using screen coordinates. Visual Basic and some other systems
+			provided an easy way for the designer to drag and drop components on
+			a fixed-sized window. One would have thought that at least
+			translators would have complained about the awkwardness of such a solution,
+			but apparently they were not, as non-engineers, heard or at least
+			cared about. At best, engineers could throw at them a resource editor
+			that would allow them to resize the UI components by hand. Such was
+			the spirit back then.
+		</para>
+			
+		<para>
+			After the web was born, layout design was doomed to change for ever.
+			At first, layout didn't matter much, as everyone was happy with plain
+			headings, paragraphs, and a few hyperlinks here and there.  Designers
+			of HTML wanted the pages to run on any screen size. The screen size
+			was actually not pixels but rows and columns of characters, as the
+			baby web was really just hyper<emphasis>text</emphasis>, not
+			graphics. That was soon to be changed. The first GUI-based browser,
+			NCSA Mosaic, launched a revolution that culminated in Netscape
+			Navigator. Suddenly, people who had previously been doing
+			advertisement brochures started writing HTML. This meant that layout
+			design had to be easy not just for programmers, but also allow the
+			graphics designer to do his or her job without having to know a thing
+			about programming. The W3C committee designing web standards came up
+			with the CSS (Cascading Style Sheet) specification, which allowed trivial separation of
+			appearance from content. Later versions of HTML followed, XHTML and HTML 5
+			appeared, as did countless other standards.
+		</para>
+			
+		<para>
+			Page description and markup languages are a wonderful solution for static
+			presentations, such as books and most web pages. Real applications, however,
+			need to have more control. They need to be able to change the state of user
+			interface components and even their layout on the run. This creates a need to
+			separate the presentation from content on exactly the right level. <!-- Vaadin
+			provides a solution for this, using themes and CSS, but let us first look at
+			what Java did for UI programming. -->
+
+			<!-- Changing the layout steps right on the feet of the graphics
+			designers, so we have a conflict. We will discuss this conflict
+			later, but let us first look at what Java did for UI programming. -->
+		</para>
+			
+		<para>
+			Thanks to the attack of graphics designers, desktop applications were, when it
+			comes to appearance, far behind web design. Sun Microsystems had come in 1995
+			with a new programming language, Java, for writing cross-platform desktop
+			applications. Java's original graphical user interface toolkit, AWT (Abstract
+			Windowing Toolkit), was designed to work on multiple operating systems as well
+			as embedded in web browsers. One of the special aspects of AWT was the layout
+			manager, which allowed user interface components to be flexible, growing and
+			shrinking as needed. This made it possible for the user to resize the
+			windows of an application flexibly and also served the needs of localization,
+			as text strings were not limited to some fixed size in pixels. It became even
+			possible to resize the pixel size of fonts, and the rest of the layout
+			adapted to the new size.
+		</para>
+
+		<para>
+			Layout management of Vaadin is a direct successor of the web-based concept for
+			separation of content and appearance and of the Java AWT solution for binding
+			the layout and user interface components into objects in programs. Vaadin
+			layout components allow you to position your UI components on the screen in a
+			hierarchical fashion, much like in conventional Java UI toolkits such as AWT,
+			Swing, or SWT. In addition, you can approach the layout from the direction of
+			the web with the <classname>CustomLayout</classname> component, which you can
+			use to write your layout as a template in HTML that provides locations of any
+			contained components. The <classname>AbsoluteLayout</classname> allows the
+			old-style pixel-position based layouting, but it also supports percentual
+			values, which makes it usable for scalable layouts. It is also useful as an
+			area on which the user can position items with drag and drop.
+		</para>
+
+		<para>
+			The moral of the story is that, because Vaadin is intended
+			for web applications, appearance is of high importance. The solutions
+			have to be the best of both worlds and satisfy artists of both
+			kind: code and graphics. On the API side, the layout is controlled by UI
+			components, particularly the layout components. On the visual side, it is controlled by themes. Themes
+			can contain any HTML, Sass, CSS, and JavaScript that you or your web
+			artists create to make people feel good about your software.
+		</para>
+			
+	<section xml:id="layout.overview">
+		<title>Overview</title>
+
+        <para>
+            The user interface components in Vaadin can roughly be divided in two groups:
+            components that the user can interact with and layout components for placing
+            the other components to specific places in the user interface. The layout
+            components are identical in their purpose to layout managers in regular
+            desktop frameworks for Java and you can use plain Java to accomplish
+            sophisticated component layouting.
+        </para>
+
+		<para>
+			You start by creating a content layout for the UI and then add other layout
+			components hierarchically, and finally the interaction components as the
+			leaves of the component tree.
+		</para>
+
+        <programlisting><?pocket-size 70% ?><![CDATA[// Set the root layout for the UI
+VerticalLayout content = new VerticalLayout();
+setContent(content);
+
+// Add the topmost component.
+content.addComponent(new Label("The Ultimate Cat Finder"));
+
+// Add a horizontal layout for the bottom part.
+HorizontalLayout bottom = new HorizontalLayout();
+content.addComponent(bottom);
+
+bottom.addComponent(new Tree("Major Planets and Their Moons"));
+bottom.addComponent(new Panel());
+...]]></programlisting>
+
+        <para>
+            Or in the declarative format:
+        </para>
+
+        <programlisting><?pocket-size 70% ?><![CDATA[<v-vertical-layout>
+  <v-label>The Ultimate Cat Finder</v-label>
+
+  <v-horizontal-layout>
+    <v-tree caption="Major Planets and Their Moons"/>
+    <v-panel/>
+  </v-horizontal-layout>
+</v-vertical-layout>]]></programlisting>
+
+		<para>
+			You will usually need to tune the layout components a bit by setting sizes,
+			expansion ratios, alignments, spacings, and so on. The general settings are
+			described in <xref linkend="layout.settings"/>.
+		</para>
+
+		<para>
+			Layouts are coupled with themes that specify various layout features, such as
+			backgrounds, borders, text alignment, and so on. Definition and use of themes
+			is described in <xref linkend="themes"/>.
+		</para>
+
+		<para>
+			You can see a finished version of the above example in <xref
+			linkend="figure.layout.intro.simple"/>.
+		</para>
+
+		<figure xml:id="figure.layout.intro.simple">
+			<title>Layout Example</title>
+			<mediaobject>
+				<imageobject role="html">
+					<imagedata align="center" fileref="img/layout/layout-intro-example-1.png"/>
+				</imageobject>
+				<imageobject role="fo">
+					<imagedata scale="120" align="center" fileref="img/layout/layout-intro-example-1.png"/>
+				</imageobject>
+			</mediaobject>
+		</figure>
+    </section>
+
+    <section xml:id="layout.root-layout">
+        <title>UI, Window, and Panel Content</title>
+
+        <para>
+            The <classname>UI</classname>, <classname>Window</classname>, and
+            <classname>Panel</classname> all have a single content component, which you
+            need to set with <methodname>setContent()</methodname>. The content is usually
+            a layout component, although any component is allowed.
+        </para>
+
+        <programlisting><?pocket-size 70% ?><![CDATA[Panel panel = new Panel("This is a Panel");
+VerticalLayout panelContent = new VerticalLayout();
+panelContent.addComponent(new Label("Hello!"));
+panel.setContent(panelContent);
+
+// Set the panel as the content of the UI
+setContent(panel);]]></programlisting>
+
+        <para>
+            The size of the content is the default size of the particular layout
+            component, for example, a <classname>VerticalLayout</classname> has 100% width
+            and undefined height by default (this coincides with the defaults for
+            <classname>Panel</classname> and <classname>Label</classname>). If such a
+            layout with undefined height grows higher than the browser window, it will
+            flow out of the view and scrollbars will appear. In many applications, you
+            want to use the full area of the browser view. Setting the components
+            contained inside the content layout to full size is not enough, and would
+            actually lead to an invalid state if the height of the content layout is
+            undefined.
+        </para>
+
+        <programlisting><?pocket-size 70% ?><![CDATA[// First set the root content for the UI
+VerticalLayout content = new VerticalLayout();
+setContent(content);
+
+// Set the content size to full width and height
+content.setSizeFull();
+
+// Add a title area on top of the screen. This takes
+// just the vertical space it needs.
+content.addComponent(new Label("My Application"));
+
+// Add a menu-view area that takes rest of vertical space
+HorizontalLayout menuview = new HorizontalLayout();
+menuview.setSizeFull();
+content.addComponent(menuview);]]></programlisting>
+
+        <para>
+            See <xref linkend="layout.settings.size"/> for more
+            information about setting layout sizes.
+        </para>
+
+    </section>
+		
+    <section xml:id="layout.orderedlayout">
+        <title><classname>VerticalLayout</classname> and <classname>HorizontalLayout</classname></title>
+        
+        <para>
+            <classname>VerticalLayout</classname> and
+            <classname>HorizontalLayout</classname> are ordered layouts for laying
+            components out either vertically or horizontally, respectively. They both
+            extend from <classname>AbstractOrderedLayout</classname>, together with the
+            <classname>FormLayout</classname>. These are the two most important layout
+            components in Vaadin, and typically you have a
+            <classname>VerticalLayout</classname> as the root content of a UI.
+        </para>
+
+        <para>
+            <classname>VerticalLayout</classname> has 100% default width and undefined
+            height, so it fills the containing layout (or UI) horizontally, and fits its
+            content vertically. <classname>HorizontalLayout</classname> has undefined size
+            in both dimensions.
+        </para>
+
+        <para>
+            Typical use of the layouts goes as follows:
+        </para>
+
+        <book-example eid="layout.orderedlayout.basic" style="float: right"></book-example>
+        <programlisting><![CDATA[VerticalLayout vertical = new VerticalLayout ();
+vertical.addComponent(new TextField("Name"));
+vertical.addComponent(new TextField("Street address"));
+vertical.addComponent(new TextField("Postal code"));
+layout.addComponent(vertical);]]></programlisting>
+
+        <para>
+            The component captions are placed above the component, so the layout will look
+            as follows:
+        </para>
+
+        <screenshot>
+            <mediaobject>
+                <imageobject>
+                    <imagedata align="center" fileref="img/layout/orderedlayout_vertical.png"/>
+                </imageobject>
+            </mediaobject>
+        </screenshot>
+        
+        <para>
+            Using <classname>HorizontalLayout</classname> gives the following layout:
+        </para>
+        
+        <screenshot>
+            <mediaobject>
+                <imageobject role="html">
+                    <imagedata align="center" fileref="img/layout/orderedlayout_horizontal.png"/>
+                </imageobject>
+                <imageobject role="fo">
+                    <imagedata scale="60" align="center" fileref="img/layout/orderedlayout_horizontal.png"/>
+                </imageobject>
+            </mediaobject>
+        </screenshot>
+
+        <section xml:id="layout.orderedlayout.properties">
+            <title>Properties or Attributes</title>
+
+            <para>
+                Ordered layouts have the following properties:
+            </para>
+
+			<table xml:id="layout.orderedlayout.properties.table">
+				<title>Properties and Declarative Attributes</title>
+
+				<tgroup cols="2" align="left">
+					<tbody>
+						<row valign="top">
+							<entry>Property</entry>
+							<entry>Declarative Attribute</entry>
+                        </row>
+                    </tbody>
+					<tbody>
+						<row valign="top">
+							<entry><parameter>componentAlignment</parameter></entry>
+							<entry>In child components: <literal>:left</literal> (default), <literal>:center</literal>, <literal>:right</literal>, <literal>:top</literal> (default), <literal>:middle</literal>, <literal>:bottom</literal></entry>
+						</row>
+
+						<row valign="top">
+							<entry><parameter>spacing</parameter></entry>
+							<entry><parameter>spacing</parameter><replaceable>[=&lt;boolean&gt;]</replaceable></entry>
+						</row>
+
+						<row valign="top">
+							<entry><parameter>margin</parameter></entry>
+							<entry><parameter>margin</parameter><replaceable>[=&lt;boolean&gt;]</replaceable></entry>
+						</row>
+
+						<row valign="top">
+							<entry><parameter>expandRatio</parameter></entry>
+							<entry>In child components: <parameter>:expand</parameter>=<replaceable>&lt;integer&gt;</replaceable> or <parameter>:expand</parameter> (implies ratio 1)</entry>
+						</row>
+                    </tbody>
+                </tgroup>
+            </table>
+        </section>
+
+        <section xml:id="layout.orderedlayout.spacing">
+            <title>Spacing in Ordered Layouts</title>
+
+            <para>
+                The ordered layouts can have spacing between the horizontal or vertical
+                cells. The spacing can be enabled with
+                <methodname>setSpacing(true)</methodname> or declaratively with the
+                <literal>spacing</literal> attribute.
+            </para>
+
+            <para>
+                The spacing as a default height or width, which can be customized in
+                CSS. You need to set the height or width for spacing elements with
+                <literal>v-spacing</literal> style. You also need to specify an enclosing
+                rule element in a CSS selector, such as
+                <literal>v-verticallayout</literal> for a
+                <classname>VerticalLayout</classname> or
+                <literal>v-horizontallayout</literal> for a
+                <classname>HorizontalLayout</classname>. You can also use
+                <literal>v-vertical</literal> and <literal>v-horizontal</literal> for all
+                vertically or horizontally ordered layouts, such as
+                <classname>FormLayout</classname>.
+            </para>
+
+            <para>
+                For example, the following sets the amount of spacing for all
+                <classname>VerticalLayout</classname>s, as well as
+                <classname>FormLayout</classname>, in the UI:
+            </para>
+
+            <programlisting><![CDATA[.v-vertical > .v-spacing {
+    height: 30px;
+}]]></programlisting>
+
+            <para>
+                Or for <classname>HorizontalLayout</classname>:
+            </para>
+
+            <programlisting><![CDATA[.v-horizontal > .v-spacing {
+    width: 50px;
+}]]></programlisting>
+       </section>
+
+        <section xml:id="layout.orderedlayout.sizing">
+            <title>Sizing Contained Components</title>
+
+            <para>
+                The components contained within an ordered layout can be laid out in a
+                number of different ways depending on how you specify their height or
+                width in the primary direction of the layout component.
+            </para>
+
+            <figure xml:id="figure.layout.orderedlayout.size.summary">
+                <title>Component Widths in <classname>HorizontalLayout</classname></title>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata smallscale="100%" align="center" fileref="img/layout/horizontallayout_sizing.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+
+            <para>
+                <xref linkend="figure.layout.orderedlayout.size.summary"/> above gives a
+                summary of the sizing options for a
+                <classname>HorizontalLayout</classname>. The figure is broken down in the
+                following subsections.
+            </para>
+
+            <simplesect xml:id="layout.orderedlayout.sizing.undefined">
+                <title>Layout with Undefined Size</title>
+
+                <para>
+                    If a <classname>VerticalLayout</classname> has undefined height or
+                    <classname>HorizontalLayout</classname> undefined width, the layout
+                    will shrink to fit the contained components so that there is no extra
+                    space between them.
+                </para>
+
+                <programlisting><?pocket-size 65% ?><![CDATA[HorizontalLayout fittingLayout = new HorizontalLayout();
+fittingLayout.setWidth(Sizeable.SIZE_UNDEFINED, 0); // Default
+fittingLayout.addComponent(new Button("Small"));
+fittingLayout.addComponent(new Button("Medium-sized"));
+fittingLayout.addComponent(new Button("Quite a big component"));
+parentLayout.addComponent(fittingLayout);]]></programlisting>
+
+                <mediaobject>
+                    <imageobject>
+                        <imagedata smallscale="100%" align="center" fileref="img/layout/horizontallayout_width_undefined.png"/>
+                    </imageobject>
+                </mediaobject>
+
+                <para>
+                    The both layouts actually have undefined height by default and
+                    <classname>HorizontalLayout</classname> has also undefined width,
+                    while <classname>VerticalLayout</classname> has 100% relative width.
+                </para>
+
+                <para>
+                    If such a vertical layout with undefined height continues below the
+                    bottom of a window (a <classname>Window</classname> object), the
+                    window will pop up a vertical scroll bar on the right side of the
+                    window area. This way, you get a "web page". The same applies to
+                    <classname>Panel</classname>.
+                </para>
+
+                <warning>
+                    <title>A layout that contains components with percentual size must have a
+                        defined size!</title>
+                    
+                    <para>
+                        If a layout has undefined size and a contained component has, say,
+                        100% size, the component would fill the space given by the layout,
+                        while the layout would shrink to fit the space taken by the
+                        component, which would be a paradox. This requirement holds for
+                        height and width separately. The debug window allows detecting
+                        such invalid cases; see <xref
+                        linkend="advanced.debug.hierarchy"/>.
+                    </para>
+                </warning>
+
+                <para>
+                    An exception to the above rule is a case where you have a layout with
+                    undefined size that contains a component with a fixed or undefined
+                    size together with one or more components with relative size. In this
+                    case, the contained component with fixed (or undefined) size in a
+                    sense defines the size of the containing layout, removing the
+                    paradox. That size is then used for the relatively sized components.
+                </para>
+
+                <para>
+                    The technique can be used to define the width of a
+                    <classname>VerticalLayout</classname> or the height of a
+                    <classname>HorizontalLayout</classname>.
+                </para>
+
+                <book-example eid="layout.orderedlayout.sizing.sizing-undefined-defining" style="float: right"></book-example>
+<programlisting><?pocket-size 65% ?><![CDATA[// Vertical layout would normally have 100% width
+VerticalLayout vertical = new VerticalLayout();
+        
+// Shrink to fit the width of contained components
+vertical.setWidth(Sizeable.SIZE_UNDEFINED, 0);
+        
+// Label has normally 100% width, but we set it as
+// undefined so that it will take only the needed space
+Label label =
+    new Label("\u2190 The VerticalLayout shrinks to fit "+
+              "the width of this Label \u2192");
+label.setWidth(Sizeable.SIZE_UNDEFINED, 0);
+vertical.addComponent(label);
+        
+// Button has undefined width by default
+Button butt = new Button("\u2190 This Button takes 100% "+
+                         "of the width \u2192");
+butt.setWidth("100%");
+vertical.addComponent(butt);]]></programlisting>
+
+                <figure xml:id="figure.layout.orderedlayout.sizing.undefined.defining">
+                    <title>Defining the Size with a Component</title>
+                    <mediaobject>
+                        <imageobject role="html">
+                            <imagedata align="center" fileref="img/layout/orderedlayout-sizing-undefined.png"/>
+                        </imageobject>
+                        <imageobject role="fo">
+                            <imagedata smallscale="70%" align="center" fileref="img/layout/orderedlayout-sizing-undefined.png"/>
+                        </imageobject>
+                    </mediaobject>
+                </figure>
+            </simplesect>
+
+            <simplesect>
+                <title>Layout with Defined Size</title>
+
+                <para>
+                    If you set a <classname>HorizontalLayout</classname> to a defined size
+                    horizontally or a <classname>VerticalLayout</classname> vertically,
+                    and there is space left over from the contained components, the extra
+                    space is distributed equally between the component cells. The
+                    components are aligned within these cells according to their
+                    alignment setting, top left by default, as in the example below.
+                </para>
+
+                <programlisting><![CDATA[fixedLayout.setWidth("400px");]]></programlisting>
+
+                <mediaobject>
+                    <imageobject>
+                        <imagedata smallscale="100%" align="center" fileref="img/layout/horizontallayout_width_defined.png"/>
+                    </imageobject>
+                </mediaobject>
+
+                <para>
+                    Using percentual sizes for components contained in a layout requires
+                    answering the question, "Percentage of what?" There is no sensible
+                    default answer for this question in the current implementation of the
+                    layouts, so in practice, you may not define "100%" size alone.
+                </para>
+            </simplesect>
+
+            <simplesect>
+                <title>Expanding Components</title>
+
+                <para>
+                    Often, you want to have one component that takes all the available
+                    space left over from other components. You need to set its size as
+                    100% and set it as <emphasis>expanding</emphasis> with
+                    <methodname>setExpandRatio()</methodname>. The second parameter for
+                    the method is an expansion ratio, which is relevant if there are more
+                    than one expanding component, but its value is irrelevant for a single
+                    expanding component.
+                </para>
+
+                <programlisting><![CDATA[HorizontalLayout layout = new HorizontalLayout();
+layout.setWidth("400px");
+
+// These buttons take the minimum size.
+layout.addComponent(new Button("Small"));
+layout.addComponent(new Button("Medium-sized"));
+
+// This button will expand.
+Button expandButton = new Button("Expanding component");
+
+// Use 100% of the expansion cell's width.
+expandButton.setWidth("100%");
+
+// The component must be added to layout before setting the ratio.
+layout.addComponent(expandButton);
+
+// Set the component's cell to expand.
+layout.setExpandRatio(expandButton, 1.0f);
+
+parentLayout.addComponent(layout);]]></programlisting>
+
+                <para>
+                    In the declarative format, you need to specify the
+                    <literal>:expand</literal> attribute in the child components. The
+                    attribute defaults to expand ratio 1.
+                </para>
+
+                <mediaobject>
+                    <imageobject>
+                        <imagedata smallscale="100%" align="center" fileref="img/layout/horizontallayout_width_expanding.png"/>
+                    </imageobject>
+                </mediaobject>
+                
+                <para>
+                    Notice that you can not call <methodname>setExpandRatio()</methodname>
+                    before you have added the component to the layout, because it can not
+                    operate on an component that it doesn't yet have.
+                </para>
+            </simplesect>
+
+            <simplesect>
+                <title>Expand Ratios</title>
+
+                <para>
+                    If you specify an expand ratio for multiple components, they will all
+                    try to use the available space according to the ratio.
+                </para>
+
+                <programlisting><![CDATA[HorizontalLayout layout = new HorizontalLayout();
+layout.setWidth("400px");
+
+// Create three equally expanding components.
+String[] captions = { "Small", "Medium-sized",
+                      "Quite a big component" };
+for (int i = 1; i <= 3; i++) {
+    Button button = new Button(captions[i-1]);
+    button.setWidth("100%");
+    layout.addComponent(button);
+
+    // Have uniform 1:1:1 expand ratio.
+    layout.setExpandRatio(button, 1.0f);
+}]]></programlisting>
+
+                <mediaobject>
+                    <imageobject>
+                        <imagedata smallscale="100%" align="center" fileref="img/layout/horizontallayout_width_expand_uniform.png"/>
+                    </imageobject>
+                </mediaobject>
+
+                <para>
+                    As the example used the same ratio for all components, the ones with more
+                    content may have the content cut. Below, we use differing ratios:
+                </para>
+
+                <programlisting><![CDATA[// Expand ratios for the components are 1:2:3.
+layout.setExpandRatio(button, i * 1.0f);]]></programlisting>
+
+                <mediaobject>
+                    <imageobject>
+                        <imagedata smallscale="100%" align="center" fileref="img/layout/horizontallayout_width_expand_ratios.png"/>
+                    </imageobject>
+                </mediaobject>
+
+                <para>
+                    If the size of the expanding components is defined as a percentage
+                    (typically "100%"), the ratio is calculated from the
+                    <emphasis>overall</emphasis> space available for the relatively sized
+                    components. For example, if you have a 100 pixels wide layout with two
+                    cells with 1.0 and 4.0 respective expansion ratios, and both the
+                    components in the layout are set as
+                    <methodname>setWidth("100%")</methodname>, the cells will have
+                    respective widths of 20 and 80 pixels, regardless of the minimum size
+                    of the components.
+                </para>
+
+                <para>
+                    However, if the size of the contained components is undefined or
+                    fixed, the expansion ratio is of the <emphasis>excess</emphasis>
+                    available space. In this case, it is the excess space that expands, not
+                    the components.
+                </para>
+
+                <programlisting><![CDATA[for (int i = 1; i <= 3; i++) {
+    // Button with undefined size.
+    Button button = new Button(captions[i - 1]);
+    
+    layout4.addComponent(button);
+
+    // Expand ratios are 1:2:3.
+    layout4.setExpandRatio(button, i * 1.0f);
+}]]></programlisting>
+
+                <mediaobject>
+                    <imageobject>
+                        <imagedata smallscale="100%" align="center" fileref="img/layout/horizontallayout_width_expand_ratios-2.png"/>
+                    </imageobject>
+                </mediaobject>
+
+                <para>
+                    It is not meaningful to combine expanding components with percentually
+                    defined size and components with fixed or undefined size. Such
+                    combination can lead to a very unexpected size for the percentually
+                    sized components.
+                </para>
+            </simplesect>
+
+            <simplesect>
+                <title>Percentage of Cells</title>
+
+                <para>
+                    A percentual size of a component defines the size of the component
+                    <emphasis>within its cell</emphasis>. Usually, you use "100%", but a
+                    smaller percentage or a fixed size (smaller than the cell size) will
+                    leave an empty space in the cell and align the component within the
+                    cell according to its alignment setting, top left by default.
+                </para>
+
+                <programlisting><![CDATA[HorizontalLayout layout50 = new HorizontalLayout();
+layout50.setWidth("400px");
+
+String[] captions1 = { "Small 50%", "Medium 50%",
+                       "Quite a big 50%" };
+for (int i = 1; i <= 3; i++) {
+    Button button = new Button(captions1[i-1]);
+    button.setWidth("50%");
+    layout50.addComponent(button);
+
+    // Expand ratios for the components are 1:2:3.
+    layout50.setExpandRatio(button, i * 1.0f);
+}
+parentLayout.addComponent(layout50);]]></programlisting>
+
+                <mediaobject>
+                    <imageobject>
+                        <imagedata smallscale="100%" align="center" fileref="img/layout/horizontallayout_width_expand_percentage.png"/>
+                    </imageobject>
+                </mediaobject>
+            </simplesect>
+        </section>
+    </section>
+    
+    <section xml:id="layout.gridlayout">
+        <title><classname>GridLayout</classname></title>
+        
+        <para>
+            <classname>GridLayout</classname> container lays components out on a grid,
+            defined by the number of columns and rows. The columns and rows of the grid
+            serve as coordinates that are used for laying out components on the grid. Each
+            component can use multiple cells from the grid, defined as an area
+            (x1,y1,x2,y2), although they typically take up only a single grid cell.
+        </para>
+        
+        <para>
+            The grid layout maintains a cursor for adding components in left-to-right,
+            top-to-bottom order. If the cursor goes past the bottom-right corner, it
+            will automatically extend the grid downwards by adding a new row.
+        </para>
+        
+        <para>
+            The following example demonstrates the use of
+            <classname>GridLayout</classname>. The
+            <methodname>addComponent</methodname> takes a component and optional
+            coordinates. The coordinates can be given for a single cell or for an area
+            in x,y (column,row) order. The coordinate values have a base value of
+            0. If coordinates are not given, the cursor will be used.
+        </para>
+        
+        <programlisting><?pocket-size 65% ?><![CDATA[// Create a 4 by 4 grid layout.
+GridLayout grid = new GridLayout(4, 4);
+grid.addStyleName("example-gridlayout");
+
+// Fill out the first row using the cursor.
+grid.addComponent(new Button("R/C 1"));
+for (int i = 0; i < 3; i++) {
+    grid.addComponent(new Button("Col " + (grid.getCursorX() + 1)));
+}
+
+// Fill out the first column using coordinates.
+for (int i = 1; i < 4; i++) {
+    grid.addComponent(new Button("Row " + i), 0, i);
+}
+
+// Add some components of various shapes.
+grid.addComponent(new Button("3x1 button"), 1, 1, 3, 1);
+grid.addComponent(new Label("1x2 cell"), 1, 2, 1, 3);
+InlineDateField date = new InlineDateField("A 2x2 date field");
+date.setResolution(DateField.RESOLUTION_DAY);
+grid.addComponent(date, 2, 2, 3, 3);]]></programlisting>
+
+        <para>
+            The resulting layout will look as follows. The borders have been
+            made visible to illustrate the layout cells.
+        </para>
+        
+        <figure xml:id="figure.ui.gridlayout">
+            <title>The Grid Layout Component</title>
+            <mediaobject>
+                <imageobject>
+                    <imagedata smallscale="130" align="center" fileref="img/layout/gridlayout.png"/>
+                </imageobject>
+            </mediaobject>
+        </figure>
+
+        <para>
+            A component to be placed on the grid must not overlap with existing
+            components. A conflict causes throwing a
+            <classname>GridLayout.OverlapsException</classname>.
+        </para>
+
+        <section>
+            <title>Sizing Grid Cells</title>
+            
+            <para>
+                You can define the size of both a grid layout and its components in
+                either fixed or percentual units, or leave the size undefined
+                altogether, as described in <xref
+					linkend="components.features.sizeable"/>. <xref
+					linkend="layout.settings.size"/> gives an introduction to sizing of
+                layouts.
+            </para>
+
+            <para>
+                The size of the <classname>GridLayout</classname> component is
+                undefined by default, so it will shrink to fit the size of the
+                components placed inside it. In most cases, especially if you set a
+                defined size for the layout but do not set the contained components to
+                full size, there will be some unused space. The position of the
+                non-full components within the grid cells will be determined by their
+                <emphasis>alignment</emphasis>. See <xref
+					linkend="layout.settings.alignment"/> for details on how to align the
+                components inside the cells.
+            </para>
+            
+            <para>
+                The components contained within a <classname>GridLayout</classname>
+                layout can be laid out in a number of different ways depending on how
+                you specify their height or width. The layout options are similar to
+                <classname>HorizontalLayout</classname> and
+                <classname>VerticalLayout</classname>, as described in <xref
+					linkend="layout.orderedlayout"/>.
+            </para>
+            
+			<warning>
+				<title>A layout that contains components with percentual size must have a
+				defined size!</title>
+				<para>
+					If a layout has undefined size and a contained component has, say,
+					100% size, the component would fill the space given by the layout,
+					while the layout would shrink to fit the space taken by the component,
+					which is a paradox. This requirement holds for height and width
+					separately. The debug mode allows detecting such invalid cases; see
+					<xref linkend="advanced.debug.mode"/>.
+				</para>
+            </warning>
+
+            <para>
+                Often, you want to have one or more rows or columns that take all the
+                available space left over from non-expanding rows or columns. You need
+                to set the rows or columns as <emphasis>expanding</emphasis> with
+                <methodname>setRowExpandRatio()</methodname> and
+                <methodname>setColumnExpandRatio()</methodname>. The first parameter
+                for these methods is the index of the row or column to set as
+                expanding. The second parameter for the methods is an expansion ratio,
+                which is relevant if there are more than one expanding row or column,
+                but its value is irrelevant if there is only one. With multiple
+                expanding rows or columns, the ratio parameter sets the relative
+                portion how much a specific row/column will take in relation with the
+                other expanding rows/columns.
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[GridLayout grid = new GridLayout(3,2);
+
+// Layout containing relatively sized components must have
+// a defined size, here is fixed size.
+grid.setWidth("600px");
+grid.setHeight("200px");
+
+// Add some content
+String labels [] = {
+        "Shrinking column<br/>Shrinking row",
+        "Expanding column (1:)<br/>Shrinking row",
+        "Expanding column (5:)<br/>Shrinking row",
+        "Shrinking column<br/>Expanding row",
+        "Expanding column (1:)<br/>Expanding row",
+        "Expanding column (5:)<br/>Expanding row"
+};
+for (int i=0; i<labels.length; i++) {
+    Label label = new Label(labels[i], ContentMode.HTML);
+    label.setWidth(null); // Set width as undefined
+    grid.addComponent(label);
+}
+
+// Set different expansion ratios for the two columns
+grid.setColumnExpandRatio(1, 1);
+grid.setColumnExpandRatio(2, 5);
+
+// Set the bottom row to expand
+grid.setRowExpandRatio(1, 1);
+
+// Align and size the labels.
+for (int col=0; col<grid.getColumns(); col++) {
+    for (int row=0; row<grid.getRows(); row++) {
+        Component c = grid.getComponent(col, row);
+        grid.setComponentAlignment(c, Alignment.TOP_CENTER);
+        
+        // Make the labels high to illustrate the empty
+        // horizontal space.
+        if (col != 0 || row != 0)
+            c.setHeight("100%");
+    }
+}]]></programlisting>
+
+            <figure xml:id="figure.ui.gridlayout.sizing.expanding">
+                <title>Expanding Rows and Columns in <classname>GridLayout</classname></title>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata smallscale="100%" align="center" fileref="img/layout/gridlayout_sizing_expanding.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+
+            <para>
+                If the size of the contained components is undefined or fixed, the
+                expansion ratio is of the <emphasis>excess</emphasis> space, as in
+                <xref linkend="figure.ui.gridlayout.sizing.expanding"/> (excess
+                horizontal space is shown in white). However, if the size of the all the
+                contained components in the expanding rows or columns is defined as a
+                percentage, the ratio is calculated from the
+                <emphasis>overall</emphasis> space available for the percentually
+                sized components. For example, if we had a 100 pixels wide grid layout
+                with two columns with 1.0 and 4.0 respective expansion ratios, and all
+                the components in the grid were set as
+                <methodname>setWidth("100%")</methodname>, the columns would have
+                respective widths of 20 and 80 pixels, regardless of the minimum size
+                of their contained components.
+            </para>
+            
+        </section>
+        
+        <simplesect>
+            <title>CSS Style Rules</title>
+            
+            <programlisting><![CDATA[.v-gridlayout {}
+.v-gridlayout-margin {}]]></programlisting>
+
+            <para>
+                The <markup>v-gridlayout</markup> is the root element of the
+                <classname>GridLayout</classname> component. The
+                <markup>v-gridlayout-margin</markup> is a simple element inside it
+                that allows setting a padding between the outer element and the cells.
+            </para>
+
+            <para>
+                For styling the individual grid cells, you should style the components
+                inserted in the cells. The implementation structure of the grid can
+                change, so depending on it, as is done in the example below, is not
+                generally recommended. Normally, if you want to have, for example, a
+                different color for a certain cell, just make set the component inside
+                it <methodname>setSizeFull()</methodname>, and add a style name for
+                it. Sometimes you may need to use a layout component between a cell
+                and its actual component just for styling.
+            </para>
+
+            <para>
+                The following example shows how to make the grid borders visible, as
+                in <xref linkend="figure.ui.gridlayout.sizing.expanding"/>.
+            </para>
+            
+            <programlisting><?pocket-size 65% ?><![CDATA[.v-gridlayout-gridexpandratio {
+    background: blue; /* Creates a "border" around the grid. */
+    margin:     10px; /* Empty space around the layout. */
+}
+
+/* Add padding through which the background color shows. */
+.v-gridlayout-gridexpandratio .v-gridlayout-margin {
+    padding: 2px;     
+}
+
+/* Add cell borders and make the cell backgrounds white.
+ * Warning: This depends heavily on the HTML structure. */
+.v-gridlayout-gridexpandratio > div > div > div {
+    padding:    2px;   /* Layout background will show through. */
+    background: white; /* The cells will be colored white. */
+}
+
+/* Components inside the layout are a safe way to style cells. */
+.v-gridlayout-gridexpandratio .v-label {
+    text-align: left;
+    background: #ffffc0; /* Pale yellow */
+}]]></programlisting>
+            
+            <para>
+                You should beware of <literal>margin</literal>,
+                <literal>padding</literal>, and <literal>border</literal> settings in
+                CSS as they can mess up the layout. The dimensions of layouts are
+                calculated in the Client-Side Engine of Vaadin and some
+                settings can interfere with these calculations. For more information,
+                on margins and spacing, see <xref linkend="layout.settings.spacing"/>
+                and <xref linkend="layout.settings.margins"/>
+            </para>
+        </simplesect>
+    </section>
+    
+    <section xml:id="layout.formlayout">
+        <title><classname>FormLayout</classname></title>
+        
+        <para>
+            <classname>FormLayout</classname> lays the components and their captions out
+            in two columns, with optional indicators for required fields and errors that
+            can be shown for each field. The field captions can have an icon in addition
+            to the text. <classname>FormLayout</classname> is an ordered layout and much
+            like <classname>VerticalLayout</classname>. For description of margins,
+            spacing, and other features in ordered layouts, see <xref
+            linkend="layout.orderedlayout"/>.
+        </para>
+
+        <para>
+            The following example shows typical use of <classname>FormLayout</classname>
+            in a form:
+        </para>
+
+        <programlisting><?pocket-size 70% ?><![CDATA[// A FormLayout used outside the context of a Form
+FormLayout fl = new FormLayout();
+
+// Make the FormLayout shrink to its contents 
+fl.setSizeUndefined();
+
+TextField tf = new TextField("A Field");
+fl.addComponent(tf);
+
+// Mark the first field as required
+tf.setRequired(true);
+tf.setRequiredError("The Field may not be empty.");
+
+TextField tf2 = new TextField("Another Field");
+fl.addComponent(tf2);
+
+// Set the second field straing to error state with a message.
+tf2.setComponentError(
+    new UserError("This is the error indicator of a Field."));]]></programlisting>
+
+        <para>
+            The resulting layout will look as follows. The error message shows in a
+            tooptip when you hover the mouse pointer over the error indicator.
+        </para>
+        
+        <figure xml:id="figure.layout.formlayout">
+            <title>A <classname>FormLayout</classname> Layout for Forms</title>
+            <mediaobject>
+                <imageobject>
+                    <imagedata smallscale="110" align="center" fileref="img/layout/formlayout-example1.png"/>
+                </imageobject>
+            </mediaobject>
+        </figure>	
+
+        <simplesect>
+            <title>CSS Style Rules</title>
+
+            <!-- TODO contains some rather specific examples -->            
+            <programlisting><?pocket-size 70% ?><![CDATA[.v-formlayout {}
+.v-formlayout .v-caption {}
+
+/* Columns in a field row. */
+.v-formlayout-contentcell {} /* Field content. */
+.v-formlayout-captioncell {} /* Field caption. */
+.v-formlayout-errorcell {}   /* Field error indicator. */
+
+/* Overall style of field rows. */
+.v-formlayout-row {}
+.v-formlayout-firstrow {}
+.v-formlayout-lastrow {}
+
+/* Required field indicator. */
+.v-formlayout .v-required-field-indicator {}
+.v-formlayout-captioncell .v-caption
+        .v-required-field-indicator {}
+
+/* Error indicator. */
+.v-formlayout-cell .v-errorindicator {}
+.v-formlayout-error-indicator .v-errorindicator {}]]></programlisting>
+
+            <para>
+                The top-level element of <classname>FormLayout</classname> has the
+                <literal>v-formlayout</literal> style. The layout is tabular with three
+                columns: the caption column, the error indicator column, and the field
+                column. These can be styled with
+                <literal>v-formlayout-captioncell</literal>,
+                <literal>v-formlayout-errorcell</literal>, and
+                <literal>v-formlayout-contentcell</literal>, respectively. While the
+                error indicator is shown as a dedicated column, the indicator for required
+                fields is currently shown as a part of the caption column.
+            </para>
+
+            <para>
+                For information on setting margins and spacing, see also <xref
+                linkend="layout.orderedlayout.spacing"/> and <xref
+                linkend="layout.settings.margins"/>.
+            </para>
+            
+        </simplesect>
+    </section>
+
+    <section xml:id="layout.panel">
+        <title><classname>Panel</classname></title>
+
+        <para>
+            <classname>Panel</classname> is a single-component container with a frame
+            around the content. It has an optional caption and an icon which are handled
+            by the panel itself, not its containing layout. The panel itself does not
+            manage the caption of its contained component. You need to set the content
+            with <methodname>setContent()</methodname>.
+        </para>
+
+        <para>
+            <classname>Panel</classname> has 100% width and undefined height by
+            default. This corresponds with the default sizing of
+            <classname>VerticalLayout</classname>, which is perhaps most commonly used as
+            the content of a <classname>Panel</classname>. If the width or height of a
+            panel is undefined, the content must have a corresponding undefined or fixed
+            size in the same direction to avoid a sizing paradox.
+        </para>
+
+        <programlisting><![CDATA[Panel panel = new Panel("Astronomy Panel");
+panel.addStyleName("mypanelexample");
+panel.setSizeUndefined(); // Shrink to fit content
+layout.addComponent(panel);
+        
+// Create the content
+FormLayout content = new FormLayout();
+content.addStyleName("mypanelcontent");
+content.addComponent(new TextField("Participant"));
+content.addComponent(new TextField("Organization"));
+content.setSizeUndefined(); // Shrink to fit
+content.setMargin(true);
+panel.setContent(content);]]></programlisting>
+
+        <para>
+            The resulting layout is shown in <xref linkend="figure.layout.panel"/>.
+        </para>
+        
+        <figure xml:id="figure.layout.panel">
+            <title>A <classname>Panel</classname></title>
+            <mediaobject>
+                <imageobject>
+                    <imagedata smallscale="120" align="center" fileref="img/layout/panel.png"/>
+                </imageobject>
+            </mediaobject>
+        </figure>	
+
+        <section xml:id="layout.panel.scrolling">
+            <title>Scrolling the Panel Content</title>
+
+            <indexterm xml:id="term.layout.panel.scrolling.scrollbars" class="startofrange">
+                <primary>scroll bars</primary>
+            </indexterm>
+
+            <para>
+                Normally, if a panel has undefined size in a direction, as it has by
+                default vertically, it will fit the size of the content and grow as the
+                content grows. However, if it has a fixed or percentual size and its
+                content becomes too big to fit in the content area, a scroll bar will
+                appear for the particular direction. Scroll bars in a
+                <classname>Panel</classname> are handled natively by the browser with the
+                <literal>overflow: auto</literal> property in CSS.
+
+                <indexterm>overflow CSS property</indexterm>
+            </para>
+
+            <para>
+                In the following example, we have a 300 pixels wide and very high
+                <classname>Image</classname> component as the panel content.
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[// Display an image stored in theme
+Image image = new Image(null,
+    new ThemeResource("img/Ripley_Scroll-300px.jpg"));
+        
+// To enable scrollbars, the size of the panel content
+// must not be relative to the panel size
+image.setSizeUndefined(); // Actually the default
+
+// The panel will give it scrollbars.
+Panel panel = new Panel("Scroll");
+panel.setWidth("300px");
+panel.setHeight("300px");
+panel.setContent(image);
+
+layout.addComponent(panel);]]></programlisting>
+
+            <!-- Copyright Notice: The Ripley Scroll is out of copyright. -->
+
+            <para>
+                The result is shown in <xref
+                linkend="figure.layout.panel.scrolling"/>. Notice that also the horizontal
+                scrollbar has appeared even though the panel has the same width as the
+                content (300 pixels) - the 300px width for the panel includes the panel
+                border and vertical scrollbar.
+            </para>
+
+			<figure xml:id="figure.layout.panel.scrolling">
+				<title>Panel with Scroll Bars</title>
+				<mediaobject>
+					<imageobject>
+						<imagedata smallscale="75%" align="center" fileref="img/layout/panel-scrolling.png"/>
+					</imageobject>
+				</mediaobject>
+			</figure>	
+
+            <indexterm xml:id="term.layout.panel.scrolling.scrollable" class="startofrange">
+                <primary><interfacename>Scrollable</interfacename></primary>
+            </indexterm>
+
+            <simplesect xml:id="layout.panel.scrolling.programmatic">
+                <title>Programmatic Scrolling</title>
+
+                <para>
+                    <classname>Panel</classname> implements the
+                    <interfacename>Scrollable</interfacename> interface to allow
+                    programmatic scrolling. You can set the scroll position in pixels with
+                    <methodname>setScrollTop()</methodname> and
+                    <methodname>setScrollLeft()</methodname>. You can also get the scroll
+                    position set previously, but scrolling the panel in the browser does
+                    not update the scroll position to the server-side.
+                </para>
+
+                <indexterm startref="term.layout.panel.scrolling.scrollable" class="endofrange"/>
+                <indexterm startref="term.layout.panel.scrolling.scrollbars" class="endofrange"/>
+            </simplesect>
+        </section>
+
+        <simplesect xml:id="layout.panel.css">
+            <title>CSS Style Rules</title>
+            
+            <programlisting><![CDATA[.v-panel {}
+.v-panel-caption {}
+.v-panel-nocaption {}
+.v-panel-content {}
+.v-panel-deco {}]]></programlisting>
+
+            <para>
+                The entire panel has <literal>v-panel</literal> style. A panel
+                consists of three parts: the caption, content, and bottom decorations
+                (shadow). These can be styled with <literal>v-panel-caption</literal>,
+                <literal>v-panel-content</literal>, and
+                <literal>v-panel-deco</literal>, respectively. If the panel has no
+                caption, the caption element will have the style
+                <literal>v-panel-nocaption</literal>.
+            </para>
+            
+            <para>
+                The built-in <literal>light</literal> style in the Reindeer and Runo
+                themes has no borders or border decorations for the
+                <classname>Panel</classname>. You can use the
+                <parameter>Reindeer.PANEL_LIGHT</parameter> and
+                <parameter>Runo.PANEL_LIGHT</parameter> constants to add the style to a
+                panel. Other themes may also provide the light and other styles for
+                <classname>Panel</classname> as well.
+            </para>
+        </simplesect>
+    </section>
+
+	<section xml:id="layout.sub-window">
+		<title>Sub-Windows</title>
+
+		<para>
+            <emphasis>Sub-windows</emphasis> are floating panels within a native browser
+            window. Unlike native browser windows, sub-windows are managed by the
+            client-side runtime of Vaadin using HTML features. Vaadin allows opening,
+            closing, resizing, maximizing and restoring sub-windows, as well as scrolling
+            the window content.
+		</para>
+
+        <figure xml:id="figure.layout.sub-window.basic">
+            <title>A Sub-Window</title>
+            <mediaobject>
+                <imageobject role="html">
+                    <imagedata align="center" fileref="img/layout/subwindow-basic.png"/>
+                </imageobject>
+                <imageobject role="fo">
+                        <imagedata smallscale="70%" align="center" fileref="img/layout/subwindow-basic.png"/>
+                </imageobject>
+            </mediaobject>
+        </figure>
+
+        <para>
+            Sub-windows are typically used for <firstterm>Dialog Windows</firstterm> and
+            <firstterm>Multiple Document Interface</firstterm> applications. Sub-windows
+            are by default not modal; you can set them modal as described in <xref
+            linkend="layout.sub-window.modal"/>.
+        </para>
+
+        <section xml:id="layout.sub-window.openclose">
+            <title>Opening and Closing Sub-Windows</title>
+
+            <para>
+                You can open a new sub-window by creating a new
+                <classname>Window</classname> object and adding it to the UI with
+                <methodname>addWindow()</methodname>, typically in some event listener. A
+                sub-window needs a content component, which is typically a layout.
+            </para>
+
+            <para>
+                In the following, we display a sub-window immediately when a UI opens:
+            </para>
+
+            <programlisting><?pocket-size 70% ?><![CDATA[public static class SubWindowUI extends UI {
+    @Override
+    protected void init(VaadinRequest request) {
+        // Some other UI content
+        setContent(new Label("Here's my UI"));
+        
+        // Create a sub-window and set the content
+        Window subWindow = new Window("Sub-window");
+        VerticalLayout subContent = new VerticalLayout();
+        subContent.setMargin(true);
+        subWindow.setContent(subContent);
+        
+        // Put some components in it
+        subContent.addComponent(new Label("Meatball sub"));
+        subContent.addComponent(new Button("Awlright"));
+        
+        // Center it in the browser window
+        subWindow.center();
+        
+        // Open it in the UI
+        addWindow(subWindow);
+    }
+}]]></programlisting>
+
+            <para>
+                The result was shown in <xref
+                linkend="figure.layout.sub-window.basic"/>. Sub-windows by default have
+                undefined size in both dimensions, so they will shrink to fit the content.
+            </para>
+            
+			<para>
+				The user can close a sub-window by clicking the close button in the
+				upper-right corner of the window. The button is controlled by the
+				<emphasis>closable</emphasis> property, so you can disable it with
+				<methodname>setClosable(false)</methodname>.
+			</para>
+	
+			<para>
+				You close a sub-window also programmatically by calling the
+				<methodname>close()</methodname> for the sub-window, typically in a click
+				listener for an <guibutton>OK</guibutton> or <guibutton>Cancel</guibutton>
+				button. You can also call <methodname>removeWindow()</methodname> for the
+				current <classname>UI</classname>.
+			</para>
+
+            <section xml:id="layout.sub-window.openclose.example" condition="web">
+                <title>Sub-Window Management</title>
+
+                <para>
+                    Usually, you would extend the <classname>Window</classname> class for
+                    your specific sub-window as follows:
+                </para>
+
+                <programlisting><?pocket-size 65% ?><![CDATA[// Define a sub-window by inheritance
+class MySub extends Window {
+    public MySub() {
+        super("Subs on Sale"); // Set window caption
+        center();
+
+        // Some basic content for the window
+        VerticalLayout content = new VerticalLayout();
+        content.addComponent(new Label("Just say it's OK!"));
+        content.setMargin(true);
+        setContent(content);
+        
+        // Disable the close button
+        setClosable(false);
+
+        // Trivial logic for closing the sub-window
+        Button ok = new Button("OK");
+        ok.addClickListener(new ClickListener() {
+            public void buttonClick(ClickEvent event) {
+                close(); // Close the sub-window
+            }
+        });
+        content.addComponent(ok);
+    }
+}]]></programlisting>
+
+                <para>
+                    You could open the window as follows:
+                </para>
+
+                <programlisting><?pocket-size 75% ?><![CDATA[// Some UI logic to open the sub-window
+final Button open = new Button("Open Sub-Window");
+open.addClickListener(new ClickListener() {
+    public void buttonClick(ClickEvent event) {
+        MySub sub = new MySub();
+        
+        // Add it to the root component
+        UI.getCurrent().addWindow(sub);
+    }
+});]]></programlisting>
+            </section>
+		</section>
+
+		<section xml:id="layout.sub-window.position">
+			<title>Window Positioning</title>
+
+			<para>
+				When created, a sub-window will have an undefined default size and
+				position. You can specify the size of a window with
+				<methodname>setHeight()</methodname> and
+				<methodname>setWidth()</methodname> methods. You can set the position of
+				the window with <methodname>setPositionX()</methodname> and
+				<methodname>setPositionY()</methodname> methods.
+			</para>
+
+			<programlisting><![CDATA[// Create a new sub-window
+mywindow = new Window("My Dialog");
+
+// Set window size.
+mywindow.setHeight("200px");
+mywindow.setWidth("400px");
+
+// Set window position.
+mywindow.setPositionX(200);
+mywindow.setPositionY(50);
+
+UI.getCurrent().addWindow(mywindow);]]></programlisting>
+
+		</section>
+
+		<section xml:id="layout.sub-window.scrolling">
+			<title>Scrolling Sub-Window Content</title>
+
+            <indexterm xml:id="term.layout.sub-window.scrolling.scrollbars" class="startofrange">
+                <primary>scroll bars</primary>
+            </indexterm>
+
+            <para>
+                If a sub-window has a fixed or percentual size and its content becomes too
+                big to fit in the content area, a scroll bar will appear for the
+                particular direction. On the other hand, if the sub-window has undefined
+                size in the direction, it will fit the size of the content and never get a
+                scroll bar. Scroll bars in sub-windows are handled with regular HTML
+                features, namely <literal>overflow: auto</literal> property in CSS.
+                <indexterm><primary>overflow</primary></indexterm>
+            </para>
+
+
+            <para>
+                <indexterm><primary><interfacename>Scrollable</interfacename></primary></indexterm>
+
+                As <classname>Window</classname> extends <classname>Panel</classname>,
+                windows are also <interfacename>Scrollable</interfacename>. Note that the
+                interface defines <emphasis>programmatic scrolling</emphasis>, not
+                scrolling by the user. Please see <xref linkend="layout.panel"/>.
+            </para>
+
+            <indexterm startref="term.layout.sub-window.scrolling.scrollbars" class="endofrange"/>
+        </section>
+
+		<section xml:id="layout.sub-window.modal">
+			<title>Modal Sub-Windows</title>
+
+			<para>
+				A modal window is a sub-window that prevents interaction with the other
+				UI. Dialog windows, as illustrated in <xref
+				linkend="figure.layout.sub-window.modal"/>, are typical cases of modal
+				windows. The advantage of modal windows is limiting the scope of user
+				interaction to a sub-task, so changes in application state are more
+				limited. The disadvantage of modal windows is that they can restrict
+				workflow too much.
+			</para>
+
+            <para>
+                You can make a sub-window modal with
+                <methodname>setModal(true)</methodname>.
+            </para>
+
+			<figure xml:id="figure.layout.sub-window.modal">
+				<title>Modal Sub-Window</title>
+				<mediaobject>
+					<imageobject role="html">
+						<imagedata align="center" fileref="img/layout/subwindow-modal.png"/>
+					</imageobject>
+					<imageobject role="fo">
+						<imagedata scale="90" smallscale="100%" align="center" fileref="img/layout/subwindow-modal.png"/>
+					</imageobject>
+				</mediaobject>
+			</figure>
+			
+			<para>
+				Depending on the theme, the parent window may be grayed when the modal
+				window is open.
+			</para>
+
+			<warning>
+				<title>Security Warning</title>
+				<para>
+					Modality of child windows is purely a client-side feature and can be
+					circumvented with client-side attack code. You should not trust in the
+					modality of child windows in security-critical situations such as
+					login windows.
+				</para>
+			</warning>
+		</section>
+	</section> <!-- layout.sub-window -->
+
+	<section xml:id="layout.splitpanel">
+        <title><classname>HorizontalSplitPanel</classname> and <classname>VerticalSplitPanel</classname></title>
+        
+        <indexterm xml:id="term.layout.splitpanel.horizontal" class="startofrange">
+            <primary><classname>HorizontalSplitPanel</classname></primary>
+        </indexterm>
+        <indexterm xml:id="term.layout.splitpanel.vertical" class="startofrange">
+            <primary><classname>VerticalSplitPanel</classname></primary>
+        </indexterm>
+
+        <para>
+            <classname>HorizontalSplitPanel</classname> and
+            <classname>VerticalSplitPanel</classname> are a two-component containers that
+            divide the available space into two areas to accomodate the two
+            components. <classname>HorizontalSplitPanel</classname> makes the split
+            horizontally with a vertical splitter bar, and
+            <classname>VerticalSplitPanel</classname> vertically with a horizontal
+            splitter bar. The user can drag the bar to adjust its position.
+        </para>
+
+        <para>
+            You can set the two components with the
+            <methodname>setFirstComponent()</methodname> and
+            <methodname>setSecondComponent()</methodname> methods, or with the regular
+            <methodname>addComponent()</methodname> method.
+        </para>
+
+        <book-example eid="layout.splitpanel.basic" style="float: right"></book-example>
+        <programlisting><?pocket-size 65% ?><![CDATA[// Have a panel to put stuff in
+Panel panel = new Panel("Split Panels Inside This Panel");
+
+// Have a horizontal split panel as its content
+HorizontalSplitPanel hsplit = new HorizontalSplitPanel();
+panel.setContent(hsplit);
+
+// Put a component in the left panel
+Tree tree = new Tree("Menu", TreeExample.createTreeContent());
+hsplit.setFirstComponent(tree);
+
+// Put a vertical split panel in the right panel
+VerticalSplitPanel vsplit = new VerticalSplitPanel();
+hsplit.setSecondComponent(vsplit);
+
+// Put other components in the right panel
+vsplit.addComponent(new Label("Here's the upper panel"));
+vsplit.addComponent(new Label("Here's the lower panel"));]]></programlisting>
+
+        <para>
+            The result is shown in <xref linkend="figure.splitpanel.basic"/>. Observe that
+            the tree is cut horizontally as it can not fit in the layout. If its height
+            exceeds the height of the panel, a vertical scroll bar will appear
+            automatically. If horizontal scroll bar is necessary, you could put the
+            content in a <classname>Panel</classname>, which can have scroll bars in both
+            directions.
+        </para>
+
+        <figure xml:id="figure.splitpanel.basic">
+            <title><classname>HorizontalSplitPanel</classname> and <classname>VerticalSplitPanel</classname></title>
+            <mediaobject>
+                <imageobject>
+                    <imagedata smallscale="100%" align="center" fileref="img/layout/splitpanel-example1.png"/>
+                </imageobject>
+            </mediaobject>
+        </figure>
+
+        <para>
+            You can set the split position with
+            <methodname>setSplitPosition()</methodname>. It accepts any units defined in
+            the <classname>Sizeable</classname> interface, with percentual size relative
+            to the size of the component.
+        </para>
+
+        <book-example eid="layout.splitpanel.splitposition" style="float: right"></book-example>
+        <programlisting><?pocket-size 65% ?><![CDATA[// Have a horizontal split panel
+HorizontalSplitPanel hsplit = new HorizontalSplitPanel();
+hsplit.setFirstComponent(new Label("75% wide panel"));
+hsplit.setSecondComponent(new Label("25% wide panel"));
+
+// Set the position of the splitter as percentage
+hsplit.setSplitPosition(75, Sizeable.UNITS_PERCENTAGE);]]></programlisting>
+
+        <para>
+            Another version of the <methodname>setSplitPosition()</methodname> method
+            allows leaving out the unit, using the same unit as previously. The method
+            also has versions take take a boolean parameter,
+            <parameter>reverse</parameter>, which allows defining the size of the right or
+            bottom panel instead of the left or top panel.
+        </para>
+
+        <para>
+            The split bar allows the user to adjust the split position by dragging the bar
+            with mouse. To lock the split bar, use
+            <methodname>setLocked(true)</methodname>. When locked, the move handle in the
+            middle of the bar is disabled.
+        </para>
+        
+        <programlisting><?pocket-size 65% ?><![CDATA[// Lock the splitter
+hsplit.setLocked(true);]]></programlisting>
+
+        <para>
+            Setting the split position programmatically and locking the split bar is
+            illustrated in <xref linkend="figure.component.splitpanel.splitposition"/>.
+        </para>
+
+        <figure xml:id="figure.component.splitpanel.splitposition">
+            <title>A Layout With Nested SplitPanels</title>
+            <mediaobject>
+                <imageobject>
+                    <imagedata smallscale="70%" align="center" fileref="img/layout/splitpanel-splitposition.png"/>
+                </imageobject>
+            </mediaobject>
+        </figure>
+
+        <para>
+            Notice that the size of a split panel must not be undefined in the split
+            direction.
+        </para>
+
+		<simplesect condition="web">
+			<title>CSS Style Rules</title>
+
+			<programlisting><?pocket-size 70% ?>/* For a horizontal SplitPanel. */
+.v-splitpanel-horizontal {}
+.v-splitpanel-hsplitter {}
+.v-splitpanel-hsplitter-locked {}
+
+/* For a vertical SplitPanel. */
+.v-splitpanel-vertical {}
+.v-splitpanel-vsplitter {}
+.v-splitpanel-vsplitter-locked {}
+
+/* The two container panels. */
+.v-splitpanel-first-container {}  /* Top or left panel. */
+.v-splitpanel-second-container {} /* Bottom or right panel. */</programlisting>
+
+            <para>
+                The entire split panel has the style
+                <literal>v-splitpanel-horizontal</literal> or
+                <literal>v-splitpanel-vertical</literal>, depending on the panel direction. The
+                split bar or <emphasis>splitter</emphasis> between the two content panels
+                has either the <literal>...-splitter</literal> or
+                <literal>...-splitter-locked</literal> style, depending on whether its
+                position is locked or not.
+            </para>
+            
+		</simplesect>
+
+        <indexterm startref="term.layout.splitpanel.horizontal" class="endofrange"/>
+        <indexterm startref="term.layout.splitpanel.vertical" class="endofrange"/>
+    </section>
+
+    <section xml:id="layout.tabsheet">
+        <title><classname>TabSheet</classname></title>
+        
+        <para>
+            The <classname>TabSheet</classname> is a multicomponent container that allows
+            switching between the components with "tabs". The tabs are organized as a tab
+            bar at the top of the tab sheet. Clicking on a tab opens its contained
+            component in the main display area of the layout. If there are more tabs than
+            fit in the tab bar, navigation buttons will appear.
+        </para>
+
+        <figure xml:id="figure.tabsheet.example1">
+            <title>A Simple TabSheet Layout</title>
+            <mediaobject>
+                <imageobject>
+                   <imagedata smallscale="120" align="center" fileref="img/components/tabsheet-example1.png"/>
+                </imageobject>
+            </mediaobject>
+        </figure>
+
+        <section xml:id="layout.tabsheet.adding">
+            <title>Adding Tabs</title>
+
+            <para>
+                You add new tabs to a tab sheet with the <methodname>addTab()</methodname>
+                method. The simple version of the method takes as its parameter the root
+                component of the tab. You can use the root component to retrieve its
+                corresponding <classname>Tab</classname> object. Typically, you put a
+                layout component as the root component.
+            </para>
+
+            <para>
+                You can also give the caption and the icon as parameters for the
+                <methodname>addTab()</methodname> method. The following example
+                demonstrates the creation of a simple tab sheet, where each tab shows a
+                different <classname>Label</classname> component. The tabs have an icon,
+                which are (in this example) loaded as Java class loader resources from the
+                application.
+            </para>
+
+            <programlisting><?pocket-size 70% ?><![CDATA[TabSheet tabsheet = new TabSheet();
+layout.addComponent(tabsheet);
+
+// Create the first tab
+VerticalLayout tab1 = new VerticalLayout();
+tab1.addComponent(new Embedded(null,
+        new ThemeResource("img/planets/Mercury.jpg")));
+tabsheet.addTab(tab1, "Mercury",
+        new ThemeResource("img/planets/Mercury_symbol.png"));
+
+// This tab gets its caption from the component caption
+VerticalLayout tab2 = new VerticalLayout();
+tab2.addComponent(new Embedded(null,
+        new ThemeResource("img/planets/Venus.jpg")));
+tab2.setCaption("Venus");
+tabsheet.addTab(tab2).setIcon(
+        new ThemeResource("img/planets/Venus_symbol.png"));
+...]]></programlisting>
+        </section>
+
+        <section xml:id="layout.tabsheet.tab">
+            <title>Tab Objects</title>
+        
+            <para>
+                Each tab in a tab sheet is represented as a <classname>Tab</classname>
+                object, which manages the tab caption, icon, and attributes such as hidden
+                and visible. You can set the caption with
+                <methodname>setCaption()</methodname> and the icon with
+                <methodname>setIcon()</methodname>. If the component added with
+                <methodname>addTab()</methodname> has a caption or icon, it is used as the
+                default for the <classname>Tab</classname> object. However, changing the
+                attributes of the root component later does not affect the tab, but you
+                must make the setting through the <classname>Tab</classname> object. The
+                <methodname>addTab()</methodname> returns the new
+                <classname>Tab</classname> object, so you can easily set an attribute
+                using the reference.
+            </para>
+
+            <programlisting><?pocket-size 70% ?><![CDATA[// Set an attribute using the returned reference
+tabsheet.addTab(myTab).setCaption("My Tab");]]></programlisting>
+
+            <section xml:id="layout.tabsheet.tab.disabling">
+                <title>Disabling and Hiding Tabs</title>
+
+                <para>
+                    A tab can be disabled by setting
+                    <methodname>setEnabled(false)</methodname> for the
+                    <classname>Tab</classname> object, thereby disallowing selecting it.
+                </para>
+
+                <para>
+                    A tab can be made invisible by setting
+                    <methodname>setVisible(false)</methodname> for the
+                    <classname>Tab</classname> object. The
+                    <methodname>hideTabs()</methodname> method allows hiding the tab bar
+                    entirely. This can be useful in tabbed document interfaces (TDI) when
+                    there is only one tab.
+                </para>
+
+                <figure xml:id="figure.tabsheet.example2" condition="web">
+                    <title>A TabSheet with Hidden and Disabled Tabs</title>
+                    <mediaobject>
+                        <imageobject>
+                            <imagedata smallscale="120" align="center" fileref="img/components/tabsheet-example2.png"/>
+                        </imageobject>
+                    </mediaobject>
+                </figure>
+            </section>
+        </section>
+
+        <section xml:id="layout.tabsheet.events">
+            <title>Tab Change Events</title>
+
+            <para>
+                Clicking on a tab selects it. This fires a
+                <classname>TabSheet.SelectedTabChangeEvent</classname>, which you can
+                handle by implementing the
+                <classname>TabSheet.SelectedTabChangeListener</classname> interface. You
+                can access the tabsheet of the event with
+                <methodname>getTabSheet()</methodname>, and find the new selected tab with
+                <methodname>getSelectedTab()</methodname>.
+            </para>
+
+            <para>
+                You can programmatically select a tab with
+                <methodname>setSelectedTab()</methodname>, which also fires the
+                <classname>SelectedTabChangeEvent</classname> (beware of recursive
+                events). Reselecting the currently selected tab does not fire the event.
+            </para>
+
+            <para>
+                Notice that when the first tab is added, it is selected and the change
+                event is fired, so if you want to catch that, you need to add your
+                listener before adding any tabs.
+            </para>
+
+            <section xml:id="layout.tabsheet.events.dynamic" condition="web">
+                <title>Creating Tab Content Dynamically</title>
+
+                <para>
+                    In the following example, we create the tabs as empty content layouts, and
+                    add the tab content dynamically when a tab is selected:
+                </para>
+
+                <programlisting><?pocket-size 65% ?><![CDATA[TabSheet tabsheet = new TabSheet();
+
+// Create tab content dynamically when tab is selected
+tabsheet.addSelectedTabChangeListener(
+        new TabSheet.SelectedTabChangeListener() {
+    public void selectedTabChange(SelectedTabChangeEvent event) {
+        // Find the tabsheet
+        TabSheet tabsheet = event.getTabSheet();
+        
+        // Find the tab (here we know it's a layout)
+        Layout tab = (Layout) tabsheet.getSelectedTab();
+
+        // Get the tab caption from the tab object
+        String caption = tabsheet.getTab(tab).getCaption();
+        
+        // Fill the tab content
+        tab.removeAllComponents();
+        tab.addComponent(new Image(null,
+            new ThemeResource("img/planets/"+caption+".jpg")));
+    }
+});
+        
+// Have some tabs
+String[] tabs = {"Mercury", "Venus", "Earth", "Mars"};
+for (String caption: tabs)
+    tabsheet.addTab(new VerticalLayout(), caption,
+        new ThemeResource("img/planets/"+caption+"_symbol.png"));]]></programlisting>
+            </section>
+
+        </section>
+
+        <section xml:id="layout.tabsheet.closing">
+            <title>Enabling and Handling Closing Tabs</title>
+
+            <para>
+                You can enable a close button for individual tabs with the
+                <literal>closable</literal> property in the
+                <classname>TabSheet.Tab</classname> objects.
+            </para>
+
+            <programlisting><![CDATA[// Enable closing the tab
+tabsheet.getTab(tabComponent).setClosable(true);]]></programlisting>
+
+            <figure xml:id="figure.layout.tabsheet.closing">
+                <title>TabSheet with Closable Tabs</title>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata smallscale="120" align="center" fileref="img/components/tabsheet-tabclose.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+
+            <section xml:id="layout.tabsheet.closing.handling">
+                <title>Handling Tab Close Events</title>
+
+                <para>
+                    You can handle closing tabs by implementing a custom
+                    <classname>TabSheet.CloseHandler</classname>. The default
+                    implementation simply calls <methodname>removeTab()</methodname> for
+                    the tab to be closed, but you can prevent the close by not calling
+                    it. This allows, for example, opening a dialog window to confirm the
+                    close.
+                </para>
+
+                <programlisting><?pocket-size 75% ?><![CDATA[tabsheet.setCloseHandler(new CloseHandler() {
+    @Override
+    public void onTabClose(TabSheet tabsheet,
+                           Component tabContent) {
+        Tab tab = tabsheet.getTab(tabContent);
+        Notification.show("Closing " + tab.getCaption());
+        
+        // We need to close it explicitly in the handler
+        tabsheet.removeTab(tab);
+    }
+});]]></programlisting>
+            </section>
+        </section>
+
+		<simplesect condition="web">
+			<title>CSS Style Rules</title>
+
+			<programlisting>.v-tabsheet {}
+.v-tabsheet-tabs {}
+.v-tabsheet-content {}
+.v-tabsheet-deco {}
+.v-tabsheet-tabcontainer {}
+.v-tabsheet-tabsheetpanel {}
+.v-tabsheet-hidetabs {}
+
+.v-tabsheet-scroller {}
+.v-tabsheet-scrollerPrev {}
+.v-tabsheet-scrollerNext {}
+.v-tabsheet-scrollerPrev-disabled{}
+.v-tabsheet-scrollerNext-disabled{}
+
+.v-tabsheet-tabitem {}
+.v-tabsheet-tabitem-selected {}
+.v-tabsheet-tabitemcell {}
+.v-tabsheet-tabitemcell-first {}
+
+.v-tabsheet-tabs td {}
+.v-tabsheet-spacertd {}</programlisting>
+
+            <para>
+                The entire tabsheet has the <literal>v-tabsheet</literal> style.
+                A tabsheet consists of three main parts: the tabs on the top, the
+                main content pane, and decorations around the tabsheet.
+            </para>
+            
+            <para>
+                The tabs area at the top can be styled with
+                <literal>v-tabsheet-tabs</literal>,
+                <literal>v-tabsheet-tabcontainer</literal> and
+                <literal>v-tabsheet-tabitem*</literal>.
+            </para>
+            
+            <para>
+             	The style <literal>v-tabsheet-spacertd</literal> is used for any
+             	empty space after the tabs. If the tabsheet has too little space to
+             	show all tabs, scroller buttons enable browsing the full tab list.
+             	These use the styles <literal>v-tabsheet-scroller*</literal>.
+            </para>
+            
+            <para>
+                The content area where the tab contents are shown can be styled with
+                <literal>v-tabsheet-content</literal>, and the surrounding decoration
+                with <literal>v-tabsheet-deco</literal>.
+            </para>
+		</simplesect>
+    </section>
+    
+	<section xml:id="layout.accordion">
+        <title><classname>Accordion</classname></title>
+
+        <para>
+            <classname>Accordion</classname> is a multicomponent container similar to
+            <classname>TabSheet</classname>, except that the "tabs" are arranged
+            vertically. Clicking on a tab opens its contained component in the space
+            between the tab and the next one. You can use an
+            <classname>Accordion</classname> identically to a
+            <classname>TabSheet</classname>, which it actually inherits. See <xref
+            linkend="layout.tabsheet"/> for more information.
+        </para>
+        
+        <para>
+            The following example shows how you can create a simple accordion. As the
+            <classname>Accordion</classname> is rather naked alone, we put it inside a
+            Panel that acts as its caption and provides it a border.
+        </para>
+
+        <programlisting><?pocket-size 70% ?><![CDATA[// Create the Accordion.
+Accordion accordion = new Accordion();
+
+// Have it take all space available in the layout.
+accordion.setSizeFull();
+
+// Some components to put in the Accordion.
+Label l1 = new Label("There are no previously saved actions.");
+Label l2 = new Label("There are no saved notes.");
+Label l3 = new Label("There are currently no issues.");
+
+// Add the components as tabs in the Accordion.
+accordion.addTab(l1, "Saved actions", null);
+accordion.addTab(l2, "Notes", null);
+accordion.addTab(l3, "Issues", null);
+
+// A container for the Accordion.
+Panel panel = new Panel("Tasks");
+panel.setWidth("300px");
+panel.setHeight("300px");
+panel.setContent(accordion);
+
+// Trim its layout to allow the Accordion take all space.
+panel.getLayout().setSizeFull();
+panel.getLayout().setMargin(false);]]></programlisting>
+
+        <para>
+            <xref linkend="figure.accordion.example1"/> shows what the example would look
+            like with the default theme.
+        </para>
+
+        <figure xml:id="figure.accordion.example1">
+            <title>An Accordion</title>
+            <mediaobject>
+                <imageobject>
+                    <imagedata smallscale="120" align="center" fileref="img/layout/accordion-example1.png"/>
+                </imageobject>
+            </mediaobject>
+        </figure>
+
+		<simplesect condition="web">
+			<title>CSS Style Rules</title>
+
+			<programlisting>.v-accordion {}
+.v-accordion-item {}
+.v-accordion-item-open {}
+.v-accordion-item-first {}
+.v-accordion-item-caption {}
+.v-accordion-item-caption .v-caption {}
+.v-accordion-item-content {}</programlisting>
+
+            <para>
+                The top-level element of <classname>Accordion</classname> has the
+                <literal>v-accordion</literal> style. An <classname>Accordion</classname>
+                consists of a sequence of item elements, each of which has a caption
+                element (the tab) and a content area element.
+            </para>
+            
+            <para>
+                The selected item (tab) has also the <literal>v-accordion-open</literal>
+                style. The content area is not shown for the closed items.
+            </para>
+		</simplesect>
+    </section>
+
+	<section xml:id="layout.absolutelayout">
+		<title><classname>AbsoluteLayout</classname></title>
+
+        <para>
+            <classname>AbsoluteLayout</classname> allows placing components in arbitrary
+            positions in the layout area. The positions are specified in the
+            <methodname>addComponent()</methodname> method with horizontal and vertical
+            coordinates relative to an edge of the layout area. The positions can include
+            a third depth dimension, the <emphasis>z-index</emphasis>, which specifies
+            which components are displayed in front and which behind other components.
+        </para>
+
+        <para>
+            The positions are specified by a CSS absolute position string, using the
+            <literal>left</literal>, <literal>right</literal>, <literal>top</literal>,
+            <literal>bottom</literal>, and <literal>z-index</literal> properties known
+            from CSS. In the following example, we have a 300 by 150 pixels large layout
+            and position a text field 50 pixels from both the left and the top edge:
+        </para>
+
+<programlisting><?pocket-size 65% ?><![CDATA[// A 400x250 pixels size layout
+AbsoluteLayout layout = new AbsoluteLayout();
+layout.setWidth("400px");
+layout.setHeight("250px");
+        
+// A component with coordinates for its top-left corner
+TextField text = new TextField("Somewhere someplace");
+layout.addComponent(text, "left: 50px; top: 50px;");]]></programlisting>
+
+        <para>
+            The <literal>left</literal> and <literal>top</literal> specify the distance
+            from the left and top edge, respectively. The <literal>right</literal> and
+            <literal>bottom</literal> specify the distances from the right and top edge.
+        </para>
+
+<programlisting><?pocket-size 65% ?><![CDATA[// At the top-left corner
+Button button = new Button( "left: 0px; top: 0px;");
+layout.addComponent(button, "left: 0px; top: 0px;");
+
+// At the bottom-right corner
+Button buttCorner = new Button( "right: 0px; bottom: 0px;");
+layout.addComponent(buttCorner, "right: 0px; bottom: 0px;");
+
+// Relative to the bottom-right corner
+Button buttBrRelative = new Button( "right: 50px; bottom: 50px;");
+layout.addComponent(buttBrRelative, "right: 50px; bottom: 50px;");
+
+// On the bottom, relative to the left side
+Button buttBottom = new Button( "left: 50px; bottom: 0px;");
+layout.addComponent(buttBottom, "left: 50px; bottom: 0px;");
+
+// On the right side, up from the bottom
+Button buttRight = new Button( "right: 0px; bottom: 100px;");
+layout.addComponent(buttRight, "right: 0px; bottom: 100px;");]]></programlisting>
+
+        <para>
+            The result of the above code examples is shown in <xref linkend="figure.layout.absolutelayout.bottomright"/>.
+        </para>
+
+        <figure xml:id="figure.layout.absolutelayout.bottomright">
+            <title>Components Positioned Relative to Various Edges</title>
+            <mediaobject>
+                <imageobject>
+                    <imagedata smallscale="70%" align="center" fileref="img/layout/absolutelayout-bottomright.png"/>
+                </imageobject>
+            </mediaobject>
+        </figure>
+
+        <para>
+            In the above examples, we had components of undefined size and specified the
+            positions of components by a single pair of coordinates. The other possibility
+            is to specify an area and let the component fill the area by specifying a
+            proportinal size for the component, such as
+            "<literal>100%</literal>". Normally, you use
+            <methodname>setSizeFull()</methodname> to take the entire area given by the
+            layout.
+        </para>
+
+        <programlisting><?pocket-size 65% ?><![CDATA[// Specify an area that a component should fill
+Panel panel = new Panel("A Panel filling an area");
+panel.setSizeFull(); // Fill the entire given area
+layout.addComponent(panel, "left: 25px; right: 50px; "+
+                           "top: 100px; bottom: 50px;");]]></programlisting>
+
+        <para>
+            The result is shown in <xref linkend="figure.layout.absolutelayout.area"/>
+        </para>
+
+        <figure xml:id="figure.layout.absolutelayout.area">
+            <title>Component Filling an Area Specified by Coordinates</title>
+            <mediaobject>
+                <imageobject>
+                    <imagedata smallscale="70%" align="center" fileref="img/layout/absolutelayout-area.png"/>
+                </imageobject>
+            </mediaobject>
+        </figure>
+
+        <para>
+            You can also use proportional coordinates to specify the coordinates:
+        </para>
+
+<programlisting><?pocket-size 65% ?><![CDATA[// A panel that takes 30% to 90% horizontally and
+// 20% to 80% vertically
+Panel panel = new Panel("A Panel");
+panel.setSizeFull(); // Fill the specified area
+layout.addComponent(panel, "left: 30%; right: 10%;" +
+                           "top: 20%; bottom: 20%;");]]></programlisting>
+
+        <para>
+            The result is shown in <xref linkend="figure.layout.absolutelayout.proportional"/>
+        </para>
+
+        <figure xml:id="figure.layout.absolutelayout.proportional">
+            <title>Specifying an Area by Proportional Coordinates</title>
+            <mediaobject>
+                <imageobject>
+                    <imagedata smallscale="70%" align="center" fileref="img/layout/absolutelayout-proportional.png"/>
+                </imageobject>
+            </mediaobject>
+        </figure>
+
+        <para>
+            Drag and drop is very useful for moving the components contained in an
+            <classname>AbsoluteLayout</classname>. Check out the example in <xref
+            linkend="advanced.dragndrop.drop-on-component"/>.
+        </para>
+
+        <simplesect condition="web">
+            <title>Styling with CSS</title>
+
+            <programlisting><![CDATA[.v-absolutelayout {}
+.v-absolutelayout-wrapper {}]]></programlisting>
+
+            <para>
+                The <classname>AbsoluteLayout</classname> component has
+                <literal>v-absolutelayout</literal> root style. Each component in the
+                layout is contained within an element that has the
+                <literal>v-absolutelayout-wrapper</literal>. The component captions are
+                outside the wrapper elements, in a separate element with the usual
+                <literal>v-caption</literal> style.
+            </para>
+        </simplesect>
+    </section>
+
+	<section xml:id="layout.csslayout">
+		<title><classname>CssLayout</classname></title>
+
+        <para>
+            <classname>CssLayout</classname> allows strong control over styling of the
+            components contained inside the layout. The components are contained in a
+            simple DOM structure consisting of <literal>&lt;div&gt;</literal> elements. By
+            default, the contained components are laid out horizontally and wrap naturally
+            when they reach the width of the layout, but you can control this and most
+            other behaviour with CSS. You can also inject custom CSS for each contained
+            component. As <classname>CssLayout</classname> has a very simple DOM structure
+            and no dynamic rendering logic, relying purely on the built-in rendering logic
+            of the browsers, it is the fastest of the layout components.
+        </para>
+
+        <para>
+            The basic use of <classname>CssLayout</classname> is just like with any other
+            layout component:
+        </para>
+
+        <programlisting><?pocket-size 65% ?><![CDATA[CssLayout layout = new CssLayout();
+        
+// Component with a layout-managed caption and icon
+TextField tf = new TextField("A TextField");
+tf.setIcon(new ThemeResource("icons/user.png"));
+layout.addComponent(tf);
+
+// Labels are 100% wide by default so must unset width
+Label label = new Label("A Label");
+label.setWidth(Sizeable.SIZE_UNDEFINED, 0);
+layout.addComponent(label);
+        
+layout.addComponent(new Button("A Button"));]]></programlisting>
+
+        <para>
+            The result is shown in <xref linkend="figure.layout.csslayout.basic"/>. Notice
+            that the default spacing and alignment of the layout is quite crude and CSS
+            styling is nearly always needed.
+        </para>
+
+        <figure xml:id="figure.layout.csslayout.basic">
+            <title>Basic Use of <classname>CssLayout</classname></title>
+            <mediaobject>
+                <imageobject>
+                    <imagedata smallscale="100%" align="center" fileref="img/layout/csslayout-basic.png"/>
+                </imageobject>
+            </mediaobject>
+        </figure>
+
+        <para>
+            The <literal>display</literal> attribute of <classname>CssLayout</classname>
+            is <literal>inline-block</literal> by default, so the components are laid out
+            horizontally following another. <classname>CssLayout</classname> has 100%
+            width by default. If the components reach the width of the layout, they are
+            wrapped to the next "line" just as text would be. If you add a component with
+            100% width, it will take an entire line by wrapping before and after the
+            component.
+        </para>
+
+        <section xml:id="layout.csslayout.injection">
+            <title>CSS Injection</title>
+
+            <para>
+                Overriding the <methodname>getCss()</methodname> method allows injecting
+                custom CSS for each component. The CSS returned by the method is inserted in
+                the <parameter>style</parameter> attribute of the
+                <literal>&lt;div&gt;</literal> element of the component, so it will override
+                any style definitions made in CSS files.
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[CssLayout layout = new CssLayout() {
+    @Override
+    protected String getCss(Component c) {
+        if (c instanceof Label) {
+            // Color the boxes with random colors
+            int rgb = (int) (Math.random()*(1<<24));
+            return "background: #" + Integer.toHexString(rgb);
+        }
+        return null;
+    }
+};
+layout.setWidth("400px"); // Causes to wrap the contents
+
+// Add boxes of various sizes
+for (int i=0; i<40; i++) {
+    Label box = new Label("&nbsp;", ContentMode.HTML);
+    box.addStyleName("flowbox");
+    box.setWidth((float) Math.random()*50,
+                 Sizeable.UNITS_PIXELS);
+    box.setHeight((float) Math.random()*50,
+                  Sizeable.UNITS_PIXELS);
+    layout.addComponent(box);
+}]]></programlisting>
+
+            <para>
+                The style name added to the components allows making common styling in a CSS
+                file:
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[.v-label-flowbox {
+  border: thin black solid;
+}]]></programlisting>
+
+            <para>
+                <xref linkend="figure.layout.csslayout.getcss"/> shows the rendered result.
+            </para>
+
+            <figure xml:id="figure.layout.csslayout.getcss">
+                <title>Use of <methodname>getCss()</methodname> and line wrap</title>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata smallscale="100%" align="center" fileref="img/layout/csslayout-getcss.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+        </section>
+
+        <section xml:id="layout.csslayout.compatibility">
+            <title>Browser Compatibility</title>
+
+            <para>
+                The stregth of the <classname>CssLayout</classname> is also its
+                weakness. Much of the logic behind the other layout components is there to
+                give nice default behaviour and to handle the differences in different
+                browsers. Some browsers, no need to say which, are notoriously
+                incompatible with the CSS standards, so they require a lot of custom
+                CSS. You may need to make use of the browser-specific style classes in the
+                root element of the application. <!-- TODO: described in <xref
+                linkend="advanced.browserinfo"/> --> Some features in the other layouts
+                are not even solvable in pure CSS, at least in all browsers.
+            </para>
+        </section>
+
+        <simplesect xml:id="layout.csslayout.css"> <!-- It is relevant to keep this in the print edition -->
+            <title>Styling with CSS</title>
+
+            <programlisting><![CDATA[.v-csslayout {}
+.v-csslayout-margin {}
+.v-csslayout-container {}]]></programlisting>
+
+            <para>
+                The <classname>CssLayout</classname> component has
+                <literal>v-csslayout</literal> root style. The margin element with
+                <literal>v-csslayout-margin</literal> style is always enabled. The
+                components are contained in an element with
+                <literal>v-csslayout-container</literal> style.
+            </para>
+
+            <para>
+                For example, we could style the basic <classname>CssLayout</classname>
+                example shown earlier as follows:
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[/* Have the caption right of the text box, bottom-aligned */
+.csslayoutexample .mylayout .v-csslayout-container {
+    direction: rtl;
+    line-height: 24px;
+    vertical-align: bottom;
+}
+
+/* Have some space before and after the caption */
+.csslayoutexample .mylayout .v-csslayout-container .v-caption {
+    padding-left:  3px;
+    padding-right: 10px;
+}]]></programlisting>
+
+            <para>
+                The example would now be rendered as shown in <xref
+                linkend="figure.layout.csslayout.styling"/>.
+            </para>
+
+            <figure xml:id="figure.layout.csslayout.styling">
+                <title>Styling <classname>CssLayout</classname></title>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata smallscale="70%" align="center" fileref="img/layout/csslayout-styling.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+
+            <para>
+                Captions and icons that are managed by the layout are contained in an
+                element with <literal>v-caption</literal> style. These caption elements
+                are contained flat at the same level as the actual component
+                elements. This may cause problems with wrapping in
+                <literal>inline-block</literal> mode, as wrapping can occur between the
+                caption and its corresponding component element just as well as between
+                components. Such use case is therefore not feasible.
+            </para>
+        </simplesect>
+    </section>
+
+	<section xml:id="layout.settings">
+		<title>Layout Formatting</title>
+
+		<para>
+			While the formatting of layouts is mainly done with style sheets, just as with
+			other components, style sheets are not ideal or even possible to use in some
+			situations. For example, CSS does not allow defining the spacing of table
+			cells, which is done with the <parameter>cellspacing</parameter> attribute in
+			HTML.
+		</para>
+
+		<para>
+			Moreover, as many layout sizes are calculated dynamically in the Client-Side
+			Engine of Vaadin, some CSS settings can fail altogether.
+		</para>
+
+		<section xml:id="layout.settings.size">
+			<title>Layout Size</title>
+
+			<para>
+				The size of a layout component can be specified with the
+				<methodname>setWidth()</methodname> and
+				<methodname>setHeight()</methodname> methods defined in the
+				<classname>Sizeable</classname> interface, just like for any component. It
+				can also be undefined, in which case the layout shrinks to fit the
+				component(s) inside it. <xref linkend="components.features.sizeable"/>
+				gives details on the interface.
+			</para>
+
+			<figure xml:id="figure.layout.settings.size.undefined">
+				<title><classname>HorizontalLayout</classname> with Undefined vs Defined size</title>
+				<mediaobject>
+					<imageobject>
+						<imagedata smallscale="100%" align="center" fileref="img/layout/layout_size_undefined_vs_defined.png"/>
+					</imageobject>
+				</mediaobject>
+			</figure>
+
+			<para>
+				Many layout components take 100% width by default, while they have the
+				height undefined.
+			</para>
+
+			<para>
+				The sizes of components inside a layout can also be defined as a
+				percentage of the space available in the layout, for example with
+				<methodname>setWidth("100%");</methodname> or with the (most commonly used
+				method) <methodname>setFullSize()</methodname> that sets 100% size in both
+				directions. If you use a percentage in a
+				<classname>HorizontalLayout</classname>,
+				<classname>VerticalLayout</classname>, or
+				<classname>GridLayout</classname>, you will also have to set the component
+				as <emphasis>expanding</emphasis>, as noted below.
+			</para>
+
+			<warning>
+                <para>
+                    <emphasis>A layout that contains components with percentual size must
+                    have a defined size</emphasis>!
+                </para>
+
+                <para>
+                    If a layout has undefined size and a contained component has, say,
+                    100% size, the component will try to fill the space given by the
+                    layout, while the layout will shrink to fit the space taken by the
+                    component, which is a paradox. This requirement holds for height and
+                    width separately. The debug mode allows detecting such invalid cases;
+                    see <xref linkend="advanced.debug.hierarchy"/>.
+                </para>
+			</warning>
+
+			<para>
+				For example:
+			</para>
+
+			<programlisting><?pocket-size 70% ?><![CDATA[// This takes 100% width but has undefined height.
+VerticalLayout layout = new VerticalLayout();
+
+// A button that takes all the space available in the layout.
+Button button = new Button("100%x100% button");
+button.setSizeFull();
+layout.addComponent(button);
+
+// We must set the layout to a defined height vertically, in
+// this case 100% of its parent layout, which also must
+// not have undefined size.
+layout.setHeight("100%");]]></programlisting>
+
+			<para>
+				If you have a layout with undefined height, such as
+				<classname>VerticalLayout</classname>, in a <classname>UI</classname>,
+				<classname>Window</classname>, or <classname>Panel</classname>, and put
+				enough content in it so that it extends outside the bottom of the view
+				area, scrollbars will appear. If you want your application to use all the
+				browser view, nothing more or less, you should use
+				<methodname>setFullSize()</methodname> for the root layout.
+			</para>
+
+			<programlisting><![CDATA[// Create the UI content
+VerticalLayout content = new VerticalLayout();
+
+// Use entire view area
+content.setSizeFull();
+
+setContent(content);]]></programlisting>
+        </section>
+
+        <section xml:id="layout.settings.size.expanding">
+            <title>Expanding Components</title>
+
+            <para>
+                If you set a <classname>HorizontalLayout</classname> to a defined size
+                horizontally or a <classname>VerticalLayout</classname> vertically, and
+                there is space left over from the contained components, the extra space is
+                distributed equally between the component cells. The components are
+                aligned within these cells, according to their alignment setting, top left
+                by default, as in the example below.
+            </para>
+
+            <mediaobject>
+                <imageobject>
+                    <imagedata smallscale="100%" align="center" fileref="img/layout/horizontallayout_width_defined.png"/>
+                </imageobject>
+            </mediaobject>
+
+            <para>
+                Often, you don't want such empty space, but want one or more
+                components to take all the leftover space. You need to set such a
+                component to 100% size and use
+                <methodname>setExpandRatio()</methodname>. If there is just one
+                such expanding component in the layout, the ratio parameter is irrelevant.
+            </para>
+				
+            <mediaobject>
+                <imageobject>
+                    <imagedata smallscale="100%" align="center" fileref="img/layout/horizontallayout_width_expanding.png"/>
+                </imageobject>
+            </mediaobject>
+
+            <para>
+                If you set multiple components as expanding, the expand ratio dictates how
+                large proportion of the available space (overall or excess depending on
+                whether the components are sized as a percentage or not) each component
+                takes. In the example below, the buttons have 1:2:3 ratio for the
+                expansion.
+            </para>
+
+            <mediaobject>
+                <imageobject>
+                    <imagedata smallscale="100%" align="center" fileref="img/layout/horizontallayout_width_expand_ratios.png"/>
+                </imageobject>
+            </mediaobject>
+
+            <para>
+                <classname>GridLayout</classname> has corresponding method for both of
+                its directions, <methodname>setRowExpandRatio()</methodname> and
+                <methodname>setColumnExpandRatio()</methodname>.
+            </para>
+
+            <para>
+                Expansion is dealt in detail in the documentation of the layout
+                components that support it. See <xref
+					linkend="layout.orderedlayout"/> and <xref
+					linkend="layout.gridlayout"/> for details on components
+                with relative sizes.
+            </para>
+        </section>
+
+		<section xml:id="layout.settings.alignment">
+			<title>Layout Cell Alignment</title>
+
+            <indexterm xml:id="term.alignment" class="startofrange">
+                <primary>Alignment</primary>
+            </indexterm>
+            <indexterm xml:id="term.setcomponentalignment" class="startofrange">
+                <primary><methodname>setComponentAlignment()</methodname></primary>
+            </indexterm>
+
+			<para>
+				You can set the alignment of the component inside a specific layout cell
+				with the <methodname>setComponentAlignment()</methodname> method. The
+				method takes as its parameters the component contained in the cell to be
+				formatted, and the horizontal and vertical alignment.
+			</para>
+
+			<para>
+				<xref linkend="figure.layout.settings.alignment"/> illustrates the
+				alignment of components within a <classname>GridLayout</classname>.
+			</para>
+
+			<figure xml:id="figure.layout.settings.alignment">
+				<title>Cell Alignments</title>
+				<mediaobject>
+					<imageobject role="html">
+						<imagedata align="center" fileref="img/layout/layout_alignment.png"/>
+					</imageobject>
+					<imageobject role="fo">
+						<imagedata scale="80" smallscale="120" align="center" fileref="img/layout/layout_alignment.png"/>
+					</imageobject>
+				</mediaobject>
+			</figure>
+
+			<para>
+				The easiest way to set alignments is to use the constants defined in the
+				<classname>Alignment</classname> class. Let us look how the buttons in the
+				top row of the above <classname>GridLayout</classname> are aligned with
+				constants:
+			</para>
+
+			<programlisting><?pocket-size 75% ?><![CDATA[// Create a grid layout
+final GridLayout grid = new GridLayout(3, 3);
+
+grid.setWidth(400, Sizeable.UNITS_PIXELS);
+grid.setHeight(200, Sizeable.UNITS_PIXELS);
+
+Button topleft = new Button("Top Left");
+grid.addComponent(topleft, 0, 0);
+grid.setComponentAlignment(topleft, Alignment.TOP_LEFT);
+
+Button topcenter = new Button("Top Center");
+grid.addComponent(topcenter, 1, 0);
+grid.setComponentAlignment(topcenter, Alignment.TOP_CENTER);
+
+Button topright = new Button("Top Right");
+grid.addComponent(topright, 2, 0);
+grid.setComponentAlignment(topright, Alignment.TOP_RIGHT);
+...]]></programlisting>
+
+			<para>
+				The following table lists all the <classname>Alignment</classname>
+				constants by their respective locations:
+			</para>
+
+			<table>
+				<title>Alignment Constants</title>
+				<tgroup cols="3" align="left">
+					<tbody>
+						<row valign="top">
+							<entry><parameter>TOP_LEFT</parameter></entry>
+							<entry><parameter>TOP_CENTER</parameter></entry>
+							<entry><parameter>TOP_RIGHT</parameter></entry>
+						</row>
+						<row valign="top">
+							<entry><parameter>MIDDLE_LEFT</parameter></entry>
+							<entry><parameter>MIDDLE_CENTER</parameter></entry>
+							<entry><parameter>MIDDLE_RIGHT</parameter></entry>
+						</row>
+						<row valign="top">
+							<entry><parameter>BOTTOM_LEFT</parameter></entry>
+							<entry><parameter>BOTTOM_CENTER</parameter></entry>
+							<entry><parameter>BOTTOM_RIGHT</parameter></entry>
+						</row>
+					</tbody>
+				</tgroup>
+			</table>
+
+			<para>
+				Another way to specify the alignments is to create an
+				<classname>Alignment</classname> object and specify the horizontal and
+				vertical alignment with separate constants. You can specify either of the
+				directions, in which case the other alignment direction is not modified,
+				or both with a bitmask operation between the two directions.
+			</para>
+
+			<programlisting><?pocket-size 75% ?><![CDATA[Button middleleft = new Button("Middle Left");
+grid.addComponent(middleleft, 0, 1);
+grid.setComponentAlignment(middleleft,
+          new Alignment(Bits.ALIGNMENT_VERTICAL_CENTER | 
+                        Bits.ALIGNMENT_LEFT));
+
+Button middlecenter = new Button("Middle Center");
+grid.addComponent(middlecenter, 1, 1);
+grid.setComponentAlignment(middlecenter,
+          new Alignment(Bits.ALIGNMENT_VERTICAL_CENTER |
+                        Bits.ALIGNMENT_HORIZONTAL_CENTER));
+
+Button middleright = new Button("Middle Right");
+grid.addComponent(middleright, 2, 1);
+grid.setComponentAlignment(middleright,
+          new Alignment(Bits.ALIGNMENT_VERTICAL_CENTER |
+                        Bits.ALIGNMENT_RIGHT));]]></programlisting>
+
+			<para>
+				Obviously, you may combine only one vertical bitmask with one horizontal
+				bitmask, though you may leave either one out. The following table lists
+				the available alignment bitmask constants:
+			</para>
+
+			<table>
+				<title>Alignment Bitmasks</title>
+				<tgroup cols="2" align="left">
+					<tbody>
+						<row valign="top">
+							<entry morerows="2">Horizontal</entry>
+							<entry><parameter>Bits.ALIGNMENT_LEFT</parameter></entry>
+						</row>
+						<row valign="top">
+							<entry><parameter>Bits.ALIGNMENT_HORIZONTAL_CENTER</parameter></entry>
+						</row>
+						<row valign="top">
+							<entry><parameter>Bits.ALIGNMENT_RIGHT</parameter></entry>
+						</row>
+						<row valign="top">
+							<entry morerows="2">Vertical</entry>
+							<entry><parameter>Bits.ALIGNMENT_TOP</parameter></entry>
+						</row>
+						<row valign="top">
+							<entry><parameter>Bits.ALIGNMENT_VERTICAL_CENTER</parameter></entry>
+						</row>
+						<row valign="top">
+							<entry><parameter>Bits.ALIGNMENT_BOTTOM</parameter></entry>
+						</row>
+					</tbody>
+				</tgroup>
+			</table>
+
+			<para>
+				You can determine the current alignment of a component with
+				<methodname>getComponentAlignment()</methodname>, which returns an
+				<classname>Alignment</classname> object. The class provides a number of
+				getter methods for decoding the alignment, which you can also get as a
+				bitmask value.
+			</para>
+
+            <section xml:id="layout.settings.alignment.size">
+                <title>Size of Aligned Components</title>
+
+                <para>
+                    You can only align a component that is smaller than its containing
+                    cell in the direction of alignment. If a component has 100% width, as
+                    many components have by default, horizontal alignment does not have
+                    any effect. For example, <classname>Label</classname> is 100% wide by
+                    default and can not therefore be horizontally aligned as such. The
+                    problem can be hard to notice, as the text inside a
+                    <classname>Label</classname> is left-aligned.
+                </para>
+
+                <para>
+                    You usually need to set either a fixed size, undefined size, or less
+                    than a 100% relative size for the component to be aligned - a size
+                    that is smaller than the containing layout has.
+                </para>
+
+                <para>
+                    For example, assuming that a <classname>Label</classname> has short
+                    content that is less wide than the containing
+                    <classname>VerticalLayout</classname>, you could center it as follows:
+                </para>
+
+                <programlisting><?pocket-size 65% ?><![CDATA[VerticalLayout layout = new VerticalLayout(); // 100% default width
+Label label = new Label("Hello"); // 100% default width
+label.setSizeUndefined();
+layout.addComponent(label);
+layout.setComponentAlignment(label, Alignment.MIDDLE_CENTER);]]></programlisting>
+
+                <para>
+                    If you set the size as undefined and the component itself contains
+                    components, make sure that the contained components also have either
+                    undefined or fixed size. For example, if you set the size of a
+                    <classname>Form</classname> as undefined, its containing layout
+                    <classname>FormLayout</classname> has 100% default width, which you
+                    also need to set as undefined. But then, any components inside the
+                    <classname>FormLayout</classname> must have either undefined or fixed
+                    size.
+                </para>
+            </section>
+
+            <indexterm startref="term.alignment" class="endofrange"/>
+            <indexterm startref="term.setcomponentalignment" class="endofrange"/>
+		</section>
+
+		<section xml:id="layout.settings.spacing">
+			<title>Layout Cell Spacing</title>
+			
+			<para>
+				The <classname>VerticalLayout</classname>,
+				<classname>HorizontalLayout</classname>, and
+				<classname>GridLayout</classname> layouts offer a
+				<methodname>setSpacing()</methodname> method to enable spacing between
+				the cells of the layout.
+			</para>
+
+			<para>
+				For example:
+			</para>
+
+			<programlisting><![CDATA[VerticalLayout layout = new VerticalLayout();
+layout.setSpacing(true);
+layout.addComponent(new Button("Component 1"));
+layout.addComponent(new Button("Component 2"));
+layout.addComponent(new Button("Component 3"));]]></programlisting>
+
+            <para>
+                The effect of spacing in <classname>VerticalLayout</classname> and
+                <classname>HorizontalLayout</classname> is illustrated in <xref
+                linkend="figure.layout.spacing"/>.
+            </para>
+
+            <figure xml:id="figure.layout.spacing">
+                <title>Layout Spacings</title>
+                <mediaobject>
+                    <imageobject role="html">
+                        <imagedata align="center" fileref="img/layout/layout_spacing.png"/>
+                    </imageobject>
+                    <imageobject role="fo">
+                        <imagedata scale="80" smallscale="100%" align="center" fileref="img/layout/layout_spacing.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+
+			<para>
+                The exact amount of spacing is defined in CSS. If the default is not
+                suitable, you can customize it in a custom theme.
+            </para>
+
+            <para>
+                In the Valo theme, you can specify the spacing with the
+                <varname>$v-layout-spacing-vertical</varname> and
+                <varname>$v-layout-spacing-horizontal</varname> parameters, as described
+                in <xref linkend="themes.valo.variables"/>. The spacing defaults to the
+                <varname>$v-unit-size</varname> measure.
+            </para>
+
+            <para>
+                When adjusting spacing in other themes, you should note that it is
+                implemented in a bit different ways in different layouts. In the ordered
+                layouts, it is done with spacer elements, while in the
+                <classname>GridLayout</classname> it has special handling. Please see the
+                sections on the individual components for more details.
+            </para>
+		</section>
+
+		<section xml:id="layout.settings.margins">
+			<title>Layout Margins</title>
+
+			<para>
+				Most layout components do not have any margin around them by default. The
+				ordered layouts, as well as <classname>GridLayout</classname>, support
+				enabling a margin with <methodname>setMargin()</methodname>. This enables
+				CSS classes for each margin in the HTML element of the layout
+				component. 
+            </para>
+
+            <para>
+                In the Valo theme, the margin sizes default to
+                <varname>$v-unit-size</varname>. You can customize them with
+                <varname>$v-layout-margin-top</varname>, <varname>right</varname>,
+                <varname>bottom</varname>, and <varname>left</varname>. See <xref
+                linkend="themes.valo.variables"/> for a description of the parameters.
+            </para>
+
+            <para>
+                To customize the default margins in other themes, you can define each
+                margin with the <literal>padding</literal> property in CSS.  You may want
+                to have a custom CSS class for the layout component to enable specific
+                customization of the margins, as is done in the following with the
+                <literal>mymargins</literal> class:
+            </para>
+
+			<programlisting>
+.<emphasis role="bold">mymargins</emphasis>.v-margin-left   {padding-left:   <emphasis role="bold">10</emphasis>px;}
+.<emphasis role="bold">mymargins</emphasis>.v-margin-right  {padding-right:  <emphasis role="bold">20</emphasis>px;}
+.<emphasis role="bold">mymargins</emphasis>.v-margin-top    {padding-top:    <emphasis role="bold">40</emphasis>px;}
+.<emphasis role="bold">mymargins</emphasis>.v-margin-bottom {padding-bottom: <emphasis role="bold">80</emphasis>px;}</programlisting>
+
+			<para>
+				You can enable only specific margins by passing a
+				<classname>MarginInfo</classname> to the
+				<methodname>setMargin()</methodname>. The margins are specified in
+				clockwise order for top, right, bottom, and left margin. The following
+				would enable the left and right margins:
+			</para>
+
+			<programlisting><![CDATA[layout.setMargin(new MarginInfo(false, true, false, true));]]></programlisting>
+
+			<para>
+				The resulting margins are shown in <xref linkend="figure.layout.margin"/>
+				below. The two ways produce identical margins.
+			</para>
+
+			<figure xml:id="figure.layout.margin">
+				<title>Layout Margins</title>
+				<mediaobject>
+					<imageobject role="html">
+						<imagedata align="center" fileref="img/layout/layout_margin.png"/>
+					</imageobject>
+					<imageobject role="fo">
+						<imagedata scale="80" smallscale="110" align="center" fileref="img/layout/layout_margin.png"/>
+					</imageobject>
+				</mediaobject>
+			</figure>
+		</section>
+	</section>
+		
+	<section xml:id="layout.customlayout">
+		<title>Custom Layouts</title>
+		
+		<para>
+			While it is possible to create almost any typical layout with the standard layout
+			components, it is sometimes best to separate the layout completely from
+			code. With the <classname>CustomLayout</classname> component, you can write
+			your layout as a template in HTML that provides locations of any contained
+			components. The layout template is included in a theme. This separation allows
+			the layout to be designed separately from code, for example using WYSIWYG web
+			designer tools such as Adobe Dreamweaver.
+		</para>
+		
+		<para>
+			A template is a HTML file located under <filename>layouts</filename> folder
+			under a theme folder under the <filename>WebContent/VAADIN/themes/</filename>
+			folder, for example,
+			<filename>WebContent/VAADIN/themes/<emphasis>themename/layouts/mylayout.html</emphasis></filename>. (Notice
+			that the root path <filename>WebContent/VAADIN/themes/</filename> for themes
+			is fixed.) A template can also be provided dynamically from an
+			<classname>InputStream</classname>, as explained below.  A template includes
+			<literal>&lt;div&gt;</literal> elements with a <parameter>location</parameter>
+			attribute that defines the location identifier. All custom layout HTML-files
+			must be saved using UTF-8 character encoding.
+		</para>
+
+		<programlisting><?pocket-size 75% ?>&lt;table width="100%" height="100%"&gt;
+  &lt;tr height="100%"&gt;
+    &lt;td&gt;
+      &lt;table align="center"&gt;
+        &lt;tr&gt;
+          &lt;td align="right"&gt;User&amp;nbsp;name:&lt;/td&gt;
+          &lt;td&gt;<emphasis role="strong">&lt;div location="username"&gt;&lt;/div&gt;</emphasis>&lt;/td&gt;
+        &lt;/tr&gt;
+        &lt;tr&gt;
+          &lt;td align="right"&gt;Password:&lt;/td&gt;
+          &lt;td&gt;<emphasis role="strong">&lt;div location="password"&gt;&lt;/div&gt;</emphasis>&lt;/td&gt;
+        &lt;/tr&gt;
+      &lt;/table&gt;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td align="right" colspan="2"&gt;
+      <emphasis role="strong">&lt;div location="okbutton"&gt;</emphasis>&lt;/div&gt;
+    &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;</programlisting>
+
+		<para>
+			The client-side engine of Vaadin will replace contents of the
+			location elements with the components. The components are bound to the
+			location elements by the location identifier given to
+			<methodname>addComponent()</methodname>, as shown in the example below.
+		</para>
+
+		<programlisting><?pocket-size 70% ?><![CDATA[// Have a Panel where to put the custom layout.
+Panel panel = new Panel("Login");
+panel.setSizeUndefined();
+main.addComponent(panel);
+
+// Create custom layout from "layoutname.html" template.
+CustomLayout custom = new CustomLayout("layoutname");
+custom.addStyleName("customlayoutexample");
+
+// Use it as the layout of the Panel.
+panel.setContent(custom);
+
+// Create a few components and bind them to the location tags
+// in the custom layout.
+TextField username = new TextField();
+custom.addComponent(username, "username");
+
+TextField password = new TextField();
+custom.addComponent(password, "password");
+
+Button ok = new Button("Login");
+custom.addComponent(ok, "okbutton");]]></programlisting>
+
+		<para>
+			The resulting layout is shown below in <xref linkend="figure.layout.customlayout"/>.
+		</para>
+
+		<figure xml:id="figure.layout.customlayout">
+			<title>Example of a Custom Layout Component</title>
+			<mediaobject>
+				<imageobject role="html">
+					<imagedata align="center" fileref="img/layout/customlayout-example1.png"/>
+				</imageobject>
+				<imageobject role="fo">
+					<imagedata scale="100" smallscale="130" align="center" fileref="img/layout/customlayout-example1.png"/>
+				</imageobject>
+			</mediaobject>
+		</figure>
+
+		<para>
+			You can use <methodname>addComponent()</methodname> also to replace an
+			existing component in the location given in the second parameter.
+		</para>
+
+		<para>
+			In addition to a static template file, you can provide a template dynamically
+			with the <classname>CustomLayout</classname> constructor that accepts an
+			<classname>InputStream</classname> as the template source. For example:
+		</para>
+
+		<programlisting><![CDATA[new CustomLayout(new ByteArrayInputStream("<b>Template</b>".getBytes()));]]></programlisting>
+
+		<para>or</para>
+
+		<programlisting><![CDATA[new CustomLayout(new FileInputStream(file));]]></programlisting>
+
+	</section>
+		
+</chapter>
+
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: xml
+sgml-omittag:nil
+sgml-shorttag:nil
+sgml-namecase-general:nil
+sgml-general-insert-case:lower
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:4
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-exposed-tags:nil
+sgml-local-catalogs:("/etc/sgml/catalog" "/usr/share/xemacs21/xemacs-packages/etc/psgml-dtds/CATALOG")
+sgml-local-ecat-files:("ECAT" "~/sgml/ECAT" "/usr/share/sgml/ECAT" "/usr/local/share/sgml/ECAT" "/usr/local/lib/sgml/ECAT")
+End:
+-->
+

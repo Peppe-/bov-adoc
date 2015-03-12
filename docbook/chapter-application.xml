@@ -1,0 +1,3414 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ====================================================================== -->
+<!-- Copyright 2000-2012 Vaadin Ltd                                         -->
+<!-- All Rights Reserved                                                    -->
+<!-- This work is licensed under a Creative Commons Attribution-NoDerivs    -->
+<!-- License (CC-BY-ND) Version 3.0. Full license text is available at:     -->
+<!-- http://creativecommons.org/licenses/by-nd/3.0/legalcode                -->
+<!-- ====================================================================== -->
+
+<chapter xml:id="application">
+	<title>Writing a Server-Side Web Application</title>
+
+	<para>
+        This chapter provides the fundamentals of server-side web application development
+        with Vaadin, concentrating on the basic elements of an application from a
+        practical point-of-view.
+	</para>
+
+	<section xml:id="application.overview">
+		<title>Overview</title>
+
+		<para>
+            A server-side Vaadin application runs as a Java Servlet in a servlet
+            container. The Java Servlet API is, however, hidden behind the framework. The
+            user interface of the application is implemented as a
+            <emphasis>&ui;</emphasis> class, which needs to create and manage the user
+            interface components that make up the user interface. User input is handled
+            with event listeners, although it is also possible to bind the user interface
+            components directly to data. The visual style of the application is defined in
+            themes as CSS or Sass. Icons, other images, and downloadable files are
+            handled as <emphasis>resources</emphasis>, which can be external or served by
+            the application server or the application itself.
+		</para>
+		
+		<figure xml:id="figure.application.architecture">
+			<title>Server-Side Application Architecture</title>
+			<mediaobject>
+				<imageobject role="html">
+					<imagedata align="center" fileref="img/application/application-architecture-lo.png"/>
+				</imageobject>
+				<imageobject role="fo">
+					<imagedata scale="70" smallscale="100%" align="center" fileref="img/application/application-architecture-hi.png"/>
+				</imageobject>
+			</mediaobject>
+		</figure>
+
+		<para>
+			<xref linkend="figure.application.architecture"/> illustrates the basic
+			architecture of an application made with the Vaadin Framework, with all the
+			major elements, which are introduced below and discussed in detail in this
+			chapter.
+		</para>
+
+		<para>
+			First of all, a Vaadin application must have one or more &ui; classes that
+			extend the abstract <classname>com.vaadin.ui.&uiclass;</classname> class and
+			implement the <methodname>init()</methodname> method.  A custom theme can be
+			defined as an annotation for the &ui;.
+		</para>
+		
+		<programlisting><![CDATA[@Theme("hellotheme")
+public class HelloWorld extends UI {
+    protected void init(VaadinRequest request) {
+        ... initialization code goes here ...
+    }
+}]]></programlisting>
+
+        <para>
+            A &ui; is a viewport to a Vaadin application running in a web page.  A web
+            page can actually have multiple such &ui;s within it. Such situation is
+            typical especially with portlets in a portal. An application can run in
+            multiple browser windows, each having a distinct <classname>UI</classname>
+            instance. The UIs of an application can be the same UI class or different.
+        </para>
+
+		<para>
+            Vaadin framework handles servlet requests internally and associates the
+            requests with user sessions and a UI state. Because of this, you can develop
+            Vaadin applications much like you would develop desktop applications.
+		</para>
+		
+		<para>
+			The most important task in the initialization is the creation of the initial
+			user interface. This, and the deployment of a UI as a Java Servlet in the
+			Servlet container, as described in <xref linkend="application.environment"/>,
+			are the minimal requirements for an application.
+		</para>
+
+		<para>
+			Below is a short overview of the other basic elements of an application
+			besides &ui;:
+		</para>
+
+		<variablelist>
+			<varlistentry>
+				<term>&uiclass;</term>
+				<listitem>
+					<para>
+                        A <emphasis>&ui;</emphasis> represents an HTML fragment in which
+                        a Vaadin application runs in a web page. It typically fills the
+                        entire page, but can also be just a part of a page. You normally
+                        develop a Vaadin application by extending the
+                        <classname>&uiclass;</classname> class and adding content to it. A
+                        &ui; is essentially a viewport connected to a user session of an
+                        application, and you can have many such views, especially in a
+                        multi-window application. Normally, when the user opens a new page
+                        with the URL of the Vaadin UI, a new <classname>UI</classname>
+                        (and the associated <classname>Page</classname> object) is
+                        automatically created for it. All of them share the same user
+                        session.
+                    </para>
+
+                    <para>
+                        The current &ui; object can be accessed globally with
+                        <methodname>UI.getCurrent()</methodname>. The static method
+                        returns the thread-local &ui; instance for the currently processed
+                        request<phrase condition="web"> (see <xref
+                        linkend="advanced.global.threadlocal"/>)</phrase>.
+                    </para>
+				</listitem>
+			</varlistentry>
+
+			<varlistentry>
+				<term>Page</term>
+				<listitem>
+					<para>
+                        A <classname>&uiclass;</classname> is associated with a
+                        <classname>Page</classname> object that represents the web page as
+                        well as the browser window in which the &ui; runs.
+					</para>
+
+                    <para>
+                        The <classname>Page</classname> object for the currently processed
+                        request can be accessed globally from a Vaadin application with
+                        <methodname>Page.getCurrent()</methodname>. This is equivalent to
+                        calling
+                        <methodname>&uiclass;.getCurrent().getPage()</methodname>.
+                    </para>
+				</listitem>
+			</varlistentry>
+
+			<varlistentry>
+				<term>Vaadin Session</term>
+				<listitem>
+					<para>
+						A <classname>VaadinSession</classname> object represents a user
+						session with one or more UIs open in the application. A session
+						starts when a user first opens a UI of a Vaadin application, and
+						closes when the session expires in the server or when it is closed
+						explicitly.
+					</para>
+				</listitem>
+			</varlistentry>
+
+			<varlistentry>
+				<term>User Interface Components</term>
+				<listitem>
+					<para>
+						The user interface consists of components that are created by the
+						application. They are laid out hierarchically using special
+						<emphasis>layout components</emphasis>, with a content root layout
+						at the top of the hierarchy. User interaction with the components
+						causes <emphasis>events</emphasis> related to the component, which
+						the application can handle. <emphasis>Field components</emphasis>
+						are intended for inputting values and can be directly bound to
+						data using the Vaadin Data Model. You can make your own user
+						interface components through either inheritance or
+						composition. For a thorough reference of user interface
+						components, see <xref linkend="components"/>, for layout
+						components, see <xref linkend="layout"/>, and for compositing
+						components, see <xref linkend="components.customcomponent"/>.
+					</para>
+				</listitem>
+			</varlistentry>
+
+			<varlistentry>
+				<term>Events and Listeners</term>
+				<listitem>
+					<para>
+                        Vaadin follows an event-driven programming paradigm, in which
+                        events, and listeners that handle the events, are the basis of
+                        handling user interaction in an application (although also server
+                        push is possible as described in <xref
+                        linkend="advanced.push"/>). <xref linkend="architecture.events"/>
+                        gave an introduction to events and listeners from an architectural
+                        point-of-view, while <xref linkend="application.events"/> later in
+                        this chapter takes a more practical view.
+                    </para>
+                </listitem>
+            </varlistentry>
+
+			<varlistentry>
+				<term>Resources</term>
+				<listitem>
+					<para>
+						A user interface can display images or have links to web pages or
+						downloadable documents. These are handled as
+						<emphasis>resources</emphasis>, which can be external or provided
+						by the web server or the application itself. <xref
+						linkend="application.resources"/> gives a practical overview of
+						the different types of resources.
+					</para>
+				</listitem>
+			</varlistentry>
+
+			<varlistentry>
+				<term>Themes</term>
+				<listitem>
+					<para>
+						The presentation and logic of the user interface are
+						separated. While the UI logic is handled as Java code, the
+						presentation is defined in <emphasis>themes</emphasis> as CSS or
+						SCSS. Vaadin includes some built-in themes. User-defined themes
+						can, in addition to style sheets, include HTML templates that
+						define custom layouts and other theme resources, such as
+						images. Themes are discussed in detail in <xref
+						linkend="themes"/>, custom layouts in <xref
+						linkend="layout.customlayout"/>, and theme resources in <xref
+						linkend="application.resources.theme"/>.
+					</para>
+				</listitem>
+			</varlistentry>
+
+			<varlistentry>
+				<term>Data Binding</term>
+				<listitem>
+					<para>
+						Field components are essentially views to data, represented in the
+						<emphasis>Vaadin Data Model</emphasis>. Using the data model, the
+						components can get their values from and update user input to the
+						data model directly, without the need for any control code. A
+						field component is always bound to a <emphasis>property</emphasis>
+						and a group of fields to an <emphasis>item</emphasis> that holds
+						the properties. Items can be collected in a
+						<emphasis>container</emphasis>, which can act as a data source for
+						some components such as tables or lists. While all the components
+						have a default data model, they can be bound to a user-defined
+						data source. For example, you can bind a
+						<classname>Table</classname> component to an SQL query
+						response. For a complete overview of data binding in Vaadin,
+						please refer to <xref linkend="datamodel"/>.
+					</para>
+				</listitem>
+			</varlistentry>
+        </variablelist>
+	</section>
+
+    <section xml:id="application.architecture">
+        <title>Building the UI</title>
+
+        <para>
+            Vaadin user interfaces are built hierarchically from components, so that the
+            leaf components are contained within layout components and other component
+            containers. Building the hierarchy starts from the top (or bottom - whichever
+            way you like to think about it), from the <classname>UI</classname> class of
+            the application. You normally set a layout component as the content of the UI
+            and fill it with other components.
+        </para>
+
+        <programlisting><?pocket-size 75% ?><![CDATA[public class MyHierarchicalUI extends UI {
+    @Override
+    protected void init(VaadinRequest request) {
+        // The root of the component hierarchy
+        VerticalLayout content = new VerticalLayout();
+        content.setSizeFull(); // Use entire window
+        setContent(content);   // Attach to the UI
+        
+        // Add some component
+        content.addComponent(new Label("Hello!"));
+        
+        // Layout inside layout
+        HorizontalLayout hor = new HorizontalLayout();
+        hor.setSizeFull(); // Use all available space
+
+        // Couple of horizontally laid out components
+        Tree tree = new Tree("My Tree",
+                TreeExample.createTreeContent());
+        hor.addComponent(tree);
+
+        Table table = new Table("My Table",
+                TableExample.generateContent());
+        table.setSizeFull();
+        hor.addComponent(table);
+        hor.setExpandRatio(table, 1); // Expand to fill
+
+        content.addComponent(hor);
+        content.setExpandRatio(hor, 1); // Expand to fill
+    }
+}]]></programlisting>
+
+        <para>
+            The component hierarchy could be illustrated with a tree as follows:
+        </para>
+
+        <programlisting><?pocket-size 75% ?><![CDATA[UI
+ `-- VerticalLayout
+   |-- Label
+   `-- HorizontalLayout
+     |-- Tree
+     `-- Table]]></programlisting>
+
+        <para>
+            The result is shown in <xref linkend="figure.application.architecture.example"/>.
+        </para>
+
+        <figure xml:id="figure.application.architecture.example">
+            <title>Simple Hierarchical UI</title>
+            <mediaobject>
+                <imageobject>
+                    <imagedata scale="70" smallscale="100%" align="center" fileref="img/application/ui-architecture-hierarchical.png"/>
+                </imageobject>
+            </mediaobject>
+        </figure>
+
+        <para>
+            Instead of building the layout in Java, you can also use a declarative design,
+            as described later in <xref linkend="application.declarative"/>. The examples
+            given for the declarative layouts give exactly the same UI layout as built
+            from the components above.
+        </para>
+
+        <para>
+            The built-in components are described in <xref linkend="components"/> and the
+            layout components in <xref linkend="layout"/>.
+        </para>
+
+        <para>
+            The example application described above just is, it does not do anything. User
+            interaction is handled with event listeners, as described a bit later in <xref
+            linkend="application.events"/>.
+        </para>
+
+        <section xml:id="application.architecture.architecture">
+            <title>Application Architecture</title>
+
+            <para>
+                Once your application grows beyond a dozen or so lines, which is usually
+                quite soon, you need to start considering the application architecture
+                more closely. You are free to use any object-oriented techniques available
+                in Java to organize your code in methods, classes, packages, and
+                libraries. An architecture defines how these modules communicate together
+                and what sort of dependencies they have between them. It also defines the
+                scope of the application. The scope of this book, however, only gives a
+                possibility to mention some of the most common architectural patterns in
+                Vaadin applications.
+            </para>
+
+            <para>
+                The subsequent sections describe some basic application patterns. For more
+                information about common architectures, see <xref
+                linkend="advanced.architecture"/>, which discusses layered architectures, the
+                Model-View-Presenter (MVP) pattern, and so forth. <phrase
+                condition="web">The <xref linkend="advanced.global"/> discusses the
+                problem of passing essentially global references around, a common problem
+                which is also visited in <xref
+                linkend="application.architecture.accessing"/>.</phrase>
+            </para>
+        </section>
+
+        <section xml:id="application.architecture.composition">
+            <title>Compositing Components</title>
+
+            <para>
+                User interfaces typically contain many user interface components in a
+                layout hierarchy. Vaadin provides many layout components for laying
+                contained components vertically, horizontally, in a grid, and in many
+                other ways. You can extend layout components to create composite
+                components.
+            </para>
+
+            <programlisting><![CDATA[class MyView extends VerticalLayout {
+    TextField entry   = new TextField("Enter this");
+    Label     display = new Label("See this");
+    Button    click   = new Button("Click This");
+
+    public MyView() {
+        addComponent(entry);
+        addComponent(display);
+        addComponent(click);
+        
+        // Configure it a bit
+        setSizeFull();
+        addStyleName("myview");
+    }
+}
+
+// Use it
+Layout myview = new MyView();]]></programlisting>
+
+            <para>
+                This composition pattern is especially supported for creating forms, as
+                described in <xref linkend="datamodel.itembinding.formclass"/>.
+            </para>
+
+            <para>
+                While extending layouts is an easy way to make component composition, it
+                is a good practice to encapsulate implementation details, such as the
+                exact layout component used. Otherwise, the users of such a composite
+                could begin to rely on such implementation details, which would make
+                changes harder. For this purpose, Vaadin has a special
+                <classname>CustomComponent</classname> wrapper, which hides the content
+                representation.
+            </para>
+
+            <programlisting><![CDATA[class MyView extends CustomComponent {
+    TextField entry   = new TextField("Enter this");
+    Label     display = new Label("See this");
+    Button    click   = new Button("Click This");
+
+    public MyView() {
+        Layout layout = new VerticalLayout();
+        
+        layout.addComponent(entry);
+        layout.addComponent(display);
+        layout.addComponent(click);
+        
+        setCompositionRoot(layout);
+        
+        setSizeFull();
+    }
+}
+
+// Use it
+MyView myview = new MyView();]]></programlisting>
+
+            <para>
+                For a more detailed description of the
+                <classname>CustomComponent</classname>, see <xref
+                linkend="components.customcomponent"/>. The Vaadin Plugin for Eclipse also
+                includes a visual editor for composite components, as described in <xref
+                linkend="eclipse"/>.
+            </para>
+        </section>
+
+        <section xml:id="application.architecture.navigation">
+            <title>View Navigation</title>
+
+            <para>
+                While the most simple applications have just a single
+                <emphasis>view</emphasis> (or <emphasis>screen</emphasis>), perhaps most
+                have many. Even in a single view, you often want to have sub-views, for
+                example to display different content. <xref
+                linkend="figure.application.architecture.navigation"/> illustrates a
+                typical navigation between different top-level views of an application,
+                and a main view with sub-views.
+            </para>
+
+            <figure xml:id="figure.application.architecture.navigation">
+                <title>Navigation Between Views</title>
+                <mediaobject>
+                    <imageobject role="html">
+                        <imagedata align="center" fileref="img/application/view-navigation-lo.png"/>
+                    </imageobject>
+                    <imageobject role="fo">
+                        <imagedata scale="70" smallscale="100%" align="center" fileref="img/application/view-navigation-hi.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+
+            <para>
+                The <classname>Navigator</classname> described in <xref
+                linkend="advanced.navigator"/> is a view manager that provides a flexible
+                way to navigate between views and sub-views, while managing the URI
+                fragment in the page URL to allow bookmarking, linking, and going back in
+                browser history.
+            </para>
+
+            <para>
+                Often Vaadin application views are part of something bigger. In such
+                cases, you may need to integrate the Vaadin applications with the other
+                website. You can use the embedding techniques described in <xref
+                linkend="advanced.embedding"/>.
+            </para>
+        </section>
+
+        <section xml:id="application.architecture.accessing">
+            <title>Accessing &uiclass;, Page, Session, and Service</title>
+
+            <para>
+                You can get the UI and the page to which a component is attached to with
+                <methodname>getUI()</methodname> and <methodname>getPage()</methodname>.
+            </para>
+            
+            <para>
+                However, the values are <literal>null</literal> until the component is
+                attached to the UI, and typically, when you need it in constructors, it is
+                not. It is therefore preferable to access the current &ui;, page, session,
+                and service objects from anywhere in the application using the static
+                <methodname>getCurrent()</methodname> methods in the respective
+                <classname>&uiclass;</classname>, <classname>Page</classname>,
+                <classname>VaadinSession</classname>, and
+                <classname>VaadinService</classname> classes.
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[// Set the default locale of the UI
+UI.getCurrent().setLocale(new Locale("en"));
+
+// Set the page title (window or tab caption)
+Page.getCurrent().setTitle("My Page");
+        
+// Set a session attribute
+VaadinSession.getCurrent().setAttribute("myattrib", "hello");
+
+// Access the HTTP service parameters
+File baseDir = VaadinService.getCurrent().getBaseDirectory();]]></programlisting>
+
+            <para>
+                You can get the page and the session also from a <classname>UI</classname>
+                with <methodname>getPage()</methodname> and
+                <methodname>getSession()</methodname> and the service from
+                <classname>VaadinSession</classname> with
+                <methodname>getService()</methodname>.
+            </para>
+
+            <para>
+                The static methods use the built-in ThreadLocal support in the
+                classes.<phrase condition="web"> The pattern is described in <xref
+                linkend="advanced.global.threadlocal"/>.</phrase>
+            </para>
+        </section>
+    </section>
+
+
+    <section xml:id="application.declarative">
+        <title>Designing UIs Declaratively</title>
+
+        <para>
+            Declarative definition of composites and even entire UIs makes it easy for
+            developers and especially graphical designers to work on visual designs
+            without any coding. Designs can be modified even while the application is
+            running, as can be the associated themes. A design is a representation of a
+            component hierarcy, which can be accessed from Java code to implement dynamic
+            UI logic, as well as data binding.
+        </para>
+
+        <para>
+            For example, considering the following layout in Java:
+        </para>
+
+        <book-example eid="layout.orderedlayout.basic" style="float: right"></book-example>
+        <programlisting><![CDATA[VerticalLayout vertical = new VerticalLayout ();
+vertical.addComponent(new TextField("Name"));
+vertical.addComponent(new TextField("Street address"));
+vertical.addComponent(new TextField("Postal code"));
+layout.addComponent(vertical);]]></programlisting>
+
+        <para>
+            You could define it declaractively with the following equivalent design:
+        </para>
+
+        <programlisting><![CDATA[<v-vertical-layout>
+  <v-text-field caption="Name"/>
+  <v-text-field caption="Street address"/>
+  <v-text-field caption="Postal code"/>
+</v-vertical-layout>]]></programlisting>
+
+        <para>
+            Declarative designs can be crafted by hand, but are most conveniently created
+            with the Vaadin Designer.
+        </para>
+
+        <para>
+            In the following, we first go through the syntax of the declarative design
+            files, and then see how to use them in applications by binding them to data
+            and handling user interaction events.
+        </para>
+
+        <section xml:id="application.declarative.syntax">
+            <title>Declarative Syntax</title>
+
+            <para>
+                A design is an HTML document with custom elements for representing
+                components and their configuration. A design has a single root component
+                inside the HTML body element. Enclosing <literal>&lt;html&gt;</literal>,
+                <literal>&lt;head&gt;</literal>, <literal>&lt;body&gt;</literal> are
+                optional, but necessary if you need to make namespace definitions for
+                custom components. Other regular HTML elements may not be used in the
+                file, except inside components that specifically accept HTML content.
+            </para>
+
+            <para>
+                In a design, each nested element corresponds to a Vaadin component in a
+                component tree. Components can have explicitly given IDs to enable binding
+                them to variables in the Java code, as well as optional attributes.
+            </para>
+
+            <programlisting><?pocket-size 75% ?><![CDATA[<!DOCTYPE html>
+<html>
+  <body>
+    <v-vertical-layout size-full>
+      <!-- Label with HTML content -->
+      <v-label><b>Hello!</b> - How are you?</v-label>
+
+      <v-horizontal-layout size-full :expand>
+        <v-tree _id="mytree" caption="My Tree"
+                width-auto height-full/>
+        <v-table _id="mytable" caption="My Table"
+                 size-full :expand/>
+      </v-horizontal-layout>
+    </v-vertical-layout>
+  </body>
+</html>]]></programlisting>
+
+            <para>
+                The DOCTYPE is not required, neither is the
+                <literal>&lt;html&gt;</literal>, or <literal>&lt;body&gt;</literal>
+                elements. Nevertheless, there may only be one design root element.
+            </para>
+
+            <para>
+                The above design defines the same UI layout as done earlier with Java
+                code, and illustrated in <xref
+                linkend="figure.application.architecture.example"/>.
+            </para>
+        </section>
+
+        <section xml:id="application.declarative.elements">
+            <title>Component Elements</title>
+
+            <para>
+                HTML elements of the declarative syntax are directly mapped to Vaadin
+                components according to their Java class names. The tag of a component
+                element has a namespace prefix separated by a dash. Vaadin core
+                components, which are defined in the <package>com.vaadin.ui</package>
+                package, have <literal>v-</literal> prefix. The rest of an element tag is
+                determined from the Java class name of the component, by making it
+                lower-case, while adding a dash (<literal>-</literal>) before every
+                previously upper-case letter as a word separator. For example,
+                <classname>ComboBox</classname> component has declarative element tag
+                <literal>&lt;v-combo-box&gt;</literal>.
+            </para>
+
+            <section xml:id="application.declarative.elements.prefix">
+                <title>Component Prefix to Package Mapping</title>
+
+                <para>
+                    You can use any components in a design: components extending Vaadin
+                    components, composite components, and add-on components. To do so, you
+                    need to define a mapping from an element prefix to the Java package of
+                    the component. The prefix is used as a sort of a namespace.
+                </para>
+
+                <para>
+                    The mappings are defined in <literal>&lt;meta name="package-mapping"
+                    ...&gt;</literal> elements in the HTML head. A
+                    <parameter>content</parameter> attribute defines a mapping, in
+                    notation with a prefix separated from the corresponding Java package
+                    name with a colon, such as "<literal>my:com.example.myapp</literal>".
+                </para>
+
+                <para>
+                    For example, consider that you have the following composite class
+                    <classname>com.example.myapp.ExampleComponent</classname>:
+                </para>
+
+                <programlisting><?pocket-size 70% ?><![CDATA[package com.example.myapp;
+
+public class ExampleComponent extends CustomComponent {
+    public ExampleComponent() {
+        setCompositionRoot(new Label("I am an example."));
+    }
+}]]></programlisting>
+
+                <para>
+                    You would make the package prefix mapping and then use the component
+                    as follows:
+                </para>
+
+                <programlisting><?pocket-size 70% ?>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    <emphasis role="bold">&lt;meta name="package-mapping"
+          content="my:com.example.myapp" /&gt;</emphasis>
+  &lt;/head&gt;
+
+  &lt;body&gt;
+    &lt;v-vertical-layout&gt;
+      &lt;v-label&gt;&lt;b&gt;Hello!&lt;/b&gt; - How are you?&lt;/v-label&gt;
+
+      &lt;!-- Use it here --&gt;
+      <emphasis role="bold">&lt;my-example-component/&gt;</emphasis>
+    &lt;/v-vertical-layout&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</programlisting>
+            </section>
+
+            <section xml:id="application.declarative.elements.inline">
+                <title>Inline Content and Data</title>
+
+
+                <para>
+                    The element content can be used for certain default attributes, such
+                    as a button caption. For example:
+                </para>
+
+                <programlisting><![CDATA[<v-button><b>OK</b></v-button>]]></programlisting>
+
+                <para>
+                    Some components, such as selection components, allow defining inline
+                    data within the element. For example:
+                </para>
+
+                <programlisting><![CDATA[<v-native-select>
+  <option>Mercury</option>
+  <option>Venus</option>
+  <option selected>Earth</option>
+</v-native-select>]]></programlisting>
+
+                <para>
+                    The declarative syntax of each component type is described in the
+                    JavaDoc API documentation of Vaadin.
+                </para>
+            </section>
+        </section>
+
+        <section xml:id="application.declarative.attributes">
+            <title>Component Attributes</title>
+
+            <section xml:id="application.declarative.attributes.mapping">
+                <title>Attribute-to-Property Mapping</title>
+
+                <para>
+                    Component properties are directly mapped to the attributes of the HTML
+                    elements according to the names of the properties. Attributes are
+                    written in lower-case letters and dash is used for word separation
+                    instead of upper-case letters in the Java methods, so that
+                    <literal>input-prompt</literal> attribute is equivalent to
+                    <methodname>setInputPrompt()</methodname>.
+                </para>
+
+                <para>
+                    For example, the <emphasis>caption</emphasis> property, which you can
+                    set with <methodname>setCaption()</methodname>, is represented as
+                    <literal>caption</literal> attribute. You can find the component
+                    properties by the setter methods in the <link
+                    xlink:href="https://vaadin.com/api/">JavaDoc API documentation</link>
+                    of the component classes.
+                </para>
+
+                <programlisting><?pocket-size 75% ?><![CDATA[<v-text-field caption="Name" input-prompt="Enter Name"/>]]></programlisting>
+
+            </section>
+
+            <section xml:id="application.declarative.attributes.parameters">
+                <title>Attribute Values</title>
+
+                <para>
+                    Attribute parameters must be enclosed in quotes and the value given as
+                    a string must be convertible to the type of the property (string,
+                    integer, boolean, or enumeration). Object types are not supported.
+                </para>
+
+                <para>
+                    Some attribute names are given by a shorthand. For example,
+                    <parameter>alternateText</parameter> property of the
+                    <classname>Image</classname> component, which you would set with
+                    <methodname>setAlternateText()</methodname>, is given as the
+                    <literal>alt</literal> attribute.
+                </para>
+
+                <para>
+                    Boolean values must be either "<literal>true</literal>" or
+                    "<literal>false</literal>". The value can be omitted, in which case
+                    <literal>true</literal> is assumed. For example, the
+                    <literal>enabled</literal> attribute is boolean and has default value
+                    "<literal>true</literal>", so <literal>enabled="true"</literal> and
+                    <literal>enabled</literal> and equivalent.
+                </para>
+
+                <programlisting><![CDATA[<v-button caption="OK" enabled="false"/>]]></programlisting>
+            </section>
+
+            <section xml:id="application.declarative.attributes.parent">
+                <title>Parent Component Settings</title>
+
+                <para>
+                    Certain settings, such as a component's alignment in a layout, are not
+                    done in the component itself, but in the layout. Attributes prefixed
+                    with colon (<literal>:</literal>) are passed to the containing
+                    component, with the component as a target parameter. For example,
+                    <literal>:expand="1"</literal> given for a component
+                    <parameter>c</parameter> is equivalent to calling
+                    <methodname>setExpandRatio(c, 1)</methodname> for the containing
+                    layout.
+                </para>
+
+                <programlisting><?pocket-size 70% ?>&lt;v-vertical-layout size-full&gt;
+  &lt;!-- Align right in the containing layout --&gt;
+  &lt;v-label width-auto <emphasis role="bold">:right</emphasis>&gt;Hello!&lt;/v-label&gt;
+
+  &lt;!-- Expands to take up all remaining vertical space --&gt;
+  &lt;v-horizontal-layout size-full <emphasis role="bold">:expand</emphasis>&gt;
+    &lt;!-- Automatic width - shrinks horizontally --&gt;
+    &lt;v-tree width-auto height-full/&gt;
+
+    &lt;!-- Expands horizontally to take remaining space --&gt;
+    &lt;v-table size-full <emphasis role="bold">:expand</emphasis>/&gt;
+  &lt;/v-horizontal-layout&gt;
+&lt;/v-vertical-layout&gt;</programlisting>
+
+                <para>
+                    Again, compare the above declaration to the Java code given in <xref
+                    linkend="application.architecture"/>.
+                </para>
+            </section>
+        </section>
+
+        <section xml:id="application.declarative.identifiers">
+            <title>Component Identifiers</title>
+
+            <para>
+                Components can be identified by either an identifier or a caption. There
+                are two types of identifiers: page-global and local. This allows accessing
+                them from Java code and binding them to components, as described later in
+                <xref linkend="application.declarative.composite"/>.
+            </para>
+
+            <para>
+                The <literal>id</literal> attribute can be used to define a page-global
+                identifier, which must be unique within the page. Another design or UI
+                shown simultaneously in the same page may not have components sharing the
+                same ID. Using global identifiers is therefore not recommended, except in
+                special cases where uniqueness is ensured.
+            </para>
+
+            <para>
+                The <literal>_id</literal> attribute defines a local identifier used
+                only within the design. This is the recommended way to identifying
+                components.
+            </para>
+
+            <programlisting><![CDATA[<v-tree _id="mytree" caption="My Tree"/>]]></programlisting>
+        </section>
+
+        <section xml:id="application.declarative.composite">
+            <title>Using Designs in Code</title>
+
+            <para>
+                The main use of declarative designs is in building application views,
+                sub-views, dialogs, and forms through composition. The two main tasks are
+                filling the designs with application data and handling user interaction
+                events.
+            </para>
+
+            <section xml:id="application.declarative.composite.designroot">
+                <title>Binding to a Design Root</title>
+
+                <para>
+                    You can bind any component container as the root component of a design
+                    with the <classname>@DesignRoot</classname> annotation. The class must
+                    match or extend the class of the root element in the design.
+                </para>
+
+                <para>
+                    The member variables are automatically initialized from the design
+                    according to the component identifiers (see <xref
+                    linkend="application.declarative.identifiers"/>), which must match the
+                    variable names.
+                </para>
+
+                <para>
+                    For example, the following class could be used to bind the design given
+                    earlier.
+                </para>
+
+                <book-example eid="application.declarative.designroot" style="float: right"/>
+                <programlisting><?pocket-size 75% ?><![CDATA[@DesignRoot
+public class MyViewDesign extends VerticalLayout {
+    Tree mytree;
+    Table mytable;
+    
+    public MyViewDesign() {
+        Design.read("MyDeclarativeUI.html", this);
+
+        // Show some (example) data
+        mytree.setContainerDataSource(
+            TreeExample.createTreeContent());
+        mytable.setContainerDataSource(
+            TableExample.generateContent());
+            
+        // Some interaction
+        mytree.addItemClickListener(event -> // Java 8
+            Notification.show("Selected " +
+                event.getItemId()));
+    }
+}]]></programlisting>
+
+                <para>
+                    The design root class must match or extend the root element class of
+                    the design. For example, earlier we had
+                    <literal>&lt;v-vertical-layout&gt;</literal> element in the HTML file,
+                    which can be bound to a class extending
+                    <classname>VerticalLayout</classname>.
+                </para>
+            </section>
+
+            <section xml:id="application.declarative.composite.using">
+                <title>Using a Design</title>
+
+                <para>
+                    The fact that a component is defined declaratively is not visible in
+                    its API, so you can create and use such it just like any other
+                    component.
+                </para>
+
+                <para>
+                    For example, to use the previously defined design root component as
+                    the content of the entire UI:
+                </para>
+
+                <programlisting><?pocket-size 75% ?><![CDATA[public class DeclarativeViewUI extends UI {
+    @Override
+    protected void init(VaadinRequest request) {
+        setContent(new MyViewDesign());
+    }
+}]]></programlisting>
+            </section>
+
+            <section xml:id="application.declarative.composite.viewnavigation">
+                <title>Designs in View Navigation</title>
+
+                <para>
+                    To use a design in view navigation, as described in <xref
+                    linkend="advanced.navigator"/>, you just need to implement the
+                    <interfacename>View</interfacename> interface.
+                </para>
+
+                <programlisting><?pocket-size 75% ?><![CDATA[@DesignRoot
+public class MainView extends VerticalLayout
+                      implements View {
+    public MainView() {
+        Design.read(this);
+        ...
+    }
+    ...
+}
+
+...
+// Use the view by precreating it
+navigator.addView(MAINVIEW, new MainView());]]></programlisting>
+
+                <para>
+                    See <xref linkend="advanced.navigator.urifragment"/> for a
+                    complete example.
+                </para>
+            </section>
+        </section>
+    </section>
+
+    <section xml:id="application.events">
+        <title>Handling Events with Listeners</title>
+
+        <para>
+            Let us put into practice what we learned of event handling in <xref
+            linkend="architecture.events"/>. You can implement listener interfaces in
+            a regular class, but it brings the problem with differentiating between
+            different event sources. Using anonymous class for listeners is recommended in
+            most cases.
+        </para>
+
+        <section xml:id="application.events.anonymous">
+            <title>Using Anonymous Classes</title>
+
+            <para>
+                By far the easiest and the most common way to handle events in Java 6 and
+                7 is to use anonymous local classes. It encapsulates the handling of
+                events to where the component is defined and does not require cumbering
+                the managing class with interface implementations. The following example
+                defines an anonymous class that inherits the
+                <classname>Button.ClickListener</classname> interface.
+            </para>
+
+            <book-example eid="application.eventlistener.anonymous"></book-example>
+            <programlisting><![CDATA[// Have a component that fires click events
+final Button button = new Button("Click Me!");
+        
+// Handle the events with an anonymous class
+button.addClickListener(new Button.ClickListener() {
+    public void buttonClick(ClickEvent event) {
+        button.setCaption("You made me click!");
+    }
+});]]></programlisting>
+
+            <para>
+                Local objects referenced from within an anonymous class, such as the
+                <classname>Button</classname> object in the above example, must be
+                declared <literal>final</literal>.
+            </para>
+
+            <para>
+                Most components allow passing a listener to the constructor, thereby
+                losing a line or two. However, notice that if accessing the component
+                that is constructed from an anonymous class, you must use a reference that
+                is declared before the constructor is executed, for example as a member
+                variable in the outer class. If it is declared in the same expression
+                where the constructor is called, it doesn't yet exist. In such cases, you
+                need to get a reference to the component from the event
+                object.
+            </para>
+
+            <book-example eid="application.eventlistener.constructor"></book-example>
+            <programlisting><![CDATA[final Button button = new Button("Click It!",
+  new Button.ClickListener() {
+    @Override
+    public void buttonClick(ClickEvent event) {
+        event.getButton().setCaption("Done!");
+    }
+  });]]></programlisting>
+
+        </section>
+
+        <section xml:id="application.events.java8">
+            <title>Handling Events in Java 8</title>
+
+            <para>
+                Java 8 introduced lambda expressions, which offer a replacement for
+                listeners. You can directly use lambda expressions in place of listeners
+                that have only one method to implement.
+            </para>
+
+            <para>
+                For example, in the following, we use a lambda expression to handle button
+                click events in the constructor:
+            </para>
+
+            <book-example eid="application.eventlistener.java8"></book-example>
+            <programlisting><?pocket-size 65% ?><![CDATA[layout.addComponent(new Button("Click Me!",
+    event -> event.getButton().setCaption("You made click!")));]]></programlisting>
+
+            <para>
+                Java 8 is the future that is already here, and as Vaadin API uses event
+                listeners extensively, using lambda expressions makes UI code much more
+                readable.
+            </para>
+
+            <para>
+                Directing events to handler methods is easy with method references:
+            </para>
+
+            <book-example eid="application.eventlistener.java8differentiation"></book-example>
+            <programlisting><?pocket-size 75% ?><![CDATA[public class Java8Buttons extends CustomComponent {
+    public Java8Buttons() {
+        setCompositionRoot(new HorizontalLayout( 
+            new Button("OK", this::ok),
+            new Button("Cancel", this::cancel)));
+    }
+    
+    public void ok(ClickEvent event) {
+        event.getButton().setCaption ("OK!");
+    }
+
+    public void cancel(ClickEvent event) {
+        event.getButton().setCaption ("Not OK!");
+    }
+}]]></programlisting>
+
+        </section>
+
+        <section xml:id="application.events.classlistener">
+            <title>Implementing a Listener in a Regular Class</title>
+
+            <para>
+                The following example follows a typical pattern where you have a
+                <classname>Button</classname> component and a listener that handles user
+                interaction (clicks) communicated to the application as events. Here we define
+                a class that listens to click events.
+            </para>
+
+            <book-example eid="application.eventlistener.classlistener" style="float: right"></book-example>
+            <programlisting><?pocket-size 75% ?><![CDATA[public class MyComposite extends CustomComponent
+             implements Button.ClickListener {
+    Button button; // Defined here for access
+
+    public MyComposite() {
+        Layout layout = new HorizontalLayout();
+        
+        // Just a single component in this composition
+        button = new Button("Do not push this");
+        button.addClickListener(this);
+        layout.addComponent(button);
+        
+        setCompositionRoot(layout);
+    }
+    
+    // The listener method implementation
+    public void buttonClick(ClickEvent event) {
+        button.setCaption("Do not push this again");
+    }
+}]]></programlisting>
+        </section>
+
+        <section xml:id="application.events.differentiation">
+            <title>Differentiating Between Event Sources</title>
+
+            <para>
+                If an application receives events of the same type from multiple sources,
+                such as multiple buttons, it has to be able to distinguish between the
+                sources. If using a regular class listener, distinguishing between the
+                components can be done by comparing the source of the event with each of
+                the components. The method for identifying the source depends on the event
+                type.
+            </para>
+
+            <book-example eid="application.eventlistener.differentiation" style="float: right"></book-example>
+            <programlisting><![CDATA[public class TheButtons extends CustomComponent
+       implements Button.ClickListener {
+    Button onebutton;
+    Button toobutton;
+
+    public TheButtons() {
+        onebutton = new Button("Button One", this);
+        toobutton = new Button("A Button Too", this);
+
+        // Put them in some layout
+        Layout root = new HorizontalLayout(); 
+        root.addComponent(onebutton);
+        root.addComponent(toobutton);
+        setCompositionRoot(root);
+    }
+    
+    @Override
+    public void buttonClick(ClickEvent event) {
+        // Differentiate targets by event source
+        if (event.getButton() == onebutton)
+            onebutton.setCaption ("Pushed one");
+        else if (event.getButton() == toobutton)
+            toobutton.setCaption ("Pushed too");
+    }
+}]]></programlisting>
+
+            <para>
+                Other techniques exist for separating between event sources, such as using
+                object properties, names, or captions to separate between them. Using
+                captions or any other visible text is generally discouraged, as it may
+                create problems for internationalization. Using other symbolic strings can
+                also be dangerous, because the syntax of such strings is checked only at
+                runtime.
+            </para>
+        </section>
+
+    </section>
+
+	<section xml:id="application.resources">
+		<title>Images and Other Resources</title>
+
+		<para>
+			Web applications can display various <emphasis>resources</emphasis>, such as
+			images, other embedded content, or downloadable files, that the browser has to
+			load from the server. Image resources are typically displayed with the
+			<classname>Image</classname> component or as component icons. Flash animations
+			can be displayed with <classname>Flash</classname>, embedded browser frames
+			with <classname>BrowserFrame</classname>, and other content with the
+			<classname>Embedded</classname> component, as described in <xref
+			linkend="components.embedded"/>. Downloadable files are usually provided by
+			clicking a <classname>Link</classname>.
+		</para>
+
+		<para>
+            There are several ways to how such resources can be provided by the web server.
+            Static resources can be provided without having to ask for them from the
+            application. For dynamic resources, the user application must be able to
+            create them dynamically. The resource request interfaces in Vaadin allow
+            applications to both refer to static resources as well as dynamically create
+            them. The dynamic creation includes the <classname>StreamResource</classname>
+            class and the <interfacename>RequestHandler</interfacename> described in <xref
+            linkend="advanced.requesthandler"/>.
+		</para>
+
+		<para>
+			Vaadin also provides low-level facilities for retrieving the
+			URI and other parameters of a HTTP request. We will first look into
+			how applications can provide various kinds of resources and then look
+			into low-level interfaces for handling URIs and parameters to provide
+			resources and functionalities.
+		</para>
+
+		<para>
+			Notice that using request handlers to create "pages" is not normally
+			meaningful in Vaadin or in AJAX applications generally. Please see <xref
+			linkend="architecture.technology.ajax"/> for a detailed explanation.
+		</para>
+
+		<section xml:id="application.resources.api">
+			<title>Resource Interfaces and Classes</title>
+		
+			<para>
+				The resource classes in Vaadin are grouped under two interfaces: a generic
+				<classname>Resource</classname> interface and a more specific
+				<classname>ConnectorResource</classname> interface for resources provided
+				by the servlet.
+			</para>
+
+			<figure xml:id="figure.resource.classdiagram">
+				<title>Resource Interface and Class Diagram</title>
+				<mediaobject>
+					<imageobject role="html">
+						<imagedata align="center" fileref="img/application/resource_classdiagram-lo.png"/>
+					</imageobject>
+					<imageobject role="fo">
+						<imagedata scale="70" smallscale="100%" align="center" fileref="img/application/resource_classdiagram-hi.png"/>
+					</imageobject>
+				</mediaobject>
+			</figure>
+		</section>
+
+		<section xml:id="application.resources.file">
+			<title>File Resources</title>
+
+			<para>
+				File resources are files stored anywhere in the file system. As such, they
+				can not be retrieved by a regular URL from the server, but need to be
+				requested through the Vaadin servlet. The use of file resources is
+				typically necessary for persistent user data that is not packaged in the
+				web application, which would not be persistent over redeployments.
+			</para>
+
+			<para>
+				A file object that can be accessed as a file resource is defined with the
+				standard <classname>java.io.File</classname> class. You can create the
+				file either with an absolute or relative path, but the base path of the
+				relative path depends on the installation of the web server. For example,
+				with Apache Tomcat, the default current directory would be the
+				installation path of Tomcat.
+			</para>
+
+            <para>
+                In the following example, we provide an image resource from a file stored
+                in the web application. Notice that the image is stored under the
+                <filename>WEB-INF</filename> folder, which is a special folder that is
+                never accessible using an URL, unlike the other folders of a web
+                application. This is a security solution - another would be to store the
+                resource elsewhere in the file system.
+            </para>
+
+            <book-example eid="application.resources.fileresource" style="float: right"></book-example>
+			<programlisting><?pocket-size 65% ?><![CDATA[// Find the application directory
+String basepath = VaadinService.getCurrent()
+                  .getBaseDirectory().getAbsolutePath();
+
+// Image as a file resource
+FileResource resource = new FileResource(new File(basepath +
+                        "/WEB-INF/images/image.png"));
+
+// Show the image in the application
+Image image = new Image("Image from file", resource);
+        
+// Let the user view the file in browser or download it
+Link link = new Link("Link to the image file", resource);]]></programlisting>
+
+            <para>
+                The result, as well as the folder structure where the file is stored under
+                a regular Eclipse Vaadin project, is shown in <xref
+                linkend="figure.application.resources.file"/>.
+            </para>
+
+            <figure xml:id="figure.application.resources.file">
+                <title>File Resource</title>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata scale="70" smallscale="70%" align="center" fileref="img/application/resource-fileresource.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+		</section>
+
+		<section xml:id="application.resources.class">
+			<title>Class Loader Resources</title>
+
+			<para>
+				The <classname>ClassResource</classname> allows resources to be loaded
+				from the class path using Java Class Loader. Normally, the relevant class
+				path entry is the <filename>WEB-INF/classes</filename> folder under the
+				web application, where the Java compilation should compile the Java
+				classes and copy other files from the source tree.
+            </para>
+
+            <para>
+                The one-line example below loads an image resource from the application
+                package and displays it in an <classname>Image</classname> component.
+			</para>
+
+            <book-example eid="application.resources.classresource" style="float: right"></book-example>
+			<programlisting><?pocket-size 80% ?><![CDATA[layout.addComponent(new Image(null,
+        new ClassResource("smiley.jpg")));]]></programlisting>
+		</section>
+
+		<section xml:id="application.resources.theme">
+			<title>Theme Resources</title>
+
+			<para>
+				Theme resources of <classname>ThemeResource</classname> class are files,
+				typically images, included in a theme. A theme is located with the path
+				<filename>VAADIN/themes/themename</filename> in a web application. The name of
+				a theme resource is given as the parameter for the constructor, with a
+				path relative to the theme folder.
+			</para>
+
+            <book-example eid="application.resources.themeresource" style="float: right"></book-example>
+<programlisting><?pocket-size 65% ?><![CDATA[// A theme resource in the current theme ("mytheme")
+// Located in: VAADIN/themes/mytheme/img/themeimage.png
+ThemeResource resource = new ThemeResource("img/themeimage.png");
+
+// Use the resource
+Image image = new Image("My Theme Image", resource);]]></programlisting>
+
+            <para>
+                The result is shown in <xref
+                linkend="figure.application.resources.theme"/>, also illustrating the
+                folder structure for the theme resource file in an Eclipse project.
+            </para>
+
+			<figure xml:id="figure.application.resources.theme">
+				<title>Theme Resources</title>
+				<mediaobject>
+					<imageobject>
+						<imagedata scale="70" smallscale="70%" align="center" fileref="img/application/resource-themeimage.png"/>
+					</imageobject>
+				</mediaobject>
+			</figure>
+
+            <para>
+                To use theme resources, you must set the theme for the UI. See <xref
+                linkend="themes"/> for more information regarding themes.
+            </para>
+		</section>
+
+		<section xml:id="application.resources.stream">
+			<title>Stream Resources</title>
+		
+			<para>
+				Stream resources allow creating dynamic resource content. Charts are
+				typical examples of dynamic images. To define a stream resource, you need
+				to implement the <classname>StreamResource.StreamSource</classname>
+				interface and its <methodname>getStream()</methodname> method. The method
+				needs to return an <classname>InputStream</classname> from which the
+				stream can be read.
+			</para>
+
+			<para>
+				The following example demonstrates the creation of a simple
+				image in PNG image format. 
+			</para>
+
+			<programlisting><?pocket-size 65% ?><![CDATA[import java.awt.image.*;
+
+public class MyImageSource
+             implements StreamResource.StreamSource {
+    ByteArrayOutputStream imagebuffer = null;
+    int reloads = 0;
+    
+    /* We need to implement this method that returns
+     * the resource as a stream. */
+    public InputStream getStream () {
+        /* Create an image and draw something on it. */
+        BufferedImage image = new BufferedImage (200, 200,
+                               BufferedImage.TYPE_INT_RGB);
+        Graphics drawable = image.getGraphics();
+        drawable.setColor(Color.lightGray);
+        drawable.fillRect(0,0,200,200);
+        drawable.setColor(Color.yellow);
+        drawable.fillOval(25,25,150,150);
+        drawable.setColor(Color.blue);
+        drawable.drawRect(0,0,199,199);
+        drawable.setColor(Color.black);
+        drawable.drawString("Reloads="+reloads, 75, 100);
+        reloads++;
+
+        try {
+            /* Write the image to a buffer. */
+            imagebuffer = new ByteArrayOutputStream();
+            ImageIO.write(image, "png", imagebuffer);
+            
+            /* Return a stream from the buffer. */
+            return new ByteArrayInputStream(
+                         imagebuffer.toByteArray());
+        } catch (IOException e) {
+            return null;
+        }
+    }
+}]]></programlisting>
+
+			<para>
+				The content of the generated image is dynamic, as it updates the
+				reloads counter with every call. The
+				<classname>ImageIO</classname>.<methodname>write()</methodname>
+				method writes the image to an output stream, while we had to
+				return an input stream, so we stored the image contents to a
+				temporary buffer.
+			</para>
+
+			<para>
+				Below we display the image with the <classname>Image</classname>
+				component.
+			</para>
+
+			<programlisting><?pocket-size 65% ?><![CDATA[// Create an instance of our stream source.
+StreamResource.StreamSource imagesource = new MyImageSource ();
+	
+// Create a resource that uses the stream source and give it a name.
+// The constructor will automatically register the resource in
+// the application.
+StreamResource resource =
+        new StreamResource(imagesource, "myimage.png");
+	
+// Create an image component that gets its contents
+// from the resource.
+layout.addComponent(new Image("Image title", resource));]]></programlisting>
+
+			<para>
+				The resulting image is shown in <xref
+				linkend="figure.application.resource.stream"/>.
+			</para>
+
+			<figure xml:id="figure.application.resource.stream">
+				<title>A Stream Resource</title>
+				<mediaobject>
+					<imageobject role="html">
+						<imagedata align="center" fileref="img/application/application_streamresource.png"/>
+					</imageobject>
+					<imageobject role="fo">
+						<imagedata smallscale="80%" align="center" fileref="img/application/application_streamresource.png"/>
+					</imageobject>
+				</mediaobject>
+			</figure>
+
+			<para>
+				Another way to create dynamic content is a request handler, described in
+				<xref linkend="advanced.requesthandler"/>.
+			</para>
+		</section>
+	</section>
+
+	<section xml:id="application.errors">
+		<title>Handling Errors</title>
+
+		<section xml:id="application.errors.error-indicator">
+			<title>Error Indicator and Message</title>
+
+			<para>
+				All components have a built-in error indicator that is turned on if
+				validating the component fails, and can be set explicitly with
+				<methodname>setComponentError()</methodname>. Usually, the error indicator
+				is placed right of the component caption. The error indicator is part of
+				the component caption, so its placement is usually managed by the layout
+				in which the component is contained, but some components handle it
+				themselves. Hovering the mouse pointer over the field displays the error
+				message.
+			</para>
+
+			<programlisting><?pocket-size 65% ?><![CDATA[textfield.setComponentError(new UserError("Bad value"));
+button.setComponentError(new UserError("Bad click"));]]></programlisting>
+
+			<para>
+				The result is shown in <xref
+				linkend="figure.application.errors.error-indicator"/>.
+			</para>
+
+			<figure xml:id="figure.application.errors.error-indicator">
+				<title>Error Indicator Active</title>
+				<mediaobject>
+					<imageobject role="html">
+						<imagedata align="center" fileref="img/application/errorindicator-example2.png"/>
+					</imageobject>
+					<imageobject role="fo">
+						<imagedata scale="70" smallscale="30%" align="center" fileref="img/application/errorindicator-example2.png"/>
+					</imageobject>
+				</mediaobject>
+			</figure>
+
+            <!-- TODO Vaadin 7: Is there anything to say about errors in forms? -->
+		</section>
+
+		<section xml:id="application.errors.systemmessages" condition="web">
+			<title>Customizing System Messages</title>
+
+            <para>
+                System messages are notifications that indicate a major invalid state that
+                usually requires restarting the application. Session timeout is perhaps
+                the most typical such state.
+            </para>
+
+            <para>
+                System messages are strings managed in the
+                <classname>SystemMessages</classname> class.
+            </para>
+
+            <variablelist>
+                <varlistentry>
+                    <term>sessionExpired</term>
+                    <listitem>
+                        <para>
+                            <indexterm>
+                                <primary>session</primary>
+                                <secondary>expiration</secondary>
+                            </indexterm>
+                            <indexterm>
+                                <primary>session</primary>
+                                <secondary>timeout</secondary>
+                            </indexterm>
+
+                            Application servlet session expired. A session expires if no
+                            server requests are made during the session timeout
+                            period. The session timeout can be configured with the
+                            <parameter>session-timeout</parameter> parameter in
+                            <filename>web.xml</filename>, as described in <xref
+                            linkend="application.environment.web-xml"/>.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>communicationError</term>
+                    <listitem>
+                        <para>
+                            An unspecified communication problem between the Vaadin
+                            Client-Side Engine and the application server. The server may
+                            be unavailable or there is some other problem.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>authenticationError</term>
+                    <listitem>
+                        <para>
+                            This error occurs if 401 (Unauthorized) response to a request
+                            is received from the server.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>internalError</term>
+                    <listitem>
+                        <para>
+                            A serious internal problem, possibly indicating a bug in
+                            Vaadin Client-Side Engine or in some custom client-side code.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>outOfSync</term>
+                    <listitem>
+                        <para>
+                            The client-side state is invalid with respect to server-side
+                            state.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>cookiesDisabled</term>
+                    <listitem>
+                        <para>
+                            Informs the user that cookies are disabled in the browser and
+                            the application does not work without them.
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+
+            <para>
+                Each message has four properties: a short caption, the actual message, a
+                URL to which to redirect after displaying the message, and property
+                indicating whether the notification is enabled.
+            </para>
+
+            <para>
+                Additional details may be written (in English) to the debug console window
+                described in <xref linkend="advanced.debug"/>.
+            </para>
+
+            <para>
+                You can override the default system messages by setting the
+                <interfacename>SystemMessagesProvider</interfacename> in the
+                <classname>VaadinService</classname>. You need to implement the
+                <methodname>getSystemMessages()</methodname> method, which should return a
+                <classname>SystemMessages</classname> object. The easiest way to customize
+                the messages is to use a <classname>CustomizedSystemMessages</classname>
+                object.
+            </para>
+
+            <para>
+                You can set the system message provider in the
+                <methodname>servletInitialized()</methodname> method of a custom servlet
+                class, for example as follows:
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[getService().setSystemMessagesProvider(
+    new SystemMessagesProvider() {
+    @Override 
+    public SystemMessages getSystemMessages(
+        SystemMessagesInfo systemMessagesInfo) {
+        CustomizedSystemMessages messages =
+                new CustomizedSystemMessages();
+        messages.setCommunicationErrorCaption("Comm Err");
+        messages.setCommunicationErrorMessage("This is bad.");
+        messages.setCommunicationErrorNotificationEnabled(true);
+        messages.setCommunicationErrorURL("http://vaadin.com/");
+        return messages;
+    }
+});]]></programlisting>
+
+            <para>
+                See <xref linkend="application.lifecycle.servlet-service"/> for
+                information about customizing Vaadin servlets.
+            </para>
+        </section>
+		
+        <section xml:id="application.errors.unchecked-exceptions" condition="web">
+			<title>Handling Uncaught Exceptions </title>
+
+			<para>
+				Handling events can result in exceptions either in the application logic
+				or in the framework itself, but some of them may not be caught properly by
+				the application. Any such exceptions are eventually caught by the
+				framework. It delegates the exceptions to the
+				<classname>DefaultErrorHandler</classname>, which displays the error as a
+				component error, that is, with a small red "!" -sign (depending on the
+				theme). If the user hovers the mouse pointer over it, the entire backtrace
+				of the exception is shown in a large tooltip box, as illustrated in <xref
+				linkend="figure.application.errors.unchecked-exceptions"/>.
+            </para>
+
+			<figure xml:id="figure.application.errors.unchecked-exceptions">
+				<title>Uncaught Exception in Component Error Indicator</title>
+				<mediaobject>
+					<imageobject role="html">
+						<imagedata align="center" fileref="img/application/errorindicator-exception.png"/>
+					</imageobject>
+					<imageobject role="fo">
+						<imagedata scale="70" smallscale="100%" align="center" fileref="img/application/errorindicator-exception.png"/>
+					</imageobject>
+				</mediaobject>
+			</figure>
+
+			<para>
+                You can customize the default error handling by implementing a custom
+                <interfacename>ErrorHandler</interfacename> and enabling it with
+                <methodname>setErrorHandler()</methodname> in any of the components in the
+                component hierarchy, including the <classname>UI</classname>, or in the
+                <classname>VaadinSession</classname> object. You can either implement the
+                <interfacename>ErrorHandler</interfacename> or extend the
+                <classname>DefaultErrorHandler</classname>. In the following example, we
+                modify the behavior of the default handler.
+			</para>
+			
+			<programlisting><?pocket-size 65% ?><![CDATA[// Here's some code that produces an uncaught exception 
+final VerticalLayout layout = new VerticalLayout();
+final Button button = new Button("Click Me!",
+    new Button.ClickListener() {
+    public void buttonClick(ClickEvent event) {
+        ((String)null).length(); // Null-pointer exception
+    }
+});
+layout.addComponent(button);
+
+// Configure the error handler for the UI
+UI.getCurrent().setErrorHandler(new DefaultErrorHandler() {
+    @Override
+    public void error(com.vaadin.server.ErrorEvent event) {
+        // Find the final cause
+        String cause = "<b>The click failed because:</b><br/>";
+        for (Throwable t = event.getThrowable(); t != null;
+             t = t.getCause())
+            if (t.getCause() == null) // We're at final cause
+                cause += t.getClass().getName() + "<br/>";
+        
+        // Display the error message in a custom fashion
+        layout.addComponent(new Label(cause, ContentMode.HTML));
+           
+        // Do the default error handling (optional)
+        doDefault(event);
+    } 
+});]]></programlisting>
+
+            <para>
+                The above example also demonstrates how to dig up the final cause from the
+                cause stack.
+            </para>
+
+            <para>
+                When extending <classname>DefaultErrorHandler</classname>, you can call
+                <methodname>doDefault()</methodname> as was done above to run the default
+                error handling, such as set the component error for the component where
+                the exception was thrown. See the source code of the implementation for
+                more details. You can call
+                <methodname>findAbstractComponent(event)</methodname> to find the
+                component that caused the error. If the error is not associated with a
+                component, it returns null.
+            </para>
+		</section>
+	</section>
+
+    <section xml:id="application.notifications">
+        <title>Notifications</title>
+
+        <para>
+            Notifications are error or information boxes that appear briefly, typically at
+            the center of the screen. A notification box has a caption and an optional
+            description and icon. The box stays on the screen either for a preset time or
+            until the user clicks it. The notification type defines the default appearance
+            and behaviour of a notification.
+        </para>
+
+        <para>
+            There are two ways to create a notification. The easiest is to use a static
+            shorthand <methodname>Notification.show()</methodname> method, which takes the
+            caption of the notification as a parameter, and an optional description and
+            notification type, and displays it in the current page.
+        </para>
+
+        <programlisting><![CDATA[Notification.show("This is the caption",
+                  "This is the description",
+                  Notification.Type.WARNING_MESSAGE);]]></programlisting>
+
+        <figure xml:id="figure.notification.example1" float="center" floatstyle="before">
+            <title>Notification</title>
+            <mediaobject>
+                <imageobject role="html">
+                    <imagedata align="center" fileref="img/application/notification-example2.png"/>
+                </imageobject>
+                <imageobject role="fo">
+                    <imagedata scale="70" smallscale="100%" align="center" fileref="img/application/notification-example2.png"/>
+                </imageobject>
+            </mediaobject>
+        </figure>
+
+        <para>
+            For more control, you can create a <classname>Notification</classname>
+            object. Different constructors exist for taking just the caption, and
+            optionally the description, notification type, and whether HTML is allowed or
+            not. Notifications are shown in a <classname>Page</classname>, typically the
+            current page.
+        </para>
+
+        <programlisting><![CDATA[new Notification("This is a warning",
+    "<br/>This is the <i>last</i> warning",
+    Notification.TYPE_WARNING_MESSAGE, true)
+    .show(Page.getCurrent());]]></programlisting>
+
+        <para>
+            The caption and description are by default written on the same line. If you
+            want to have a line break between them, use the HTML line break markup
+            "<literal>&lt;br/&gt;</literal>" if HTML is enabled, or
+            "<literal>\n</literal>" if not. HTML is disabled by default, but can be
+            enabled with <methodname>setHtmlContentAllowed(true)</methodname>. When
+            enabled, you can use any HTML markup in the caption and description of a
+            notification. If it is in any way possible to get the notification content
+            from user input, you should either disallow HTML or sanitize the content
+            carefully, as noted in <xref linkend="advanced.security.sanitizing"/>.
+        </para>
+
+        <figure xml:id="figure.notification.example2">
+            <title>Notification with HTML Formatting</title>
+            <mediaobject>
+                <imageobject role="html">
+                    <imagedata align="center" fileref="img/application/notification-example3.png"/>
+                </imageobject>
+                <imageobject role="fo">
+                    <imagedata scale="70" smallscale="130" align="center" fileref="img/application/notification-example3.png"/>
+                </imageobject>
+            </mediaobject>
+        </figure>
+
+        <section xml:id="application.notifications.type">
+            <title>Notification Type</title>
+
+            <para>
+                The notification type defines the overall default style and behaviour of a
+                notification. If no notification type is given, the "humanized" type is
+                used as the default. The notification types, listed below, are defined in
+                the <classname>Notification.Type</classname> class.
+            </para>
+                
+            <variablelist>
+                <varlistentry>
+                    <term>
+                        <parameter>TYPE_HUMANIZED_MESSAGE</parameter>
+                        <inlinemediaobject>
+                            <imageobject role="html">
+                                <imagedata align="center" fileref="img/application/notification-humanized.png"/>
+                                </imageobject>
+                            <imageobject role="fo">
+                                <imagedata scale="90" align="center" fileref="img/application/notification-humanized.png"/>
+                            </imageobject>
+                        </inlinemediaobject>
+                    </term>
+                    <listitem>
+                        <para>
+                            A user-friendly message that does not annoy too much: it does
+                            not require confirmation by clicking and disappears
+                            quickly. It is centered and has a neutral gray color.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <parameter>TYPE_WARNING_MESSAGE</parameter>
+                        <inlinemediaobject>
+                            <imageobject role="html">
+                                <imagedata align="center" fileref="img/application/notification-warning.png"/>
+                            </imageobject>
+                            <imageobject role="fo">
+                                <imagedata scale="90" align="center" fileref="img/application/notification-warning.png"/>
+                            </imageobject>
+                        </inlinemediaobject>
+                    </term>
+                    <listitem>
+                        <para>
+                            Warnings are messages of medium importance. They are displayed
+                            with colors that are neither neutral nor too distractive. A
+                            warning is displayed for 1.5 seconds, but the user can click
+                            the message box to dismiss it. The user can continue to
+                            interact with the application while the warning is displayed.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <parameter>TYPE_ERROR_MESSAGE</parameter>
+                        <inlinemediaobject>
+                            <imageobject role="html">
+                                <imagedata align="center" fileref="img/application/notification-error.png"/>
+                            </imageobject>
+                            <imageobject role="fo">
+                                <imagedata scale="90" align="center" fileref="img/application/notification-error.png"/>
+                            </imageobject>
+                        </inlinemediaobject>
+                    </term>
+                    <listitem>
+                        <para>
+                            Error messages are notifications that require the highest user
+                            attention, with alert colors, and they require the user to
+                            click the message to dismiss it. The error message box does
+                            not itself include an instruction to click the message,
+                            although the close box in the upper right corner indicates it
+                            visually. Unlike with other notifications, the user can not
+                            interact with the application while the error message is
+                            displayed.
+                        </para>
+                    </listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term>
+                        <parameter>TYPE_TRAY_NOTIFICATION</parameter>
+                        <inlinemediaobject>
+                            <imageobject role="html">
+                                <imagedata align="center" fileref="img/application/notification-tray.png"/>
+                            </imageobject>
+                            <imageobject role="fo">
+                                <imagedata scale="90" align="center" fileref="img/application/notification-tray.png"/>
+                            </imageobject>
+                        </inlinemediaobject>
+                    </term>
+                    <listitem>
+                        <para>
+                            Tray notifications are displayed in the "system tray" area,
+                            that is, in the lower-right corner of the browser view. As
+                            they do not usually obscure any user interface, they are
+                            displayed longer than humanized or warning messages, 3 seconds
+                            by default. The user can continue to interact with the
+                            application normally while the tray notification is displayed.
+                        </para>
+                        </listitem>
+                </varlistentry>
+            </variablelist>
+        </section>
+        
+        <section xml:id="application.notifications.customization" condition="web">
+            <title>Customizing Notifications</title>
+            
+            <para>
+                All of the features of specific notification types can be controlled with
+                the <classname>Notification</classname> properties. Once configured, you
+                need to show it in the current page.
+            </para>
+
+            <programlisting><![CDATA[// Notification with default settings for a warning
+Notification notif = new Notification(
+    "Warning",
+    "<br/>Area of reindeer husbandry",
+    Notification.TYPE_WARNING_MESSAGE);
+
+// Customize it
+notif.setDelayMsec(20000);
+notif.setPosition(Position.BOTTOM_RIGHT);
+notif.setStyleName("mystyle");
+notif.setIcon(new ThemeResource("img/reindeer.png"));
+                
+// Show it in the page
+notif.show(Page.getCurrent());]]></programlisting>
+
+            <para>
+                The <methodname>setPosition()</methodname> method allows setting the
+                positioning of the notification. The position can be specified by any of
+                the constants defined in the <classname>Position</classname> enum.
+            </para>
+
+            <para>
+                The <methodname>setDelayMSec()</methodname> allows setting the time for
+                how long the notification is displayed in milliseconds. Parameter value
+                <literal>-1</literal> means that the message is displayed until the user
+                clicks the message box. It also prevents interaction with other parts of
+                the application window, which is the default behaviour for error
+                notifications. It does not, however, add a close box that the error
+                notification has.
+            </para>
+        </section>
+
+        <section xml:id="application.notifications.css">
+            <title>Styling with CSS</title>
+
+            <programlisting><![CDATA[.v-Notification {}
+  .popupContent {}
+    .gwt-HTML {}
+      h1 {}
+      p  {}]]></programlisting>
+
+            <para>
+                The notification box is a floating <literal>div</literal> element under
+                the <literal>body</literal> element of the page. It has an overall
+                <literal>v-Notification</literal> style. The content is wrapped inside an
+                element with <literal>popupContent</literal> style. The caption is
+                enclosed within an <literal>h1</literal> element and the description in a
+                <literal>p</literal> element.
+            </para>
+
+            <para>
+                To customize it, add a style for the <classname>Notification</classname>
+                object with <methodname>setStyleName("mystyle")</methodname>, and make the
+                settings in the theme, for example as follows:
+            </para>
+
+            <programlisting><![CDATA[.v-Notification.mystyle {
+    background: #FFFF00;
+    border: 10px solid #C00000;
+    color: black;
+}]]></programlisting>
+
+            <para>
+                The result is shown, with the icon set earlier in the customization
+                example, in <xref
+                    linkend="figure.application.errors.notifications.css"/>.
+            </para>
+
+            <figure xml:id="figure.application.errors.notifications.css">
+                <title>A Styled Notification</title>
+                <mediaobject>
+                    <imageobject role="html">
+                        <imagedata align="center" fileref="img/application/notification-customization.png"/>
+                    </imageobject>
+                    <imageobject role="fo">
+                        <imagedata scale="70" smallscale="130" align="center" fileref="img/application/notification-customization.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+        </section>
+    </section>
+
+	<section xml:id="application.lifecycle">
+		<title>Application Lifecycle</title>
+
+        <para>
+            In this section, we look into more technical details of application
+            deployment, user sessions, and UI instance lifecycle. These details are not
+            generally needed for writing Vaadin applications, but may be useful for
+            understanding how they actually work and, especially, in what circumstances
+            their execution ends.
+        </para>
+
+		<section xml:id="application.lifecycle.deployment">
+            <title>Deployment</title>
+
+            <para>
+                Before a Vaadin application can be used, it has to be deployed to a Java
+                web server, as described in <xref
+                linkend="application.environment"/>. Deploying reads the servlet classes
+                annotated with the <literal>@WebServlet</literal> annotation (Servlet 3.0)
+                or the <filename>web.xml</filename> deployment descriptor (Servlet 2.4) in
+                the application to register servlets for specific URL paths and loads the
+                classes.  Deployment does not yet normally run any code in the
+                application, although static blocks in classes are executed when they are
+                loaded.
+            </para>
+
+            <section xml:id="application.lifecycle.deployment.redeployment">
+                <title>Undeploying and Redeploying</title>
+
+                <para>
+                    Applications are undeployed when the server shuts down, during
+                    redeployment, and when they are explicitly undeployed. Undeploying a
+                    server-side Vaadin application ends its execution, all application
+                    classes are unloaded, and the heap space allocated by the application
+                    is freed for garbage-collection.
+                </para>
+
+                <para>
+                    If any user sessions are open at this point, the client-side state of
+                    the UIs is left hanging and an Out of Sync error is displayed on the
+                    next server request.
+                </para>
+            </section>
+
+            <section xml:id="application.lifecycle.deployment.serialization">
+                <title>Redeployment and Serialization</title>
+
+                <para>
+                    Some servers, such as Tomcat, support <emphasis>hot
+                    deployment</emphasis>, where the classes are reloaded while preserving
+                    the memory state of the application. This is done by serializing the
+                    application state and then deserializing it after the classes are
+                    reloaded. This is, in fact, done with the basic Eclipse setup with
+                    Tomcat and if a UI is marked as
+                    <classname>@PreserveOnRefresh</classname>, you may actually need to
+                    give the <literal>?restartApplication</literal> URL parameter to force
+                    it to restart when you reload the page. Tools such as JRebel go even
+                    further by reloading the code in place without need for
+                    serialization. The server can also serialize the application state
+                    when shutting down and restarting, thereby preserving sessions over
+                    restarts.
+                </para>
+
+                <para>
+                    Serialization requires that the applications are
+                    <emphasis>serializable</emphasis>, that is, all classes implement the
+                    <interfacename>Serializable</interfacename> interface. All Vaadin
+                    classes do. If you extend them or implement interfaces, you can
+                    provide an optional serialization key, which is automatically
+                    generated by Eclipse if you use it. Serialization is also used for
+                    clustering and cloud computing, such as with Google App Engine<phrase
+                    condition="web">, as described in <xref
+                    linkend="advanced.gae"/></phrase>.
+                </para>
+            </section>
+        </section>
+
+        <section xml:id="application.lifecycle.servlet-service">
+            <title>Vaadin Servlet, Portlet, and Service</title>
+
+            <para>
+                The <classname>VaadinServlet</classname>, or
+                <classname>VaadinPortlet</classname> in a portal, receives all server
+                requests mapped to it by its URL, as defined in the deployment
+                configuration, and associates them with sessions. The sessions further
+                associate the requests with particular UIs.
+            </para>
+
+            <para>
+                When servicing requests, the Vaadin servlet or portlet handles all tasks
+                common to both servlets and portlets in a
+                <classname>VaadinService</classname>. It manages sessions, gives access to
+                the deployment configuration information, handles system messages, and
+                does various other tasks. Any further servlet or portlet specific tasks
+                are handled in the corresponding
+                <classname>VaadinServletService</classname> or
+                <classname>VaadinPortletService</classname>. The service acts as the
+                primary low-level customization layer for processing requests.
+            </para>
+
+            <section xml:id="application.lifecycle.servlet-service.servletcustomization">
+                <title>Customizing Vaadin Servlet</title>
+
+                <para>
+                    Many common configuration tasks need to be done in the servlet class,
+                    which you already have if you are using the
+                    <literal>@WebServlet</literal> annotation for Servlet 3.0 to deploy
+                    the application. You can handle most customization by overriding the
+                    <methodname>servletInitialized()</methodname> method, where the
+                    <classname>VaadinService</classname> object is available with
+                    <methodname>getService()</methodname> (it would not be available in a
+                    constructor). You should always call
+                    <methodname>super.servletInitialized()</methodname> in the beginning.
+                </para>
+
+                <programlisting><?pocket-size 75% ?><![CDATA[public class MyServlet extends VaadinServlet {
+    @Override
+    protected void servletInitialized()
+            throws ServletException {
+        super.servletInitialized();
+
+        ...
+    }
+}]]></programlisting>
+
+                <para>
+                    To add custom functionality around request handling, you can override
+                    the <methodname>service()</methodname> method.
+                </para>
+
+                <para>
+                    To use the custom servlet class in a Servlet 2.4 project, you need to
+                    define it in the <filename>web.xml</filename> deployment descriptor
+                    instead of the regular <classname>VaadinServlet</classname> class, as
+                    described in <xref linkend="application.environment.web-xml"/>.
+                </para>
+            </section>
+
+            <section xml:id="application.lifecycle.servlet-service.portletcustomization" condition="web">
+                <title>Customizing Vaadin Portlet</title>
+
+                <para>
+                    <emphasis>To Be Done</emphasis>
+                </para>
+            </section>
+
+            <section xml:id="application.lifecycle.servlet-service.servicecustomization" condition="web">
+                <title>Customizing Vaadin Service</title>
+
+                <para>
+                    To customize <classname>VaadinService</classname>, you first need to
+                    extend the <classname>VaadinServlet</classname> or
+                    -<classname>Portlet</classname> class and override the
+                    <methodname>createServletService()</methodname> to create a custom
+                    service object.
+                </para>
+            </section>
+        </section>
+
+        <section xml:id="application.lifecycle.session">
+            <title>User Session</title>
+
+            <indexterm zone="application.lifecycle.session">
+                <primary>session</primary>
+            </indexterm>
+
+            <para>
+                A user session begins when a user first makes a request to a Vaadin
+                servlet or portlet by opening the URL for a particular
+                <classname>UI</classname>. All server requests belonging to a particular
+                UI class are processed by the <classname>VaadinServlet</classname> or
+                <classname>VaadinPortlet</classname> class. When a new client connects, it
+                creates a new user session, represented by an instance of
+                <classname>VaadinSession</classname>. Sessions are tracked using cookies
+                stored in the browser.
+            </para>
+
+            <para>
+                You can obtain the <classname>VaadinSession</classname> of a
+                <classname>UI</classname> with <methodname>getSession()</methodname> or
+                globally with <methodname>VaadinSession.getCurrent()</methodname>. It
+                also provides access to the lower-level session objects,
+                <interfacename>HttpSession</interfacename> and
+                <interfacename>PortletSession</interfacename>, through a
+                <classname>WrappedSession</classname>. You can also access the
+                deployment configuration through <classname>VaadinSession</classname>, as
+                described in <xref linkend="application.environment.configuration"/>.
+            </para>
+
+            <para>
+                A session ends after the last <classname>UI</classname> instance expires
+                or is closed, as described later.
+            </para>
+
+            <section xml:id="application.lifecycle.session.init">
+                <title>Handling Session Initialization and Destruction</title>
+
+                <indexterm zone="application.lifecycle.session.init">
+                    <primary><classname>SessionInitListener</classname></primary>
+                </indexterm>
+                <indexterm zone="application.lifecycle.session.init">
+                    <primary><classname>SessionDestroyListener</classname></primary>
+                </indexterm>
+
+                <para>
+                    <indexterm><primary><classname>VaadinService</classname></primary></indexterm>
+
+                    You can handle session initialization and destruction by implementing
+                    a <interfacename>SessionInitListener</interfacename> or
+                    <interfacename>SessionDestroyListener</interfacename>, respectively,
+                    to the <classname>VaadinService</classname>.
+
+                    <indexterm><primary><methodname>servletInitialized()</methodname></primary></indexterm>
+                    <indexterm><primary><classname>VaadinServlet</classname></primary></indexterm>
+
+                    You can do that best by extending <classname>VaadinServlet</classname>
+                    and overriding the <methodname>servletInitialized()</methodname>
+                    method, as outlined in <xref
+                    linkend="application.lifecycle.servlet-service"/>.
+                </para>
+
+                <programlisting><?pocket-size 65% ?><![CDATA[public class MyServlet extends VaadinServlet
+    implements SessionInitListener, SessionDestroyListener {
+
+    @Override
+    protected void servletInitialized() throws ServletException {
+        super.servletInitialized();
+        getService().addSessionInitListener(this);
+        getService().addSessionDestroyListener(this);
+    }
+
+    @Override
+    public void sessionInit(SessionInitEvent event)
+            throws ServiceException {
+        // Do session start stuff here
+    }
+
+    @Override
+    public void sessionDestroy(SessionDestroyEvent event) {
+        // Do session end stuff here
+    }
+}]]></programlisting>
+
+                <para>
+                    If using Servlet 2.4, you need to configure the custom servlet class
+                    in the <parameter>servlet-class</parameter> parameter in the
+                    <filename>web.xml</filename> descriptor instead of the
+                    <classname>VaadinServlet</classname>, as described in <xref
+                    linkend="application.environment.web-xml"/>.
+                </para>
+            </section>
+        </section>
+
+        <section xml:id="application.lifecycle.ui">
+            <title>Loading a UI</title>
+
+            <indexterm zone="application.lifecycle.ui">
+                <primary>UI</primary>
+                <secondary>loading</secondary>
+            </indexterm>
+
+            <para>
+                When a browser first accesses a URL mapped to the servlet of a particular
+                UI class, the Vaadin servlet generates a loader page. The page loads the
+                client-side engine (widget set), which in turn loads the UI in a separate
+                request to the Vaadin servlet.
+            </para>
+
+            <para>
+                <indexterm><primary><classname>UIProvider</classname></primary></indexterm>
+                <indexterm><primary><classname>DefaultUIProvider</classname></primary></indexterm>
+                <indexterm><primary><classname>BrowserWindowOpener</classname></primary></indexterm>
+
+                A <classname>UI</classname> instance is created when the client-side
+                engine makes its first request.
+
+                The servlet creates the UIs using a <classname>UIProvider</classname>
+                registered in the <classname>VaadinSession</classname> instance. A session
+                has at least a <classname>DefaultUIProvider</classname> for managing UIs
+                opened by the user. If the application lets the user open popup windows
+                with a <classname>BrowserWindowOpener</classname>, each of them has a
+                dedicated special UI provider.
+            </para>
+
+            <para>
+                <indexterm><primary><classname>VaadinRequest</classname></primary></indexterm>
+                <indexterm><primary><methodname>init()</methodname></primary></indexterm>
+
+                Once a new UI is created, its <methodname>init()</methodname> method is
+                called. The method gets the request as a
+                <classname>VaadinRequest</classname>.
+            </para>
+
+            <simplesect xml:id="application.lifecycle.ui.loaderpage">
+                <title>Customizing the Loader Page</title>
+
+                <para>
+                    The HTML content of the loader page is generated as an HTML DOM
+                    object, which can be customized by implementing a
+                    <interfacename>BootstrapListener</interfacename> that modifies the DOM
+                    object. To do so, you need to extend the
+                    <classname>VaadinServlet</classname> and add a
+                    <interfacename>SessionInitListener</interfacename> to the service
+                    object, as outlined in <xref
+                    linkend="application.lifecycle.session"/>. You can then add the
+                    bootstrap listener to a session with
+                    <methodname>addBootstrapListener()</methodname> when the session is
+                    initialized.
+                </para>
+
+                <para>
+                    Loading the widget set is handled in the loader page with functions
+                    defined in a separate <filename>vaadinBootstrap.js</filename> script.
+                </para>
+
+                <para>
+                    You can also use entirely custom loader code, such as in a
+                    static HTML page, as described in <xref
+                    linkend="advanced.embedding"/>.
+                </para>
+            </simplesect>
+
+            <simplesect xml:id="application.lifecycle.ui.uiprovider">
+                <title>Custom UI Providers</title>
+
+                <indexterm zone="application.lifecycle.ui.uiprovider">
+                    <primary><interfacename>UIProvider</interfacename></primary>
+                    <secondary>custom</secondary>
+                </indexterm>
+
+                <para>
+                    You can create UI objects dynamically according to their request
+                    parameters, such as the URL path, by defining a custom
+                    <interfacename>UIProvider</interfacename>. You need to add custom UI
+                    providers to the session object which calls them. The providers are
+                    chained so that they are requested starting from the one added last,
+                    until one returns a UI (otherwise they return null). You can add a UI
+                    provider to a session most conveniently by implementing a custom
+                    servlet and adding the UI provider to sessions in a
+                    <interfacename>SessionInitListener</interfacename>.
+                </para>
+
+                <para>
+                    You can find an example of custom UI providers in <xref
+                    linkend="mobile.features.fallback"/>.
+                </para>
+            </simplesect>
+
+            <simplesect xml:id="application.lifecycle.ui.preserving">
+                <title>Preserving UI on Refresh</title>
+
+                <indexterm zone="application.lifecycle.ui.preserving">
+                    <primary>UI</primary>
+                    <secondary>preserving on refresh</secondary>
+                </indexterm>
+
+                <indexterm zone="application.lifecycle.ui.preserving">
+                    <primary><classname>@PreserveOnRefresh</classname></primary>
+                </indexterm>
+
+                <para>
+                    Reloading a page in the browser normally spawns a new
+                    <classname>UI</classname> instance and the old UI is left hanging,
+                    until cleaned up after a while. This can be undesired as it resets the
+                    UI state for the user. To preserve the UI, you can use the
+                    <classname>@PreserveOnRefresh</classname> annotation for the UI
+                    class. You can also use a <classname>UIProvider</classname> with a
+                    custom implementation of <methodname>isUiPreserved()</methodname>.
+                </para>
+
+			<programlisting><![CDATA[@PreserveOnRefresh
+public class MyUI extends UI {]]></programlisting>
+
+                <para>
+                    Adding the <uri>?restartApplication</uri> parameter in the URL tells
+                    the Vaadin servlet to create a new <classname>UI</classname> instance
+                    when loading the page, thereby overriding the
+                    <classname>@PreserveOnRefresh</classname>. This is often
+                    necessary when developing such a UI in Eclipse, when you need to
+                    restart it after redeploying, because Eclipse likes to persist the
+                    application state between redeployments. If you also include a URI
+                    fragment, the parameter should be given before the fragment.
+                </para>
+
+            </simplesect>
+        </section>
+
+        <section xml:id="application.lifecycle.ui-expiration">
+            <title>UI Expiration</title>
+
+            <indexterm>
+                <primary>UI</primary>
+                <secondary>expiration</secondary>
+            </indexterm>
+
+            <para>
+                <classname>UI</classname> instances are cleaned up if no communication is
+                received from them after some time. If no other server requests are made,
+                the client-side sends keep-alive heartbeat requests. A UI is kept alive for as
+                long as requests or heartbeats are received from it. It expires if three
+                consecutive heartbeats are missed.
+            </para>
+
+            <para>
+                The heartbeats occur at an interval of 5 minutes, which can be changed
+                with the <parameter>heartbeatInterval</parameter> parameter of the
+                servlet. You can configure the parameter in
+                <classname>@VaadinServletConfiguration</classname> or in
+                <filename>web.xml</filename> as described in <xref
+                linkend="application.environment.parameters"/>.
+            </para>
+
+            <para>
+                When the UI cleanup happens, a <classname>DetachEvent</classname> is sent
+                to all <classname>DetachListener</classname>s added to the UI. When the
+                <classname>UI</classname> is detached from the session,
+                <methodname>detach()</methodname> is called for it.
+            </para>
+        </section>
+
+        <section xml:id="application.lifecycle.ui-closing">
+            <title>Closing UIs Explicitly</title>
+
+            <indexterm>
+                <primary>UI</primary>
+                <secondary>closing</secondary>
+            </indexterm>
+
+            <para>
+                <indexterm>
+                    <primary><methodname>close()</methodname></primary>
+                    <secondary>UI</secondary>
+                </indexterm>
+
+                You can explicitly close a UI with <methodname>close()</methodname>. The
+                method marks the UI to be detached from the session after processing the
+                current request. Therefore, the method does not invalidate the UI instance
+                immediately and the response is sent as usual.
+            </para>
+
+            <para>
+                Detaching a UI does not close the page or browser window in which the UI
+                is running and further server request will cause error. Typically, you
+                either want to close the window, reload it, or redirect it to another
+                URL. If the page is a regular browser window or tab, browsers generally do
+                not allow closing them programmatically, but redirection is possible. You
+                can redirect the window to another URL with
+                <methodname>setLocation()</methodname>, as is done in the examples in
+                <xref linkend="application.lifecycle.session-closing"/>. You can close
+                popup windows by making JavaScript <methodname>close()</methodname> call
+                for them, as described in <xref
+                linkend="advanced.windows.popup-closing"/>.
+            </para>
+
+            <para>
+                If you close other UI than the one associated with the current request,
+                they will not be detached at the end of the current request, but after
+                next request from the particular UI. You can make that occur quicker by
+                making the UI heartbeat faster or immediately by using server push.
+            </para>
+		</section>
+
+        <section xml:id="application.lifecycle.session-expiration">
+            <title>Session Expiration</title>
+            
+            <indexterm zone="application.lifecycle.session-expiration">
+                <primary>session</primary>
+                <secondary>expiration</secondary>
+            </indexterm>
+
+            <para>
+                A session is kept alive by server requests caused by user interaction
+                with the application as well as the heartbeat monitoring of the UIs.  Once
+                all UIs have expired, the session still remains. It is cleaned up from the
+                server when the session timeout configured in the web application expires.
+            </para>
+
+            <para>
+                <indexterm><primary>closeIdleSessions</primary></indexterm>
+
+                If there are active UIs in an application, their heartbeat keeps the
+                session alive indefinitely. You may want to have the sessions timeout if
+                the user is inactive long enough, which is the original purpose of the
+                session timeout setting.
+
+                <indexterm>
+                    <primary>session</primary>
+                    <secondary>timeout</secondary>
+                </indexterm>
+                <indexterm><primary>closeIdleSessions</primary></indexterm>
+
+                If the <parameter>closeIdleSessions</parameter>
+                parameter of the servlet is set to <literal>true</literal> in the
+                <filename>web.xml</filename>, as described in <xref
+                linkend="application.environment.web-xml"/>, the session and all of its
+                UIs are closed when the timeout specified by the
+                <parameter>session-timeout</parameter> parameter of the servlet expires
+                after the last non-heartbeat request. Once the session is gone, the
+                browser will show an Out Of Sync error on the next server request.
+
+                <indexterm><primary>redirection</primary></indexterm>
+                
+                To avoid the ugly message, you may want to set a redirect URL for the
+                UIs<phrase condition="web">, as described in <xref
+                linkend="application.errors.systemmessages"/></phrase>.
+            </para>
+
+            <para>
+                The related configuration parameters are described in <xref
+                linkend="application.environment.parameters"/>.
+            </para>
+
+            <para>
+                <indexterm><primary><interfacename>SessionDestroyListener</interfacename></primary></indexterm>
+
+                You can handle session expiration on the server-side with a
+                <interfacename>SessionDestroyListener</interfacename>, as described in
+                <xref linkend="application.lifecycle.session"/>.
+            </para>
+        </section>
+
+        <section xml:id="application.lifecycle.session-closing">
+            <title>Closing a Session</title>
+
+            <indexterm zone="application.lifecycle.session-closing">
+                <primary>session</primary>
+                <secondary>closing</secondary>
+            </indexterm>
+
+            <para>
+                <indexterm><primary><methodname>close()</methodname></primary></indexterm>
+
+                You can close a session by calling <methodname>close()</methodname> on the
+                <classname>VaadinSession</classname>. It is typically used when logging a
+                user out and the session and all the UIs belonging to the session should
+                be closed. The session is closed immediately and any objects related to it
+                are not available after calling the method.
+            </para>
+
+			<para>
+				When closing the session from a UI, you typically want to redirect the
+				user to another URL.
+
+                <indexterm><primary>redirection</primary></indexterm>
+                <indexterm><primary><methodname>setLocation()</methodname></primary></indexterm>
+                <indexterm><primary>Page</primary><secondary><methodname>setLocation()</methodname></secondary></indexterm>
+
+                You can do the redirect using the <methodname>setLocation()</methodname>
+                method in <classname>Page</classname>. This needs to be done before
+                closing the session, as the UI or page are not available after that. In
+                the following example, we display a logout button, which closes the user
+                session.
+			</para>
+
+            <indexterm><primary>logout</primary></indexterm>
+
+            <book-example eid="application.lifecycle.closing" style="float: right"></book-example>
+			<programlisting><?pocket-size 65% ?><![CDATA[public class MyUI extends UI {
+    @Override
+    protected void init(VaadinRequest request) {
+        setContent(new Button("Logout", event -> {// Java 8
+            // Redirect this page immediately
+            getPage().setLocation("/myapp/logout.html");
+            
+            // Close the session
+            getSession().close();
+        }));
+
+        // Notice quickly if other UIs are closed
+        setPollInterval(3000);
+    }
+}]]></programlisting>
+
+            <para>
+                This is not enough. When a session is closed from one UI, any other UIs
+                attached to it are left hanging. When the client-side engine notices that
+                a UI and the session are gone on the server-side, it displays a "Session
+                Expired" message and, by default, reloads the UI when the message is
+                clicked.
+
+                <indexterm>
+                    <primary>session</primary>
+                    <secondary>expiration</secondary>
+                </indexterm>
+                <indexterm><primary>redirection</primary></indexterm>
+                <indexterm><primary>system messages</primary></indexterm>
+
+                You can customize the message and the redirect URL in the system
+                messages, as described in <xref
+                linkend="application.errors.systemmessages"/>. 
+            </para>
+
+            <para>
+                <indexterm><primary>heartbeat</primary></indexterm>
+                <indexterm><primary>UI</primary><secondary>heartbeat</secondary></indexterm>
+                <indexterm><primary>push</primary></indexterm>
+                <indexterm><primary>server push</primary></indexterm>
+
+                The client-side engine notices the expiration when user interaction causes
+                a server request to be made or when the keep-alive heartbeat occurs. To
+                make the UIs detect the situation faster, you need to make the heart beat
+                faster, as was done in the example above. You can also use server push to
+                close the other UIs immediately, as is done in the following
+                example. Access to the UIs must be synchronized as described in <xref
+                linkend="advanced.push"/>.
+            </para>
+
+            <book-example eid="application.lifecycle.closingall" style="float: right"></book-example>
+			<programlisting><?pocket-size 65% ?><![CDATA[@Push
+public class MyPushyUI extends UI {
+    @Override
+    protected void init(VaadinRequest request) {
+        setContent(new Button("Logout", event -> {// Java 8
+            for (UI ui: VaadinSession.getCurrent().getUIs())
+                ui.access(() -> {
+                    // Redirect from the page
+                    ui.getPage().setLocation("/logout.html");
+                });
+
+            getSession().close();
+        }));
+    }
+}]]></programlisting>
+
+            <para>
+                In the above example, we assume that all UIs in the session have push
+                enabled and that they should be redirected; popups you might want to close
+                instead of redirecting. It is not necessary to call
+                <methodname>close()</methodname> for them individually, as we close the
+                entire session afterwards.
+            </para>
+        </section>
+    </section>
+        <!-- TODO: Update if #2752 is fixed. -->
+
+        <!--
+		<section>
+			<title>Handling the Closing of a Window</title>
+
+			<para>
+				Closing the main window (or all application-level windows) does not close
+				session and the application instance will be left hanging. You need to
+				program such behaviour by handling the close events of the windows.
+			</para>
+
+			<para>
+				If the user closes a browser window, such as the main window or any other
+				application-level window, the window will send a final AJAX request to the
+				server, which will fire a <classname>Window.CloseEvent</classname> for the
+				closed window. You can handle the event with a
+				<classname>Window.CloseListener</classname>. In case the user closes the
+				browser, the event is fired for every open window.
+			</para>
+
+			<programlisting><![CDATA[// Close the application if the main window is closed.
+main.addCloseListener(new Window.CloseListener(){
+   @Override
+    public void windowClose(CloseEvent e) {
+       System.out.println("Closing the application");
+       getMainWindow().getApplication().close();
+    } 
+});]]></programlisting>
+
+			<para>
+				Notice that <emphasis>refreshing a window means closing and reopening
+				it</emphasis>. Therefore, if you have a close handler as above, the user
+				loses the possibility to refresh the browser window.
+			</para>
+
+			<para>
+				In the likely case that the browser crashes, no close event is communicated to
+				the server. As the server has no way of knowing about the problem, and the
+				session will be left hanging until the session timeout expires. During this
+				time, the user can restart the browser, open the application URL, and the main
+				window will be rendered where the user left off. This can be desired behaviour
+				in many cases, but sometimes it is not and can create a security problem.
+			</para>
+		</section>
+	</section> -->
+	
+	<section xml:id="application.environment">
+		<title>Deploying an Application</title>
+		
+		<para>
+			Vaadin applications are deployed as <emphasis>Java web
+			applications</emphasis>, which can contain a number of servlets, each of which
+			can be a Vaadin application or some other servlet, and static resources such
+			as HTML files. Such a web application is normally packaged as a WAR (Web
+			application ARchive) file, which can be deployed to a Java application server
+			(or a servlet container to be exact). A WAR file, which has the
+			<filename>.war</filename> extension, is a subtype of JAR (Java ARchive), and
+			like a regular JAR, is a ZIP-compressed file with a special content structure.
+        </para>
+
+        <para>
+            For a detailed tutorial on how web applications are packaged, please refer to
+            any Java book that discusses Java Servlets.
+        </para>
+
+        <para>
+            In the Java Servlet parlance, a "web application" means a collection of Java
+            servlets or portlets, JSP and static HTML pages, and various other resources
+            that form an application. Such a Java web application is typically packaged as
+            a WAR package for deployment. Server-side Vaadin UIs run as servlets within
+            such a Java web application. There exists also other kinds of web
+            applications. To avoid confusion with the general meaning of "web
+            application", we often refer to Java web applications with the slight misnomer
+            "WAR" in this book.
+
+            <!-- TODO Vaadin 7: What is the relationship between servlet and application? -->
+		</para>
+		
+        <section xml:id="application.environment.war-eclipse">
+			<title>Creating Deployable WAR in Eclipse</title>
+
+			<para>
+				To deploy an application to a web server, you need to create a WAR
+				package. Here we give the instructions for Eclipse.
+			</para>
+
+            <orderedlist>
+                <listitem>
+                    <para>
+                        Select
+                        <menuchoice><guimenu>File</guimenu><guimenuitem>Export</guimenuitem></menuchoice>
+                        and then <menuchoice><guimenu>Web</guimenu><guimenuitem>WAR
+                        File</guimenuitem></menuchoice>. Or, right-click the project in
+                        the Project Explorer and select
+                        <menuchoice><guimenu>Web</guimenu><guimenuitem>WAR
+                        File</guimenuitem></menuchoice>.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Select the <guilabel>Web project</guilabel> to export. Enter
+                        <guilabel>Destination</guilabel> file name
+                        (<filename>.war</filename>).
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Make any other settings in the dialog, and click
+                        <guibutton>Finish</guibutton>.
+                    </para>
+                </listitem>
+            </orderedlist>
+		</section>
+		
+		<section xml:id="application.environment.war">
+			<title>Web Application Contents</title>
+
+			<para>
+				The following files are required in a web application in order to
+				run it.
+			</para>
+
+			<variablelist>
+				<title>Web Application Organization</title>
+
+				<varlistentry>
+					<term>
+						<filename>WEB-INF/web.xml</filename> (optional with Servlet 3.0)
+					</term>
+					<listitem>
+						<para>
+							This is the web application descriptor that defines how the
+							application is organized, that is, what servlets and such it
+							has. You can refer to any Java book about the contents of this
+							file. It is not needed if you define the Vaadin servlet with
+							the <literal>@WebServlet</literal> annotation in Servlet API
+							3.0.
+						</para>
+					</listitem>
+				</varlistentry>
+
+				<varlistentry>
+					<term>
+						<filename>
+							WEB-INF/lib/*.jar
+						</filename>
+					</term>
+					<listitem>
+						<para>
+							These are the Vaadin libraries and their dependencies. They
+							can be found in the installation package or as loaded by a
+							dependency management system such as Maven or Ivy.
+						</para>
+					</listitem>
+				</varlistentry>
+
+				<varlistentry>
+					<term>Your UI classes</term>
+					<listitem>
+						<para>
+							You must include your UI
+							classes either in a JAR file in
+							<filename>WEB-INF/lib</filename>
+							or as classes in
+							<filename>WEB-INF/classes</filename>
+						</para>
+					</listitem>
+				</varlistentry>
+
+				<varlistentry>
+					<term>Your own theme files (OPTIONAL)</term>
+					<listitem>
+						<para>
+							If your application uses a special theme
+							(look and feel), you must include it in
+							<filename>VAADIN/themes/themename</filename>
+							directory.
+						</para>
+					</listitem>
+				</varlistentry>
+
+				<varlistentry>
+					<term>Widget sets (OPTIONAL)</term>
+					<listitem>
+						<para>
+							If your application uses a project-specific widget set, it
+							must be compiled in the
+							<filename>VAADIN/widgetset/</filename> directory.
+						</para>
+					</listitem>
+				</varlistentry>
+			</variablelist>
+		</section>
+
+		<section xml:id="application.environment.webservlet">
+			<title>Web Servlet Class</title>
+
+            <para>
+                When using the Servlet 3.0 API, you normally declare the Vaadin servlet
+                classes with the <literal>@WebServlet</literal> annotation. The Vaadin UI
+                associated with the servlet and other Vaadin-specific parameters are
+                declared with a separate <literal>@VaadinServletConfiguration</literal>
+                annotation.
+            </para>
+
+            <programlisting><?pocket-size 75% ?>@WebServlet(value = "<emphasis role="bold">/*</emphasis>",
+            asyncSupported = true)
+@VaadinServletConfiguration(
+        productionMode = <emphasis role="bold">false</emphasis>,
+        ui = <emphasis role="bold">MyProjectUI</emphasis>.class)
+public class <emphasis role="bold">MyProjectServlet</emphasis> extends VaadinServlet {
+}</programlisting>
+
+            <para>
+                The Vaadin Plugin for Eclipse creates the servlet class as a static inner
+                class of the UI class. Normally, you may want to have it as a separate
+                regular class.
+            </para>
+
+            <para>
+                The <parameter>value</parameter> parameter is the URL pattern for mapping
+                request URLs to the servlet, as described in <xref
+                linkend="application.environment.servlet-mapping"/>. The
+                <parameter>ui</parameter> parameter is the UI class. Production mode is
+                disabled by default, which enabled on-the-fly theme compilation, debug
+                window, and other such development features. See the subsequent sections
+                for details on the different servlet and Vaadin configuration parameters.
+            </para>
+
+            <para>
+                You can also use a <filename>web.xml</filename> deployment descriptor in
+                Servlet 3.0 projects.
+            </para>
+        </section>
+
+		<section xml:id="application.environment.web-xml">
+			<title>Using a <filename>web.xml</filename> Deployment Descriptor</title>
+
+			<para>
+				A deployment descriptor is an XML file with the name
+				<filename>web.xml</filename> in the <filename>WEB-INF</filename>
+				sub-directory of a web application. It is a standard component in Java EE
+				describing how a web application should be deployed. The descriptor is not
+				required with Servlet API 3.0, where you can also define servlets with the
+				<classname>@WebServlet</classname> annotation as decribed earlier, as web
+				fragments, or programmatically. You can use both a
+				<filename>web.xml</filename> and WebServlet in the same
+				application. Settings in the <filename>web.xml</filename> override the
+				ones given in annotations.
+            </para>
+
+			<para>
+                The following example shows the basic contents of a deployment descriptor
+                for a Servlet 2.4 application. You simply specify the UI class with the
+                <parameter>UI</parameter> parameter for the
+                <classname>com.vaadin.server.VaadinServlet</classname>. The servlet is
+                then mapped to a URL path in a standard way for Java Servlets.
+			</para>
+
+            <programlisting><?pocket-size 75% ?>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;web-app
+  id="WebApp_ID" version="2.4"
+  xmlns="http://java.sun.com/xml/ns/j2ee" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee
+     http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"&gt;
+
+  &lt;servlet&gt;
+    &lt;servlet-name&gt;<emphasis role="strong">myservlet</emphasis>&lt;/servlet-name&gt;
+    &lt;servlet-class&gt;
+        com.vaadin.server.VaadinServlet
+    &lt;/servlet-class&gt;
+
+    &lt;init-param&gt;
+      &lt;param-name&gt;&ui;&lt;/param-name&gt;
+      &lt;param-value&gt;<emphasis role="strong">com.ex.myprj.MyUI</emphasis>&lt;/param-value&gt;
+    &lt;/init-param&gt;
+
+    &lt;!-- If not using the default widget set--&gt;
+    &lt;init-param&gt;
+      &lt;param-name&gt;widgetset&lt;/param-name&gt;
+      &lt;param-value&gt;<emphasis role="strong">com.ex.myprj.MyWidgetSet</emphasis>&lt;/param-value&gt;
+    &lt;/init-param&gt;
+  &lt;/servlet&gt;
+
+  &lt;servlet-mapping&gt;
+    &lt;servlet-name&gt;<emphasis role="strong">myservlet</emphasis>&lt;/servlet-name&gt;
+    &lt;url-pattern&gt;/*&lt;/url-pattern&gt;
+  &lt;/servlet-mapping&gt;
+&lt;/web-app&gt;</programlisting>
+
+            <para>
+                The descriptor defines a servlet with the name
+                <filename>myservlet</filename>. The servlet class,
+                <classname>com.vaadin.server.VaadinServlet</classname>, is provided by
+                Vaadin framework and is normally the same for all Vaadin projects. For
+                some purposes, you may need to use a custom servlet class that extends the
+                <classname>VaadinServlet</classname>. The class name must include the full
+                package path.
+            </para>
+
+			<section xml:id="application.environment.web-xml.servlet">
+				<title>Servlet API Version</title>
+
+                <para>
+                    The descriptor example given above was for Servlet 2.4. For a later
+                    version, such as Servlet 3.0, you should use:
+                </para>
+
+                <programlisting><?pocket-size 75% ?>&lt;web-app
+  id="WebApp_ID" version="<emphasis role="bold">3.0</emphasis>"
+  xmlns="http://java.sun.com/xml/ns/j2ee" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xsi:schemaLocation="<emphasis role="bold">http://java.sun.com/xml/ns/javaee
+      http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd</emphasis>"&gt;</programlisting>
+
+                <para>
+                    Servlet 3.0 support is useful for at least server push.
+                </para>
+            </section>
+
+            <section xml:id="application.environment.web-xml.widgetset">
+                <title>Widget Set</title>
+
+                <para>
+                    If the UI uses add-on components or custom widgets, it needs a custom
+                    widget set, which can be specified with the
+                    <parameter>widgetset</parameter> parameter for the
+                    servlet. Alternatively, you can defined it with the
+                    <classname>@WidgetSet</classname> annotation for the UI class. The
+                    parameter is a class name with the same path but without the
+                    <filename>.gwt.xml</filename> extension as the widget set definition
+                    file. If the parameter is not given, the
+                    <classname>com.vaadin.DefaultWidgetSet</classname> is used, which
+                    contains all the widgets for the built-in Vaadin components.
+                </para>
+
+                <para>
+                    Unless using the default widget set (which is included in the
+                    <filename>vaadin-client-compiled</filename> JAR), the widget set must
+                    be compiled, as described in <xref linkend="addons"/> or <xref
+                    linkend="clientside.compiling"/>, and properly deployed with the
+                    application.
+                </para>
+            </section>
+        </section>
+
+        <section xml:id="application.environment.servlet-mapping">
+            <title>Servlet Mapping with URL Patterns</title>
+
+            <para>
+                The servlet needs to be mapped to an URL path, which requests it is to
+                handle.
+            </para>
+            
+            <para>
+                With <classname>@WebServlet</classname> annotation for the servlet class:
+            </para>
+
+            <programlisting><?pocket-size 75% ?>@WebServlet(value = "<emphasis role="bold">/*</emphasis>", asyncSupported = true)</programlisting>
+
+            <para>
+                In a <filename>web.xml</filename>:
+            </para>
+
+            <programlisting><?pocket-size 75% ?>  &lt;servlet-mapping&gt;
+    &lt;servlet-name&gt;<emphasis role="strong">myservlet</emphasis>&lt;/servlet-name&gt;
+    &lt;url-pattern&gt;/*&lt;/url-pattern&gt;
+  &lt;/servlet-mapping&gt;</programlisting>
+
+            <para>
+                The URL pattern is defined in the above examples as
+                <literal>/*</literal>. This matches any URL under the project context. We
+                defined above the project context as <literal>myproject</literal> so the
+                URL for the page of the &ui; will be
+                <uri>http://localhost:8080/myproject/</uri>. 
+            </para>
+
+            <section xml:id="application.environment.servlet-mapping.sub-paths">
+                <title>Mapping Sub-Paths</title>
+
+                <para>
+                    If an application has multiple &ui;s or servlets, they have to be
+                    given different paths in the URL, matched by a different URL pattern.
+                    Also, you may need to have statically served content under some path.
+                    Having an URL pattern <literal>/myui/*</literal> would match a
+                    URL such as <uri>http://localhost:8080/myproject/myui/</uri>. Notice
+                    that the slash and the asterisk <emphasis>must</emphasis> be included
+                    at the end of the pattern.
+
+                    In such case, you also need to map URLs with
+                    <literal>/VAADIN/*</literal> to a servlet (unless you are serving it
+                    statically as noted below).
+                </para>
+
+                <para>
+                    With a <classname>@WebServlet</classname> annotation for a servlet
+                    class, you can define multiple mappings as a list enclosed in curly
+                    braces as follows:
+                </para>
+                
+                <programlisting>@WebServlet(value = {"<emphasis role="strong">/myui/*</emphasis>", "/VAADIN/*"},
+            asyncSupported = true)</programlisting>
+
+                <para>
+                     In a <filename>web.xml</filename>:
+                </para>
+
+                <programlisting>    ...
+    &lt;servlet-mapping&gt;
+        &lt;servlet-name&gt;<emphasis role="strong">myservlet</emphasis>&lt;/servlet-name&gt;
+        &lt;url-pattern&gt;<emphasis role="strong">/myui/*</emphasis>&lt;/url-pattern&gt;
+    &lt;/servlet-mapping&gt;
+
+    &lt;servlet-mapping&gt;
+        &lt;servlet-name&gt;<emphasis role="strong">myservlet</emphasis>&lt;/servlet-name&gt;
+        &lt;url-pattern&gt;/VAADIN/*&lt;/url-pattern&gt;
+    &lt;/servlet-mapping&gt;</programlisting>
+
+                <para>
+                    If you have multiple servlets, you should specify only one
+                    <literal>/VAADIN/*</literal> mapping. It does not matter which servlet you
+                    map the pattern to, as long as it is a Vaadin servlet.
+                </para>
+
+                <para>
+                    You do not have to provide the above <literal>/VAADIN/*</literal>
+                    mapping if you serve both the widget sets and (custom and default)
+                    themes statically in the <filename>/VAADIN</filename> directory in the
+                    web application. The mapping simply allows serving them dynamically
+                    from the Vaadin JAR. Serving them statically is recommended for
+                    production environments as it is faster. If you serve the content from
+                    within the same web application, you may not have the root pattern
+                    <literal>/*</literal> for the Vaadin servlet, as then all the requests
+                    would be mapped to the servlet.
+                </para>
+            </section>
+        </section>
+
+        <section xml:id="application.environment.parameters">
+            <title>Other Servlet Configuration Parameters</title>
+
+            <para>
+                The servlet class or deployment descriptor can have many parameters and
+                options that control the execution of a servlet. You can find complete
+                documentation of the basic servlet parameters in the appropriate <link
+                xlink:href="http://wiki.apache.org/tomcat/Specifications">Java Servlet
+                Specification</link>.  <!-- JCP or Oracle don't seem to have a proper
+                index URL. --> <classname>@VaadinServletConfiguration</classname> accepts
+                a number of special parameters, as described below.
+            </para>
+
+            <para>
+                In a <filename>web.xml</filename>, you can set most parameters either as a
+                <literal>&lt;context-param&gt;</literal> for the entire web application,
+                in which case they apply to all Vaadin servlets, or as an
+                <literal>&lt;init-param&gt;</literal> for an individual servlet. If both
+                are defined, servlet parameters override context parameters.
+            </para>
+
+            <section xml:id="application.environment.parameters.production-mode">
+                <title>Production Mode</title>
+
+                <para>
+                    By default, Vaadin applications run in <emphasis>debug mode</emphasis>
+                    (or <emphasis>development mode</emphasis>), which should be used
+                    during development. This enables various debugging features. For
+                    production use, you should have the
+                    <literal>productionMode=true</literal> setting in the
+                    <classname>@VaadinServletConfiguration</classname>, or in
+                    <filename>web.xml</filename>:
+                </para>
+
+                <programlisting><![CDATA[<context-param>
+  <param-name>productionMode</param-name>
+  <param-value>true</param-value>
+  <description>Vaadin production mode</description>
+</context-param>]]></programlisting>
+				
+                <para>
+                    The parameter and the debug and production modes are described in more
+                    detail in <xref linkend="advanced.debug"/>.
+                </para>
+            </section>
+
+            <section xml:id="application.environment.parameters.uiprovider">
+                <title>Custom UI Provider</title>
+
+                <para>
+                    Vaadin normally uses the <classname>DefaultUIProvider</classname> for
+                    creating <classname>UI</classname> class instances. If you need to use
+                    a custom UI provider, you can define its class with the
+                    <parameter>UIProvider</parameter> parameter. The provider is
+                    registered in the <classname>VaadinSession</classname>.
+                </para>
+
+                <para>
+                    In a <filename>web.xml</filename>:
+                </para>
+
+				<programlisting>  &lt;servlet&gt;
+    ...
+    &lt;init-param&gt;
+      &lt;param-name&gt;UIProvider&lt;/param-name&gt;
+      &lt;param-value&gt;<emphasis role="bold">com.ex.my.MyUIProvider</emphasis>&lt;/param-value&gt;
+    &lt;/init-param&gt;</programlisting>
+
+                <para>
+                    The parameter is logically associated with a particular servlet, but
+                    can be defined in the context as well.
+                </para>
+            </section>
+
+            <section xml:id="application.environment.parameters.heartbeat">
+                <title>UI Heartbeat</title>
+
+                <para>
+                    Vaadin follows UIs using a heartbeat, as explained in <xref
+                    linkend="application.lifecycle.ui-expiration"/>. If the user closes
+                    the browser window of a Vaadin application or navigates to another
+                    page, the Client-Side Engine running in the page stops sending
+                    heartbeat to the server, and the server eventually cleans up the
+                    <classname>UI</classname> instance.
+                </para>
+
+                <para>
+                    The interval of the heartbeat requests can be specified in seconds
+                    with the <parameter>heartbeatInterval</parameter> parameter either as
+                    a context parameter for the entire web application or an init
+                    parameter for the individual servlet. The default value is 300 seconds
+                    (5 minutes).
+                </para>
+
+                <para>
+                    In a <filename>web.xml</filename>:
+                </para>
+
+                <programlisting><![CDATA[<context-param>
+  <param-name>heartbeatInterval</param-name>
+  <param-value>300</param-value>
+</context-param>]]></programlisting>
+            </section>
+
+            <section xml:id="application.environment.parameters.session-timeout">
+                <title>Session Timeout After User Inactivity</title>
+
+                <para>
+                    In normal servlet operation, the session timeout defines the allowed
+                    time of inactivity after which the server should clean up the
+                    session. The inactivity is measured from the last server
+                    request. Different servlet containers use varying defaults for
+                    timeouts, such as 30 minutes for Apache Tomcat. You can set the
+                    timeout under <literal>&lt;web-app&gt;</literal> with:
+                </para>
+
+                <para>
+                    In a <filename>web.xml</filename>:
+                </para>
+
+                <indexterm><primary>session-timeout</primary></indexterm>
+
+				<programlisting><![CDATA[<session-config>
+    <session-timeout>30</session-timeout>
+</session-config>]]></programlisting>
+
+                <para>
+                    <indexterm><primary>Out of Sync</primary></indexterm>
+
+                    The session timeout should be longer than the heartbeat interval or
+                    otherwise sessions are closed before the heartbeat can keep them
+                    alive. As the session expiration leaves the UIs in a state where they
+                    assume that the session still exists, this would cause an Out Of Sync
+                    error notification in the browser.
+                </para>
+
+                <indexterm><primary>closeIdleSessions</primary></indexterm>
+
+                <para>
+                    However, having a shorter heartbeat interval than the session timeout,
+                    which is the normal case, prevents the sessions from expiring. If the
+                    <parameter>closeIdleSessions</parameter> parameter for the servlet is
+                    enabled (disabled by default), Vaadin closes the UIs and the session
+                    after the time specified in the <parameter>session-timeout</parameter>
+                    parameter expires after the last non-heartbeat request.
+                </para>
+
+                <para>
+                    In a <filename>web.xml</filename>:
+                </para>
+
+				<programlisting>  &lt;servlet&gt;
+    ...
+    &lt;init-param&gt;
+      &lt;param-name&gt;closeIdleSessions&lt;/param-name&gt;
+      &lt;param-value&gt;true&lt;/param-value&gt;
+    &lt;/init-param&gt;</programlisting>
+
+			</section>
+
+            <section xml:id="application.environment.parameters.push">
+                <title>Push Mode</title>
+
+                <para>
+                    You can enable server push, as described in <xref
+                    linkend="advanced.push"/>, for a UI either with a
+                    <classname>@Push</classname> annotation for the UI or in the
+                    descriptor. The push mode is defined with a
+                    <parameter>pushmode</parameter> parameter. The
+                    <literal>automatic</literal> mode pushes changes to the browser
+                    automatically after <emphasis>access()</emphasis> finishes. With
+                    <literal>manual</literal> mode, you need to do the push explicitly
+                    with <methodname>push()</methodname>. If you use a Servlet 3.0
+                    compatible server, you also want to enable asynchronous processing
+                    with the <literal>async-supported</literal> parameter.
+                </para>
+
+                <para>
+                    In a <filename>web.xml</filename>:
+                </para>
+
+                <programlisting>&lt;servlet&gt;
+  ...
+  &lt;init-param&gt;
+    &lt;param-name&gt;pushmode&lt;/param-name&gt;
+    &lt;param-value&gt;<emphasis role="bold">automatic</emphasis>&lt;/param-value&gt;
+  &lt;/init-param&gt;
+  &lt;async-supported&gt;<emphasis role="bold">true</emphasis>&lt;/async-supported&gt;</programlisting>
+
+            </section>
+
+            <section xml:id="application.environment.parameters.xsrf">
+                <title>Cross-Site Request Forgery Prevention</title>
+
+                <para>
+                    Vaadin uses a protection mechanism to prevent malicious cross-site
+                    request forgery (XSRF or CSRF), also called one-click attacks or
+                    session riding, which is a security exploit for executing unauthorized
+                    commands in a web server. This protection is normally
+                    enabled. However, it prevents some forms of testing of Vaadin
+                    applications, such as with JMeter. In such cases, you can disable the
+                    protection by setting the
+                    <parameter>disable-xsrf-protection</parameter> parameter to
+                    <literal>true</literal>.
+                </para>
+
+                <para>
+                    In a <filename>web.xml</filename>:
+                </para>
+
+                <programlisting><![CDATA[<context-param>
+  <param-name>disable-xsrf-protection</param-name>
+  <param-value>true</param-value>
+</context-param>]]></programlisting>
+            </section>
+		</section>
+
+        <section xml:id="application.environment.configuration">
+            <title>Deployment Configuration</title>
+
+            <para>
+                The Vaadin-specific parameters defined in the deployment configuration are
+                available from the <classname>DeploymentConfiguration</classname> object
+                managed by the <classname>VaadinSession</classname>.
+            </para>
+
+                <programlisting><![CDATA[DeploymentConfiguration conf =
+        getSession().getConfiguration();
+
+// Heartbeat interval in seconds
+int heartbeatInterval = conf.getHeartbeatInterval();]]></programlisting>
+
+            <para>
+                Parameters defined in the Java Servlet definition, such as the session
+                timeout, are available from the low-level
+                <classname>HttpSession</classname> or
+                <classname>PortletSession</classname> object, which are wrapped in a
+                <classname>WrappedSession</classname> in Vaadin. You can access the
+                low-level session wrapper with <methodname>getSession()</methodname> of
+                the <classname>VaadinSession</classname>.
+            </para>
+
+            <programlisting><![CDATA[WrappedSession session = getSession().getSession();
+int sessionTimeout = session.getMaxInactiveInterval();]]></programlisting>
+
+            <para>
+                You can also access other <classname>HttpSession</classname> and
+                <classname>PortletSession</classname> session properties through the
+                interface, such as set and read session attributes that are shared by all
+                servlets belonging to a particular servlet or portlet session.
+            </para>
+        </section>
+	</section>
+    <!--
+    <section xml:id="application.production">
+        <title>Going for Production</title>
+
+        <para>
+            Much of the deployment given earlier in this chapter were for developing a
+            Vaadin application in an IDE. Deploying an application for production requires
+            a few additional steps, such as enabling the production mode in the
+            <filename>web.xml</filename>, compiling the theme, and packaging the WAR. In
+            addition, serving various resources statically rather than by the Vaadin
+            servlet reduces application server load and allows serving them by a front-end
+            server.
+        </para>
+
+        <section xml:id="application.production.enabling">
+            <title>Enabling the Production Mode</title>
+
+            <para>
+                The production mode is enabled with the
+                <parameter>productionMode</parameter> in the <filename>web.xml</filename>
+                deployment descriptor, as described in <xref
+                linkend="application.environment.parameters"/>.
+            </para>
+
+            <programlisting><![CDATA[<context-param>
+  <description>Vaadin production mode</description>
+  <param-name>productionMode</param-name>
+  <param-value>true</param-value>
+</context-param>]]></programlisting>
+
+            <para>
+                For more information about the debug (develoment) and production modes,
+                see <xref linkend="advanced.debug"/>.
+            </para>
+        </section>
+
+        <section xml:id="application.production.dependencies">
+            <title>Configuring the Dependencies</title>
+
+            <para>
+                A web application packaged for production does not require all the
+                libraries that are used in development, most notably the client and theme
+                compilers and their dependencies.
+            </para>
+
+            <para>
+                Note that the libraries are needed when compiling the production package,
+                even though they are not included in it.
+            </para>
+
+            <section xml:id="application.production.dependencies.ivy">
+                <title>Ivy-Managed Dependencies</title>
+            </section>
+
+            <section xml:id="application.production.dependencies.maven">
+                <title>Maven-Managed Dependencies</title>
+            </section>
+        </section>
+
+        <section xml:id="application.production.widgetset">
+            <title>Compiling the Widget Sets</title>
+        </section>
+
+        <section xml:id="application.production.theme">
+            <title>Compiling the Theme</title>
+        </section>
+
+        <section xml:id="application.production.war">
+            <title>Packaging the WAR</title>
+        </section>
+
+        <section xml:id="application.production.static">
+            <title>Serving Static Resources</title>
+
+            <para>
+                Normally during development, static resources such as widget sets and
+                themes are served by the Vaadin servlet from the
+                <filename>VAADIN</filename> directory as well as the corresponding
+                directories in certain Vaadin JARs and possibly other JARs. Serving them
+                by the servlet in this manner is a bit heavier than having the application
+                server serve them directly from the filesystem. Serving them separately
+                also allows a distribution point - you can let an efficient front-end
+                server, such as Apache HTTPD, serve them and pass servlet requests to the
+                Java application server.
+            </para>
+
+            <para>
+                Letting the application server or a front-end server serve the static
+                resources is mandatory for portals, as described in <xref
+                linkend="portal.liferay.install"/>.
+            </para>
+
+            <section xml:id="application.production.static.extracting">
+                <title>Extracting the Static Files</title>
+
+                <para>
+                    The static resources are contained in the <filename>VAADIN</filename>
+                    directories in certain Vaadin JARs, as well as in the project.
+                </para>
+
+                <para>
+                    The Vaadin JARs containing static resources are:
+                </para>
+
+                <itemizedlist>
+                    <listitem><filename>vaadin-server.jar</filename></listitem>
+                    <listitem><filename>vaadin-themes.jar</filename></listitem>
+                    <listitem><filename>vaadin-client-compiled.jar</filename> (if using default widget set)</listitem>
+                </itemizedlist>
+            </section>
+        </section>
+    </section>
+    -->
+</chapter>
+	
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: xml
+sgml-omittag:nil
+sgml-shorttag:nil
+sgml-namecase-general:nil
+sgml-general-insert-case:lower
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:4
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-exposed-tags:nil
+sgml-local-catalogs:("/etc/sgml/catalog" "/usr/share/xemacs21/xemacs-packages/etc/psgml-dtds/CATALOG")
+sgml-local-ecat-files:("ECAT" "~/sgml/ECAT" "/usr/share/sgml/ECAT" "/usr/local/share/sgml/ECAT" "/usr/local/lib/sgml/ECAT")
+End:
+-->

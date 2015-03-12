@@ -1,0 +1,2947 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ====================================================================== -->
+<!-- Copyright 2000-2012 Vaadin Ltd                                         -->
+<!-- All Rights Reserved                                                    -->
+<!-- This work is licensed under a Creative Commons Attribution-NoDerivs    -->
+<!-- License (CC-BY-ND) Version 3.0. Full license text is available at:     -->
+<!-- http://creativecommons.org/licenses/by-nd/3.0/legalcode                -->
+<!-- ====================================================================== -->
+
+<chapter xml:id="themes">
+	<title>Themes</title>
+
+    <indexterm xml:id="term.themes" class="startofrange">
+        <primary>theme</primary>
+    </indexterm>
+    <indexterm xml:id="term.themes-css" class="startofrange">
+        <primary>CSS</primary>
+    </indexterm>
+
+	<para>
+		This chapter provides details about using and creating <emphasis>themes</emphasis>
+		that control the visual look of web applications. Themes are created using Sass,
+		which is an extension of CSS (Cascading Style Sheets), or with plain CSS. We
+		provide an introduction to CSS, especially concerning the styling of HTML by
+		element classes.
+	</para>
+
+	<section xml:id="themes.overview">
+		<title>Overview</title>
+
+		<para>
+			Vaadin separates the appearance of the user interface from its logic using
+			<emphasis>themes</emphasis>. Themes can include Sass or CSS style sheets, custom HTML
+			layouts, and any necessary graphics. Theme resources can also be accessed from
+			application code as <classname>ThemeResource</classname> objects.
+		</para>
+
+		<para>
+			Custom themes are placed under the <filename>VAADIN/themes/</filename> folder
+			of the web application (under <filename>WebContent</filename> in Eclipse or
+			<filename>src/main/webapp</filename> in Maven projects).  This location is
+			fixed -- the <filename>VAADIN</filename> folder contains static resources that
+			are served by the Vaadin servlet. The servlet augments the files stored in the
+			folder by resources found from corresponding <filename>VAADIN</filename>
+			folders contained in JARs in the class path. For example, the built-in themes
+			are stored in the <filename>vaadin-themes.jar</filename>.
+        </para>
+
+        <para>
+            <xref linkend="figure.themes.theme-contents"/> illustrates the contents of a
+            theme.
+		</para>
+
+		<figure xml:id="figure.themes.theme-contents">
+			<title>Contents of a Theme</title>
+			<mediaobject>
+				<imageobject role="html">
+					<imagedata align="center" fileref="img/themes/theme-contents-lo.png"/>
+				</imageobject>
+				<imageobject role="fo">
+					<imagedata scale="60" smallscale="100%" align="center" fileref="img/themes/theme-contents-hi.png"/>
+				</imageobject>
+			</mediaobject>
+		</figure>
+
+		<para>
+			The name of a theme folder defines the name of the theme. The name is used in
+			the <literal>@Theme</literal> annotation that sets the theme. A theme must
+			contain either a <filename>styles.scss</filename> for Sass themes, or
+			<filename>styles.css</filename> stylesheet for plain CSS themes, but other
+			contents have free naming. We recommend that you have the actual theme content
+			in a SCSS file named after the theme, such as
+			<filename>mytheme.scss</filename>, to make the names more unique.
+		</para>
+
+        <para>
+            We also suggest a convention for naming the folders as
+            <filename>img</filename> for images, <filename>layouts</filename> for custom
+            layouts, and <filename>css</filename> for additional stylesheets.
+        </para>
+
+		<para>
+			Custom themes need to extend a base theme, as described in <xref
+			linkend="themes.creating"/>. Copying and modifying an existing theme is also
+			possible, but it is not recommended, as it may need more work to maintain if
+			the modifications are small.
+		</para>
+
+		<para>
+			You use a theme by specifying it with the <literal>@Theme</literal>
+			annotation for the &ui; class of the application as follows:
+		</para>
+
+		<programlisting><![CDATA[@Theme("mytheme")
+public class MyUI extends UI {
+    @Override
+    protected void init(VaadinRequest request) {
+        ...
+    }
+}]]></programlisting>
+
+		<para>
+			A theme can contain alternate styles for user interface components, which can
+			be changed as needed.
+		</para>
+
+		<para>
+			In addition to style sheets, a theme can contain HTML templates for custom
+			layouts used with <classname>CustomLayout</classname>. See <xref
+			linkend="layout.customlayout"/> for details.
+		</para>
+
+		<para>
+			Resources provided in a theme can also be accessed using the
+			<classname>ThemeResource</classname> class, as described in <xref
+			linkend="application.resources.theme"/>. This allows displaying theme
+			resources in component icons, in the <classname>Image</classname> component,
+			and other such uses.
+		</para>
+	</section>
+
+	<section xml:id="themes.css">
+		<title>Introduction to Cascading Style Sheets</title>
+		
+        <indexterm xml:id="term.themes.css" class="startofrange">
+            <primary>CSS</primary>
+            <secondary>introduction</secondary>
+        </indexterm>
+
+		<para>
+			Cascading Style Sheets or CSS is the basic technique to separate the
+			appearance of a web page from the content represented in HTML. In this
+			section, we give an introduction to CSS and look how they are relevant to
+			software development with Vaadin.
+        </para>
+
+        <simplesect xml:id="themes.css.sources">
+            <title>CSS Information Sources</title>
+
+            <para>
+                As we can only give a short intruction in this book, we encourage you to
+                refer to the rich literature on CSS and the many resources available in
+                the web. You can find the authoratitative specifications of CSS standards
+                from the <link xlink:href="http://www.w3.org/Style/CSS/">W3C
+                website</link><phrase condition="web">and other literature, references,
+                and tutorials from the <link
+                xlink:href="http://www.dmoz.org/Computers/Data_Formats/Style_Sheets/CSS/">Open
+                Directory Project page on CSS</link>, as well as from other
+                sources</phrase>.
+            </para>
+        </simplesect>
+
+        <section xml:id="themes.css.basics">
+			<title>Applying CSS to HTML</title>
+
+            <para>
+                Let us consider the following HTML document that contains various markup
+                elements for formatting text. Vaadin UIs work in essentially similar
+                documents, even though they use somewhat different elements to draw the
+                user interface.
+            </para>
+
+			<programlisting>&lt;html&gt;
+    &lt;head&gt;
+        &lt;title&gt;My Page&lt;/title&gt;
+        &lt;link rel="stylesheet" type="text/css"
+              href="mystylesheet.css"/&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+        <emphasis role="strong">&lt;p&gt;</emphasis>This is a paragraph<emphasis role="strong">&lt;/p&gt;</emphasis>
+        <emphasis role="strong">&lt;p&gt;</emphasis>This is another paragraph<emphasis role="strong">&lt;/p&gt;</emphasis>
+        &lt;table&gt;
+            &lt;tr&gt;
+                <emphasis role="strong">&lt;td&gt;</emphasis>This is a table cell<emphasis role="strong">&lt;/td&gt;</emphasis>
+                <emphasis role="strong">&lt;td&gt;</emphasis>This is another table cell<emphasis role="strong">&lt;/td&gt;</emphasis>
+            &lt;/tr&gt;
+        &lt;/table&gt;
+    &lt;/body&gt;
+&lt;/html&gt;</programlisting>
+
+            <para>
+                The HTML elements that will be styled later by matching CSS rules are
+                emphasized above.
+            </para>
+
+            <para>
+                The <literal>&lt;link&gt;</literal> element in the HTML header defines the
+                used CSS stylesheet. The definition is automatically generated by Vaadin
+                in the HTML page that loads the UI of the application. A stylesheet can
+                also be embedded in the HTML document itself, as is done when optimizing
+                their loading in Vaadin TouchKit, for example.
+            </para>
+        </section>
+
+        <section xml:id="themes.css.basics">
+			<title>Basic CSS Rules</title>
+
+			<para>
+				A stylesheet contains a set of <emphasis>rules</emphasis> that can match
+				the HTML elements in the page. Each rule consists of one or more
+				<emphasis>selectors</emphasis>, separated with commas, and a
+				<emphasis>declaration block</emphasis> enclosed in curly braces. A
+				declaration block contains a list of <emphasis>property</emphasis>
+				statements. Each property has a label and a value, separated with a
+				colon. A property statement ends with a semicolon.
+			</para>
+
+			<para>
+				Let us look at an example that matches certain elements in the simple HTML
+				document given in the previous section:
+			</para>
+
+			<programlisting><![CDATA[p, td { 
+  color: blue;
+}
+
+td { 
+  background: yellow;
+  font-weight: bold;
+}]]></programlisting>
+
+			<para>
+				The <literal>p</literal> and <literal>td</literal> are element type
+				selectors that match with <literal>&lt;p&gt;</literal> and
+				<literal>&lt;td&gt;</literal> elements in HTML, respectively. The first
+				rule matches with both elements, while the second matches only with
+				<literal>&lt;td&gt;</literal> elements. Let us assume that you have saved
+				the above style sheet with the name <filename>mystylesheet.css</filename>
+				and consider the following HTML file located in the same folder.
+			</para>
+
+			<figure xml:id="figure.themes.basic.1">
+				<title>Simple Styling by Element Type</title>
+				<mediaobject>
+					<imageobject>
+						<imagedata smallscale="120" align="center" fileref="img/themes/themes-css-match-1.png"/>
+					</imageobject>
+				</mediaobject>
+			</figure>
+				
+            <section xml:id="themes.css.basics.inheritance">
+                <title>Style Inheritance in CSS</title>
+
+                <para>
+                    CSS has <emphasis>inheritance</emphasis> where contained elements
+                    inherit the properties of their parent elements. For example, let us
+                    change the above example and define it instead as follows:
+                </para>
+
+                <programlisting><![CDATA[table {
+    color: blue;
+    background: yellow;
+}]]></programlisting>
+
+                <para>
+                    All elements contained in the <literal>&lt;table&gt;</literal> element
+                    would have the same properties. For example, the text in the contained
+                    <literal>&lt;td&gt;</literal> elements would be in blue color.
+                </para>
+            </section>
+
+            <section xml:id="themes.css.basics.element-types">
+                <title>HTML Element Types</title>
+
+                <para>
+                    HTML has a number of element types, each of which accepts a specific
+                    set of properties. The <literal>&lt;div&gt;</literal> elements are
+                    generic elements that can be used to create almost any layout and
+                    formatting that can be created with a specific HTML element
+                    type. Vaadin uses <literal>&lt;div&gt;</literal> elements extensively
+                    to draw the UI, especially in layout components.
+                </para>
+
+                <para>
+                    <indexterm><primary>Google Web Toolkit</primary><secondary>themeing</secondary></indexterm>
+
+                    Matching elements by their type as shown above is, however, rarely if
+                    ever used in style sheets for Vaadin applications. We used it above,
+                    because it is the normal way in regular HTML documents that use the
+                    various HTML elements for formatting text, but it is not applicable in
+                    Vaadin UIs that consist mostly of <literal>&lt;div&gt;</literal>
+                    elements. Instead, you need to match by element class, as described
+                    next.
+                </para>
+            </section>
+		</section>
+
+        <section xml:id="themes.css.matching-by-class">
+			<title>Matching by Element Class</title>
+
+			<para>
+				Matching HTML elements by the <emphasis>class</emphasis> attribute is the
+				most common form of matching in Vaadin stylesheets. It is also possible to
+				match with the <emphasis>identifier</emphasis> of a unique HTML element.
+			</para>
+
+			<para>
+				The class of an HTML element is defined with the
+				<parameter>class</parameter> attribute as follows:
+			</para>
+
+<programlisting><?pocket-size 70% ?>&lt;html&gt;
+  &lt;body&gt;
+    <emphasis role="strong">&lt;p class="normal"&gt;</emphasis>This is the first paragraph<emphasis role="strong">&lt;/p&gt;</emphasis>
+
+    <emphasis role="strong">&lt;p class="another"&gt;</emphasis>This is the second paragraph<emphasis role="strong">&lt;/p&gt;</emphasis>
+
+    &lt;table&gt;
+      &lt;tr&gt;
+        <emphasis role="strong">&lt;td class="normal"&gt;</emphasis>This is a table cell<emphasis role="strong">&lt;/td&gt;</emphasis>
+        <emphasis role="strong">&lt;td class="another"&gt;</emphasis>This is another table cell<emphasis role="strong">&lt;/td&gt;</emphasis>
+      &lt;/tr&gt;
+    &lt;/table&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</programlisting>
+
+			<para>
+				The class attributes of HTML elements can be matched in CSS rules with a
+				selector notation where the class name is written after a period following
+				the element name. This gives us full control of matching elements by their
+				type and class.
+			</para>
+
+			<programlisting><![CDATA[p.normal   {color: red;}
+p.another  {color: blue;}
+td.normal  {background: pink;}
+td.another {background: yellow;}]]></programlisting>
+
+			<para>
+				The page would look as shown below:
+			</para>
+
+			<figure>
+				<title>Matching HTML Element Type and Class</title>
+				<mediaobject>
+					<imageobject role="html">
+						<imagedata align="center" fileref="img/themes/themes-css-match-class-2.png"/>
+					</imageobject>
+					<imageobject role="fo">
+						<imagedata scale="75" smallscale="100%" align="center" fileref="img/themes/themes-css-match-class-2.png"/>
+					</imageobject>
+				</mediaobject>
+			</figure>
+
+			<para>
+				We can also match solely by the class by using the universal selector
+				<literal>*</literal> for the element name, for example
+				<literal>*.normal</literal>. The universal selector can also be left out
+				altogether so that we use just the class name following the period, for
+				example <literal>.normal</literal>.
+			</para>
+
+			<programlisting><![CDATA[.normal {
+    color: red;
+}
+
+.another {
+    blackground: yellow;
+}]]></programlisting>
+
+			<para>
+				In this case, the rule will match with all elements of the same class
+				regardless of the element type. The result is shown in <xref
+				linkend="figure.themes.match.class"/>.  This example illustrates a
+				technique to make style sheets compatible regardless of the exact HTML
+				element used in drawing a component.
+			</para>
+
+			<figure xml:id="figure.themes.match.class">
+				<title>Matching Only HTML Element Class</title>
+				<mediaobject>
+					<imageobject role="html">
+						<imagedata align="center" fileref="img/themes/themes-css-match-class-3.png"/>
+					</imageobject>
+					<imageobject role="fo">
+						<imagedata scale="65" smallscale="100%" align="center" fileref="img/themes/themes-css-match-class-3.png"/>
+					</imageobject>
+				</mediaobject>
+			</figure>
+
+			<para>
+				To ensure future compatibility, we recommend that you use only matching
+				based on the classes and <emphasis>do not</emphasis> match for specific
+				HTML element types in CSS rules, because Vaadin may change the exact HTML
+				implementation how components are drawn in the future. For example, Vaadin
+				earlier used <literal>&lt;div&gt;</literal> element to draw
+				<classname>Button</classname> components, but later it was changed to use
+				the special-purpose <literal>&lt;button&gt;</literal> element in
+				HTML. Because of using the <literal>v-button</literal> style class in the
+				CSS rules for the button, styling it has changed only very little.
+			</para>
+		</section>
+
+        <section xml:id="themes.css.matching-by-descendants">
+			<title>Matching by Descendant Relationship</title>
+
+			<para>
+				CSS allows matching HTML by their containment relationship. For example,
+				consider the following HTML fragment:
+			</para>
+
+			<programlisting><?pocket-size 70% ?>&lt;body&gt;
+  &lt;p class="mytext"&gt;Here is some text inside a
+                    paragraph element&lt;/p&gt;
+  &lt;table class="<emphasis role="strong">mytable</emphasis>"&gt;
+    &lt;tr&gt;
+      &lt;td class="<emphasis role="strong">mytext</emphasis>"&gt;Here is text inside
+                      a table and inside a td element.&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/table&gt;
+&lt;/body&gt;</programlisting>
+
+			<para>
+				Matching by the class name <literal>.mytext</literal> alone would match
+				both the <literal>&lt;p&gt;</literal> and <literal>&lt;td&gt;</literal>
+				elements. If we want to match only the table cell, we could use the following selector:
+			</para>
+
+			<programlisting><![CDATA[.mytable .mytext {color: blue;}]]></programlisting>
+
+			<para>
+				To match, a class listed in a rule does not have to be an immediate
+				descendant of the previous class, but just a descendant. For example, the
+				selector "<literal>.v-panel .v-button</literal>" would match all elements
+				with class <literal>.v-button</literal> somewhere inside an element with
+				class <literal>.v-panel</literal>.
+			</para>
+        </section>
+
+        <section xml:id="themes.css.cascading">
+            <title>Importance of Cascading</title>
+
+            <para>
+                CSS or Cascading Stylesheets are, as the name implies, about
+                <emphasis>cascading</emphasis> stylesheets, which means applying the
+                stylesheet rules according to their origin, importance, scope, specifity,
+                and order.
+            </para>
+
+            <para>
+                For exact rules for cascading in CSS, see the section <link
+                xlink:href="http://www.w3.org/TR/css3-cascade/#cascading">Cascading</link>
+                in the CSS specification.
+            </para>
+
+            <section xml:id="themes.css.cascading.importance">
+                <title>Importance</title>
+
+                <para>
+                    Declarations in CSS rules can be made override declarations with
+                    otherwise higher priority by annotating them as
+                    <literal>!important</literal>. For example, an inline style setting
+                    made in the <literal>style</literal> attribute of an HTML element has
+                    a higher specificity than any rule in a CSS stylesheet.
+                </para>
+
+                <programlisting><![CDATA[<div class="v-button" style="height: 20px;">...]]></programlisting>
+
+                <para>
+                    You can override the higher specificity with the
+                    <literal>!important</literal> annotation as follows:
+                </para>
+
+                <programlisting><![CDATA[.v-button {height: 30px !important;}]]></programlisting>
+            </section>
+
+            <section xml:id="themes.css.cascading.specificity">
+                <title>Specificity</title>
+
+                <para>
+                    A rule that specifies an element with selectors more closely overrides
+                    ones that specify it less specifically. With respect to the element
+                    class selectors most commonly used in Vaadin themes, the specificity
+                    is determined by the number of class selectors in the selector.
+                </para>
+
+                <programlisting><![CDATA[.v-button {}
+.v-verticallayout .v-button {}
+.v-app .v-verticallayout .v-button {}]]></programlisting>
+
+                <para>
+                    In the above example, the last rule would have the highest specificity
+                    and would match.
+                </para>
+
+                <para>
+                    As noted earlier, style declarations given in the style attribute of a
+                    HTML element have higher specificity than declarations in a CSS rule,
+                    except if the <literal>!important</literal> annotation is given.
+                </para>
+
+                <para>
+                    See the CSS3 <link
+                    xlink:href="http://www.w3.org/TR/selectors/#specificity">selectors
+                    module specification</link> for details regarding how the specificity
+                    is computed.
+                </para>
+            </section>
+
+            <section xml:id="themes.css.cascading.order">
+                <title>Order</title>
+
+                <para>
+                    CSS rules given later have higher priority than ones given
+                    earlier. For example, in the following, the latter rule overrides the
+                    former and the color will be black:
+                </para>
+
+                <programlisting><![CDATA[.v-button {color: white}
+.v-button {color: black}]]></programlisting>
+
+                <para>
+                    As specificity has a higher cascading priority than order, you could
+                    make the first rule have higher priority by adding specificity as
+                    follows:
+                </para>
+
+                <programlisting><![CDATA[.v-app .v-button {color: white}
+.v-button {color: black}]]></programlisting>
+
+                <para>
+                    The order is important to notice in certain cases, because Vaadin does
+                    not guarantee the order in which CSS stylesheets are loaded in the
+                    browser, which can in fact be random and result in very unexpected
+                    behavior. This is not relevant for Sass stylesheets, which are
+                    compiled to a single stylesheet. For plain CSS stylesheets, such as
+                    add-on or TouchKit stylesheets, the order can be relevant.
+                </para>
+            </section>
+        </section>
+
+        <section xml:id="themes.css.hierarchy">
+            <title>Style Class Hierarchy of a Vaadin UI</title>
+
+            <para>
+                Let us give a real case in a Vaadin UI by considering a simple Vaadin UI
+                with a label and a button inside a vertical layout:
+            </para>
+
+            <programlisting><?pocket-size 75% ?><![CDATA[// UI has v-ui style class
+@Theme("mytheme")
+public class HelloWorld extends UI {
+    @Override
+    protected void init(VaadinRequest request) {
+        // VerticalLayout has v-verticallayout style
+        VerticalLayout content = new VerticalLayout();
+        setContent(content);
+
+        // Label has v-label style
+        content.addComponent(new Label("Hello World!"));
+        
+        // Button has v-button style
+        content.addComponent(new Button("Push Me!",
+            new Button.ClickListener() {
+            @Override
+            public void buttonClick(ClickEvent event) {
+                Notification.show("Pushed!");
+            }
+        }));
+    }
+}]]></programlisting>
+
+            <para>
+                The UI will look by default as shown in <xref
+                linkend="figure.themes.css.hierarchy.initial"/>. By using a HTML inspector
+                such as Firebug, you can view the HTML tree and the element classes and
+                applied styles for each element.
+            </para>
+
+            <figure xml:id="figure.themes.css.hierarchy.initial">
+                <title>An Unthemed Vaadin UI</title>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata smallscale="100%" align="center" fileref="img/themes/example-ui-default.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+
+            <para>
+                Now, let us look at the HTML element class structure of the UI, as we can
+                see it in the HTML inspector:
+            </para>
+
+            <programlisting><?pocket-size 65% ?>&lt;body class="<emphasis role="strong">v-generated-body v-ff v-ff20 v-ff200 v-gecko v-lin</emphasis>"
+      scroll="auto"&gt;
+  &lt;div id="bookexamplesvaadin7helloworld-447164942"
+       class="<emphasis role="strong">v-app mytheme</emphasis>"&gt;
+    &lt;div class="<emphasis role="strong">v-ui v-scrollable</emphasis>"
+         tabindex="1" style="height: 100%; width: 100%;"&gt;
+      &lt;div class="<emphasis role="strong">v-loading-indicator first</emphasis>"
+           style="position: absolute; display: none;"&gt;&lt;/div&gt;
+      &lt;div class="<emphasis role="strong">v-verticallayout v-layout v-vertical
+                  v-widget v-has-width</emphasis>"
+           style="width: 100%;"&gt;
+        &lt;div class="<emphasis role="strong">v-slot</emphasis>"&gt;
+          &lt;div class="<emphasis role="strong">v-label v-widget v-has-width</emphasis>"
+               style="width: 100%;"&gt;Hello World!&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class="<emphasis role="strong">v-slot</emphasis>"&gt;
+          &lt;div class="<emphasis role="strong">v-button v-widget</emphasis>"
+               tabindex="0" role="button"&gt;
+            &lt;span class="<emphasis role="strong">v-button-wrap</emphasis>"&gt;
+              &lt;span class="<emphasis role="strong">v-button-caption</emphasis>"&gt;Push Me!&lt;/span&gt;
+            &lt;/span&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  ...
+&lt;body&gt;</programlisting>
+
+            <para>
+                Now, consider the following theme where we set the colors and margins of
+                various elements. The theme is actually a Sass theme.
+            </para>
+
+            <programlisting><?pocket-size 75% ?><![CDATA[@import "../reindeer/reindeer.scss";
+
+@mixin mytheme {
+  @include reindeer;
+
+  /* White background for the entire UI */
+  .v-ui {
+    background: white;
+  }
+  
+  /* All labels have white text on black background */
+  .v-label {
+    background: black;
+    color: white;
+    font-size: 24pt;
+    line-height: 24pt;
+    padding: 5px;
+  }
+
+  /* All buttons have blue caption and some margin */
+  .v-button {
+    margin: 10px;
+
+    /* A nested selector to increase specificity */
+    .v-button-caption {
+      color: blue;
+    }
+  }
+}]]></programlisting>
+
+            <para>
+                The look has changed as shown in <xref
+                linkend="figure.themes.css.hierarchy.themed"/>.
+            </para>
+                
+            <figure xml:id="figure.themes.css.hierarchy.themed">
+                <title>Themed Vaadin UI</title>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata smallscale="100%" align="center" fileref="img/themes/example-ui-themed.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+
+            <para>
+                An element can have multiple classes separated with a space. With multiple
+                classes, a CSS rule matches an element if any of the classes match. This
+                feature is used in many Vaadin components to allow matching based on the
+                state of the component. For example, when the mouse is over a
+                <classname>Link</classname> component, <literal>over</literal> class is
+                added to the component. Most of such styling is a feature of Google Web
+                Toolkit.
+            </para>
+        </section>
+			
+        <section xml:id="themes.css.compatibility">
+			<title>Notes on Compatibility</title>
+
+            <indexterm><primary>CSS</primary><secondary>compatibility</secondary></indexterm>
+            <indexterm><primary>compatibility</primary></indexterm>
+
+			<para>
+				CSS is a standard continuously under development. It was first proposed in
+				1994. The specification of CSS is maintained by the CSS Working Group of
+				World Wide Web Consortium (W3C). Versioned with backward-compatible
+				"levels", CSS Level 1 was published in 1996, Level 2 in 1998, and the
+				ongoing development of CSS Level 3 started in 1998. CSS3 is divided into a
+				number of separate modules, each developed and progressing separately, and
+				many of the modules are already Level 4.
+			</para>
+
+			<para>
+				While the support for CSS has been universal in all graphical web browsers
+				since at least 1995, the support has been very incomplete at times and
+				there still exists an unfortunate number of incompatibilities between
+				browsers. While we have tried to take these incompatibilities into account
+				in the built-in themes in Vaadin, you need to consider them while
+				developing your own themes. Compatibility issues are detailed in various
+				CSS handbooks.
+			</para>
+		</section>
+		
+        <indexterm startref="term.themes.css" class="endofrange"/>
+	</section>
+	
+	<section xml:id="themes.sass">
+		<title>Syntactically Awesome Stylesheets (Sass)</title>
+
+        <para>
+            Vaadin uses Sass for stylesheets. Sass is an extension of CSS3 that adds
+            nested rules, variables, mixins, selector inheritance, and other features to
+            CSS. Sass supports two formats for stylesheet: Vaadin themes are written in
+            SCSS (<filename>.scss</filename>), which is a superset of CSS3, but Sass also
+            allows a more concise indented format (<filename>.sass</filename>).
+        </para>
+
+        <para>
+            Sass can be used in two basic ways in Vaadin applications, either by compiling
+            SCSS files to CSS or by doing the compilation on the fly. The latter way is
+            possible if the development mode is enabled for the Vaadin servlet, as
+            described in <xref linkend="application.environment.parameters"/>.
+        </para>
+
+        <section xml:id="themes.sass.overview">
+            <title>Sass Overview</title>
+
+            <section xml:id="themes.sass.overview.variables">
+                <title>Variables</title>
+
+                <para>
+                    Sass allows defining variables that can be used in the rules.
+                </para>
+
+                <programlisting><![CDATA[$textcolor: blue;
+
+.v-button-caption {
+  color: $textcolor;
+}]]></programlisting>
+
+                <para>
+                    The above rule would be compiled to CSS as:
+                </para>
+
+                <programlisting><![CDATA[.v-button-caption {
+  color: blue;
+}]]></programlisting>
+
+                <para>
+                    Also mixins can have variables as parameters, as explained later.
+                </para>
+            </section>
+
+            <section xml:id="themes.sass.overview.nesting">
+                <title>Nesting</title>
+
+                <para>
+                    Sass supports nested rules, which are compiled into
+                    inside-selectors. For example:
+                </para>
+
+                <programlisting><![CDATA[.v-app {
+  background: yellow;
+  
+  .mybutton {
+    font-style: italic;
+    
+    .v-button-caption {
+      color: blue;
+    }
+  }
+}]]></programlisting>
+
+                <para>
+                    is compiled as:
+                </para>
+
+                <programlisting><![CDATA[.v-app {
+  background: yellow;
+}
+
+.v-app .mybutton {
+    font-style: italic;
+}
+
+.v-app .mybutton .v-button-caption {
+  color: blue;
+}]]></programlisting>
+
+            </section>
+
+            <section xml:id="themes.sass.overview.mixins">
+                <title>Mixins</title>
+
+                <para>
+                    Mixins are rules that can be included in other rules. You define a
+                    mixin rule by prefixing it with the <literal>@mixin</literal> keyword
+                    and the name of the mixin. You can then use
+                    <literal>@include</literal> to apply it to another rule. You can also
+                    pass parameters to it, which are handled as local variables in the
+                    mixin.
+                </para>
+
+                <para>
+                    For example:
+                </para>
+
+                <programlisting><![CDATA[@mixin mymixin {
+  background: yellow;
+}
+
+@mixin othermixin($param) {
+  margin: $param;
+}
+
+.v-button-caption {
+  @include mymixin;
+  @include othermixin(10px);
+}]]></programlisting>
+
+                <para>
+                    The above SCSS would translated to the following CSS:
+                </para>
+
+                <programlisting><![CDATA[.v-button-caption {
+  background: yellow;
+  margin: 10px;
+}]]></programlisting>
+
+                <para>
+                    You can also have nested rules in a mixin, which makes them especially
+                    powerful. Mixing in rules is used when extending Vaadin themes, as
+                    described in <xref linkend="themes.creating.sass"/>.
+                </para>
+
+                <para>
+                    Vaadin themes are defined as mixins to allow for certain uses, such as
+                    different themes for different portlets in a portal.
+                </para>
+            </section>
+
+            <!-- TODO 
+            <section xml:id="themes.sass.features">
+                <title>Selector Inheritance</title>
+
+            </section>
+            -->
+        </section>
+
+        <section xml:id="themes.sass.basic">
+            <title>Sass Basics with Vaadin</title>
+
+            <para>
+                We are not going to give in-depth documentation of Sass and refer you to
+                its excellent documentation at <link
+                xlink:href="http://sass-lang.com/">http://sass-lang.com/</link>. In the
+                following, we give just basic introduction to using it with Vaadin.
+            </para>
+
+            <para>
+                You can create a new Sass-based theme with the Eclipse plugin, as
+                described in <xref linkend="themes.eclipse"/>.
+            </para>
+        </section>
+    </section>
+
+    <section xml:id="themes.compiling">
+        <title>Compiling Sass Themes</title>
+
+        <para>
+            Sass themes must be compiled to CSS understood by browsers. Compilation can be
+            done with the Vaadin Sass Compiler, which you can run in Eclipse, Maven, or it
+            can be run on-the-fly when the application is loaded in the browser. You can
+            also use any other Sass compiler.
+        </para>
+
+        <section xml:id="themes.compiling.on-the-fly">
+            <title>Compiling On the Fly</title>
+
+            <para>
+                The easiest way to use Sass themes during theme development is to let the
+                Vaadin servlet compile them on the run. In this case, the SCSS source
+                files are placed in the theme folder. Compilation is done each time the
+                <filename>styles.css</filename> is requested from the server.
+            </para>
+
+            <para>
+                The on-the-fly compilation takes a bit time, so it is only available when
+                the Vaadin servlet is in the development mode, as described in <xref
+                linkend="application.environment.parameters"/>. Also, it requires the
+                theme compiler and all its dependencies to be in the class path of the
+                servlet. At least for production, you must compile the theme to CSS, as
+                described next.
+            </para>
+        </section>
+
+        <section xml:id="themes.compiling.eclipse">
+            <title>Compiling in Eclipse</title>
+
+            <para>
+                If using Eclipse and the Vaadin Plugin for Eclipse, its project wizard
+                creates a Sass theme. It includes <menuchoice><guimenuitem>Compile
+                Theme</guimenuitem></menuchoice> command in the toolbar to compile the
+                project theme to CSS. Another command compiles also the widget set.
+            </para>
+
+            <figure xml:id="figure.themes.compiling.eclipse">
+                <title>Compiling Sass Theme</title>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata smallscale="70%" align="center" fileref="img/themes/eclipse-theme-compiler.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+
+            <para>
+                The <filename>WebContent/VAADIN/mytheme/styles.scss</filename> and any
+                Sass sources included by it are compiled to
+                <filename>styles.css</filename>.
+            </para>
+        </section>
+
+        <section xml:id="themes.compiling.maven">
+            <title>Compiling with Maven</title>
+
+            <para>
+                To compile the themes with Maven, you need to include the built-in
+                themes as a dependency:
+            </para>
+
+            <programlisting><![CDATA[  ...
+  <dependencies>
+    ...
+    <dependency>
+        <groupId>com.vaadin</groupId>
+        <artifactId>vaadin-themes</artifactId>
+        <version>${vaadin.version}</version>
+    </dependency>
+  </dependencies>
+  ...]]></programlisting>
+
+            <para>
+                This is automatically included at least in the
+                <literal>vaadin-archetype-application</literal> archetype for Vaadin
+                applications. The actual theme compilation is most conveniently done by
+                the Vaadin Maven Plugin with <literal>update-theme</literal> and
+                <literal>compile-theme</literal> goals.
+            </para>
+
+            <programlisting><![CDATA[  ...
+  <plugin>
+    <groupId>com.vaadin</groupId>
+    <artifactId>vaadin-maven-plugin</artifactId>
+    ...
+    <executions>
+      <execution>
+        ...
+        <goals>
+          <goal>clean</goal>
+          <goal>resources</goal>
+          <goal>update-theme</goal>
+          <goal>update-widgetset</goal>
+          <goal>compile-theme</goal>
+          <goal>compile</goal>
+        </goals>
+      </execution>
+    </executions>]]></programlisting>
+
+            <para>
+                Once these are in place, the theme is compiled as part of relevant
+                lifecycle phases, such as <literal>package</literal>.
+            </para>
+
+            <screen><command>mvn</command> <parameter>package</parameter></screen>
+
+            <para>
+                You can also compile just the theme with the
+                <package>compile-theme</package> goal:
+            </para>
+
+            <screen><command>mvn</command> <parameter>vaadin:compile-theme</parameter></screen>
+
+        </section>
+
+        <section xml:id="themes.compiling.command-line" condition="web">
+            <title>Compiling in Command-line</title>
+
+            <para>
+                You can compile Sass style sheets to CSS either with the Vaadin Sass
+                compiler or the standard one. The <filename>styles.css</filename> of a
+                custom theme should be the compilation target. When compiled before
+                deployment, the source files do not need to be in the theme folder.
+            </para>
+
+            <para>
+                You can run the Vaadin Sass compiler in a theme folder as follows:
+            </para>
+
+            <screen><command>java</command> <parameter>-cp</parameter> <replaceable>'../../../WEB-INF/lib/*'</replaceable> com.vaadin.sass.SassCompiler styles.scss styles.css</screen>
+
+            <para>
+                The <parameter>-cp</parameter> parameter should point to the class path
+                where the Vaadin Sass Compiler and theme JARs are located. In the above
+                example, they are assumed to be located in the
+                <filename>WEB-INF/lib</filename> folder of the web application. If you
+                have loaded the Vaadin libraries using Ivy, as is the case with projects
+                created with the Vaadin Plugin for Eclipse, the Vaadin libraries are
+                stored in Ivy's local repository. Its folder hierarchy is somewhat
+                scattered, so we recommend that you retrieve the libraries to a single
+                folder. We recommend using an Ant script as is described next.
+                </para>
+        </section>
+
+        <section xml:id="themes.compiling.ant">
+            <title>Compiling with Ant</title>
+
+            <para>
+                With Apache Ant, you can easily resolve the dependencies with Ivy and
+                compile the theme with the Theme Compiler included in Vaadin as
+                follows. This build step can be conveniently included in a WAR build
+                script.
+            </para>
+
+            <para>
+                Start with the following configuration:
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[<project xmlns:ivy="antlib:org.apache.ivy.ant"
+         name="My Project" basedir="../"
+         default="package-war">
+
+  <target name="configure">
+    <!-- Where project source files are located -->
+    <property name="src-location" value="src" />
+
+    ... other project build definitions ...
+            
+    <!-- Name of the theme -->
+    <property name="theme" value="book-examples"/>
+        
+    <!-- Compilation result directory -->
+    <property name="result" value="build/result"/>
+  </target>
+
+  <!-- Initialize build -->
+  <target name="init" depends="configure">
+    <!-- Construct and check classpath -->
+    <path id="compile.classpath">
+        <!-- Source code to be compiled -->
+        <pathelement path="${src-location}" />
+            
+        <!-- Vaadin libraries and dependencies -->
+        <fileset dir="${result}/lib">
+            <include name="*.jar"/>
+        </fileset>
+    </path>
+
+    <mkdir dir="${result}"/>
+  </target>]]></programlisting>
+
+            <para>
+                You should first resolve all Vaadin libraries to a single directory,
+                which you can use for deployment, but also for theme compilation.
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[  <target name="resolve" depends="init">
+    <ivy:retrieve
+        pattern="${result}/lib/[module]-[type]-[artifact]-[revision].[ext]"/>
+  </target>]]></programlisting>
+
+            <para>
+                Then, you can compile the theme as follows:
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[  <!-- Compile theme -->
+  <target name="compile-theme"
+          depends="init, resolve">
+    <delete dir="${result}/VAADIN/themes/${theme}"/>
+    <mkdir dir="${result}/VAADIN/themes/${theme}"/>
+    	
+    <java classname="com.vaadin.sass.SassCompiler"
+          fork="true">
+      <classpath>
+        <path refid="compile.classpath"/>
+      </classpath>
+      <arg value="WebContent/VAADIN/themes/${theme}/styles.scss"/>
+      <arg value="${result}/VAADIN/themes/${theme}/styles.css"/>
+    </java>
+
+    	<!-- Copy theme resources -->
+    <copy todir="${result}/VAADIN/themes/${theme}">
+      <fileset dir="WebContent/VAADIN/themes/${theme}">
+        <exclude name="**/*.scss"/>
+      </fileset>
+    </copy>
+  </target>
+</project>]]></programlisting>
+
+        </section>
+    </section>
+
+	<section xml:id="themes.creating">
+		<title>Creating and Using Themes</title>
+
+        <para>
+            Custom themes are placed in the <filename>VAADIN/themes</filename> folder of
+            the web application, in an Eclipse project under the
+            <filename>WebContent</filename> folder or <filename>src/main/webapp</filename>
+            in Maven projects, as was illustrated in <xref
+            linkend="figure.themes.theme-contents"/>. This location is fixed. You need to
+            have a theme folder for each theme you use in your application, although
+            applications rarely need more than a single theme.
+        </para>
+
+        <section xml:id="themes.creating.sass">
+            <title>Sass Themes</title>
+
+            <para>
+                You can use Sass themes in Vaadin in two ways, either by compiling them to
+                CSS by yourself or by letting the Vaadin servlet compile them for you
+                on-the-fly when the theme CSS is requested by the browser, as described in
+                <xref linkend="themes.compiling"/>.
+            </para>
+
+            <para>
+                To define a Sass theme with the name <varname>mytheme</varname>, you must
+                place a file with name <filename>styles.scss</filename> in the theme
+                folder <filename>VAADIN/themes/mytheme</filename>. If no
+                <filename>styles.css</filename> exists in the folder, the Sass file is
+                compiled on-the-fly when the theme is requested by a browser.
+            </para>
+
+            <para>
+                We recommend that you organize the theme in at least two SCSS files so
+                that you import the actual theme from a Sass file that is named more
+                uniquely than the <filename>styles.scss</filename>, to make it
+                distinquishable in the editor. This organization is how the Vaadin Plugin
+                for Eclipse creates a new theme.
+            </para>
+
+            <para>
+                If you use Vaadin add-ons that contain themes, Vaadin Plugin for Eclipse
+                and Maven automatically add them to the <filename>addons.scss</filename>
+                file.
+            </para>
+
+            <section xml:id="themes.creating.sass.scss">
+                <title>Theme SCSS</title>
+
+                <para>
+                    We recommend that the rules in a theme should be prefixed with a
+                    selector for the theme name. You can do the prefixing in Sass by
+                    enclosing the rules in a nested rule with a selector for the theme
+                    name.
+                </para>
+
+                <para>
+                    Themes are defined as Sass mixins, so after you import the mixin
+                    definitions, you can <literal>@include</literal> them in the theme rule as
+                    follows:
+                </para>
+
+                <programlisting><![CDATA[@import "addons.scss";
+@import "mytheme.scss";
+
+.mytheme {
+  @include addons;
+  @include mytheme;
+}]]></programlisting>
+
+                <para>
+                    However, this is mainly necessary if you use the UI in portlets, each
+                    of which can have its own theme, or in the special circumstance that
+                    the theme has rules that use empty parent selector
+                    <literal>&amp;</literal> to refer to the theme name.
+                </para>
+
+                <para>
+                    Otherwise, you can safely leave the nested theme selector out as
+                    follows:
+                </para>
+
+            <programlisting><![CDATA[@import "addons.scss";
+@import "mytheme.scss";
+
+@include addons;
+@include mytheme;]]></programlisting>
+
+                <para>
+                    The actual theme should be defined as follows, as a mixin that
+                    includes the base theme.
+                </para>
+
+            <programlisting><![CDATA[@import "../reindeer/reindeer.scss";
+
+@mixin mytheme {
+  @include reindeer;
+
+  /* An actual theme rule */
+  .v-button {
+    color: blue;
+  }
+}
+]]></programlisting>
+            </section>
+
+            <section xml:id="themes.creating.sass.addons">
+                <title>Add-on Themes</title>
+
+                <para>
+                    Some Vaadin add-ons include Sass styles that need to be compiled into
+                    the theme. These are managed in the <filename>addons.scss</filename>
+                    file in a theme, included from the
+                    <filename>styles.scss</filename>. The <filename>addons.scss</filename>
+                    file is automatically generated by the Vaadin Plugin for Eclipse or
+                    Maven.
+                </para>
+
+                <programlisting><?pocket-size 65% ?>/* This file is automatically managed and will be
+   overwritten from time to time. */
+/* Do not manually edit this file. */
+
+<emphasis role="bold">/* Provided by vaadin-spreadsheet-1.0.0.beta1.jar */
+@import "../../../VAADIN/addons/spreadsheet/spreadsheet.scss";</emphasis>
+
+/* Import and include this mixin into your project
+   theme to include the addon themes */
+@mixin addons {
+  <emphasis role="bold">@include spreadsheet;</emphasis>
+}</programlisting>
+            </section>
+        </section>
+
+        <section xml:id="themes.creating.css">
+            <title>Plain Old CSS Themes</title>
+
+            <para>
+                In addition to Sass themes, you can create plain old CSS themes. CSS theme
+                are more restricted than Sass styles - an application can only have one
+                CSS theme while you can have multiple Sass themes.
+            </para>
+
+            <para>
+                A CSS theme is defined in a <filename>styles.css</filename> file in the
+                <filename>VAADIN/themes/mytheme</filename> folder. You need to import the
+                <filename>legacy-styles.css</filename> of the built-in theme as follows:
+            </para>
+
+            <programlisting><![CDATA[@import "../reindeer/legacy-styles.css";
+
+.v-app {
+    background: yellow;
+}]]></programlisting>
+        </section>
+
+        <section xml:id="themes.creating.standard-components">
+			<title>Styling Standard Components</title>
+
+			<para>
+				Each user interface component in Vaadin has a CSS style class that you can
+				use to control the appearance of the component. Many components have
+				additional sub-elements that also allow styling. You can add
+				context-specific stylenames with
+				<methodname>addStyleName()</methodname>. Notice that
+				<methodname>getStyleName()</methodname> returns only the custom
+				stylenames, not the built-in stylenames for the component.
+			</para>
+
+			<para>
+				Please see the section on each component for a description of its
+				styles. Most of the stylenames are determined in the client-side widget of
+				each component. The easiest way to find out the styles of the elements is
+				to use a HTML inspector such as FireBug. <!-- TODO reference to a Firebug
+				section when available -->
+			</para>
+
+            <para>
+                Some client-side components or component styles can be shared by different
+                server-side components. For example, <literal>v-textfield</literal> style
+                is used for all text input boxes in components, in addition to
+                <classname>TextField</classname>.
+            </para>
+		</section>
+
+		<section xml:id="themes.creating.builtin">
+			<title>Built-in Themes</title>
+
+            <para>
+                Vaadin currently includes the following built-in themes:
+            </para>
+
+            <itemizedlist>
+                <listitem><literal>valo</literal>, the primary theme since Vaadin 7.3</listitem>
+                <listitem><literal>reindeer</literal>, the primary theme in Vaadin 6 and 7</listitem>
+                <listitem><literal>chameleon</literal>, an easily customizable theme</listitem>
+                <listitem><literal>runo</literal>, the default theme in IT Mill Toolkit 5</listitem>
+                <listitem><literal>liferay</literal>, for Liferay portlets</listitem>
+            </itemizedlist>
+
+            <para>
+                In addition, there is the <literal>base</literal> theme, which should not
+                be used directly, but is extended by the other built-in themes, except valo.
+            </para>
+
+			<para>
+				The built-in themes are provided in the respective
+				<filename>VAADIN/themes/&lt;theme&gt;/styles.scss</filename> stylesheets
+				in the <filename>vaadin-themes</filename> JAR. Also the precompiled CSS
+				files are included, in case you want to use the themes directly.
+			</para>
+
+            <para>
+                Various constants related to the built-in themes are defined in the theme
+                classes in <package>com.vaadin.ui.themes</package> package. These are
+                mostly special style names for specific components.
+            </para>
+
+            <programlisting><?pocket-size 65% ?><![CDATA[@Theme("runo")
+public class MyUI extends UI {
+    @Override
+    protected void init(VaadinRequest request) {
+        ...      
+        Panel panel = new Panel("Regular Panel in the Runo Theme");
+        panel.addComponent(new Button("Regular Runo Button"));
+        
+        // A button with the "small" style
+        Button smallButton = new Button("Small Runo Button");
+        smallButton.addStyleName(Runo.BUTTON_SMALL);
+
+        Panel lightPanel = new Panel("Light Panel");
+        lightPanel.addStyleName(Runo.PANEL_LIGHT);
+        lightPanel.addComponent(
+            new Label("With addStyleName(\"light\")"));
+        ...]]></programlisting>
+
+            <para>
+                The example with the Runo theme is shown in <xref
+                linkend="figure.themes.creating.builtin.runo"/>.
+            </para>
+					
+            <figure xml:id="figure.themes.creating.builtin.runo">
+                <title>Runo Theme</title>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata smallscale="100%" align="center" fileref="img/themes/builtin-runo.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+
+            <para>
+                The built-in themes come with a custom icon font, FontAwesome, which is
+                used for icons in the theme, and which you can use as font icons, as
+                described in <xref linkend="themes.fonticon"/>.
+            </para>
+
+			<note>
+				<title>Serving Built-In Themes Statically</title>
+
+				<para>
+					The built-in themes included in the Vaadin library JAR are served
+					dynamically from the JAR by the servlet. Serving themes and widget
+					sets statically by the web server is more efficient. To do so, you
+					need to extract the <filename>VAADIN/</filename> directories from the
+					JAR to the web content directory (<filename>WebContent</filename> in
+					Eclipse or <filename>src/main/webapp</filename> in Maven projects).
+                </para>
+
+                <screen><prompt>$</prompt> <command>cd</command> WebContent</screen>
+                <screen><prompt>$</prompt> <command>unzip</command> path-to/vaadin-server-&version.vaadin;.jar 'VAADIN/*'</screen>
+                <screen><prompt>$</prompt> <command>unzip</command> path-to/vaadin-themes-&version.vaadin;.jar 'VAADIN/*'</screen>
+                <screen><prompt>$</prompt> <command>unzip</command> path-to/vaadin-client-compiled-&version.vaadin;.jar 'VAADIN/*'</screen>
+
+                <para>
+                    You can also serve static content from a front-end caching server,
+                    which reduces the load of the application server. In portals, you
+                    install the themes globally in the portal as described in <xref
+                    linkend="portal.liferay.install"/>.
+                </para>
+
+                <para>
+                    Just make sure to update the static content when you upgrade to a
+                    newer version of Vaadin.
+				</para>
+			</note>
+
+			<para>
+				Creation of a default theme for custom GWT widgets is described in <xref
+				linkend="gwt.styling"/>.
+			</para>
+        </section>
+
+		<section xml:id="themes.creating.addon">
+			<title>Add-on Themes</title>
+
+            <para>
+                You can find more themes as add-ons from the <link
+                xlink:href="http://vaadin.com/directory">Vaadin Directory</link>. In
+                addition, many component add-ons contain a theme for the components they
+                provide.
+            </para>
+
+            <para>
+                The add-on themes need to be included in the project theme. Vaadin Plugin
+                for Eclipse and Maven automatically include them in the
+                <filename>addons.scss</filename> file in the project theme folder. It
+                should be included by the project theme.
+            </para>
+        </section>
+	</section>
+    
+	<section xml:id="themes.eclipse">
+		<title>Creating a Theme in Eclipse</title>
+
+		<para>
+			The Eclipse plugin automatically creates a theme stub for new Vaadin
+			projects. It also includes a wizard for creating new custom themes. Do the
+			following steps to create a new theme.
+		</para>
+
+		<orderedlist>
+			<listitem>
+				<para>
+					Select
+					<menuchoice><guimenu>File</guimenu><guisubmenu>New</guisubmenu><guimenuitem>Other...</guimenuitem></menuchoice>
+					in the main menu or right-click the <guilabel>Project
+					Explorer</guilabel> and select
+					<menuchoice><guimenu>New</guimenu><guimenuitem>Other...</guimenuitem></menuchoice>. A
+					window will open.
+				</para>
+			</listitem>
+
+			<listitem>
+				<para>
+					In the <guilabel>Select a wizard</guilabel> step, select the
+					<menuchoice><guimenu>Vaadin</guimenu><guimenuitem>Vaadin
+					Theme</guimenuitem></menuchoice> wizard.
+				</para>
+
+				<screenshot>
+					<mediaobject>
+						<imageobject role="html">
+							<imagedata align="center" fileref="img/themes/eclipse-theme-new.png"/>
+						</imageobject>
+						<imageobject role="fo">
+							<imagedata scale="50" smallscale="100%" align="center" fileref="img/themes/eclipse-theme-new.png"/>
+						</imageobject>
+					</mediaobject>
+				</screenshot>
+				
+				<para>
+					Click <guibutton>Next</guibutton> to proceed to the next step.
+				</para>
+			</listitem>
+
+			<listitem>
+				<para>
+					In the <guilabel>Create a new Vaadin theme</guilabel> step, you have
+					the following settings:
+				</para>
+
+				<variablelist>
+					<varlistentry>
+						<term><guilabel>Project</guilabel> (mandatory)</term>
+						<listitem>
+							<para>
+								The project in which the theme should be created.
+							</para>
+						</listitem>
+					</varlistentry>
+
+					<varlistentry>
+						<term><guilabel>Theme name</guilabel> (mandatory)</term>
+						<listitem>
+							<para>
+								The theme name is used as the name of the theme folder and
+								in a CSS tag (prefixed with
+								"<literal>v-theme-</literal>"), so it must be a proper
+								identifier. Only latin alphanumerics, underscore, and
+								minus sign are allowed.
+							</para>
+						</listitem>
+					</varlistentry>
+
+					<varlistentry>
+						<term><guilabel>Modify application classes to use theme</guilabel> (optional)</term>
+						<listitem>
+							<para>
+								The setting allows the wizard to write a code statement
+								that enables the theme in the constructor of the selected
+								application (UI) class(es). If you need to control the
+								theme with dynamic logic, you can leave the setting
+								unchecked or change the generated line later.
+							</para>
+						</listitem>
+					</varlistentry>
+				</variablelist>
+
+				<screenshot>
+					<mediaobject>
+						<imageobject role="html">
+							<imagedata align="center" fileref="img/themes/eclipse-theme-settings.png"/>
+						</imageobject>
+						<imageobject role="fo">
+							<imagedata scale="50" smallscale="100%" align="center" fileref="img/themes/eclipse-theme-settings.png"/>
+						</imageobject>
+					</mediaobject>
+				</screenshot>
+
+				<para>
+					Click <guibutton>Finish</guibutton> to create the theme.
+				</para>
+
+			</listitem>
+		</orderedlist>
+
+		<para>
+			The wizard creates the theme folder under the
+			<filename>WebContent/VAADIN/themes</filename> folder and the actual style
+			sheet as <filename>mytheme.scss</filename> and
+			<filename>styles.scss</filename> files, as illustrated in <xref
+			linkend="figure.eclipse.theme.created"/>.
+		</para>
+
+		<figure xml:id="figure.eclipse.theme.created">
+			<title>Newly Created Theme</title>
+			<mediaobject>
+				<imageobject role="html">
+					<imagedata align="center" fileref="img/themes/eclipse-theme-created-annotated-lo.png"/>
+				</imageobject>
+				<imageobject role="fo">
+					<imagedata scale="50" smallscale="100%" align="center" fileref="img/themes/eclipse-theme-created-annotated-hi.png"/>
+				</imageobject>
+			</mediaobject>
+		</figure>
+
+		<para>
+			The created theme extends a built-in base theme with an
+			<literal>@import</literal> statement. See the explanation of theme inheritance
+			in <xref linkend="themes.creating"/>. Notice that the
+			<filename>reindeer</filename> theme is not located in the
+			<filename>widgetsets</filename> folder, but in the Vaadin JAR. See <xref
+			linkend="themes.creating.builtin"/> for information for serving the built-in
+			themes.
+		</para>
+
+		<para>
+			If you selected a UI class or classes in the <guilabel>Modify application
+			classes to use theme</guilabel> in the theme wizard, the wizard will add the
+			<literal>@Theme</literal> annotation to the UI class.
+        </para>
+
+		<para>
+			If you later rename the theme in Eclipse, notice that changing the name of the
+			folder will not automatically change the <literal>@Theme</literal>
+			annotation. You need to change such references to theme names in the calls
+			manually.
+		</para>
+    </section>
+
+    <section xml:id="themes.valo">
+        <title>Valo Theme</title>
+
+        <para>
+            Valo is the word for light in Finnish. The Valo theme incorporates the use of
+            light in its logic, in how it handles shades and highlights. It creates lines,
+            borders, highlights, and shadows adaptively according to a background color,
+            always with contrasts pleasant to human visual perception. Auxiliary colors
+            are computed using an algorithmic color theory to blend gently with the
+            background. The static art is complemented with responsive
+            animations.
+        </para>
+
+        <para>
+            The true power of Valo lies in its configurability with parameters, functions,
+            and Sass mixins. You can use the built-in definitions in your own themes or
+            override the defaults. Detailed documentation of the available mixins,
+            functions, and variables can be found in the Valo API documentation available
+            at <link xlink:href="http://vaadin.com/valo">http://vaadin.com/valo</link>.
+        </para>
+
+        <section xml:id="themes.valo.use">
+            <title>Basic Use</title>
+
+            <para>
+                Valo is used just like other themes. Its optional parameters must be given
+                before the <literal>@import</literal> statement.
+            </para>
+
+            <programlisting><?pocket-size 75% ?><![CDATA[// Modify the base color of the theme
+$v-background-color: hsl(200, 50%, 50%);
+
+// Import valo after setting the parameters
+@import "../valo/valo";
+
+.mythemename {
+  @include valo;
+
+  // Your theme's rules go here
+}]]></programlisting>
+
+            <para>
+                If you need to override mixins or function definitions in the valo theme,
+                you must do that after the import statement, but before including the valo
+                mixin. Also, with some configuration parameters, you can use variables
+                defined in the theme. In this case, they need to be overridden after the
+                import statement.
+            </para>
+        </section>
+
+        <section xml:id="themes.valo.variables">
+            <title>Common Settings</title>
+
+            <para>
+                In the following, we describe the optional parameters that control the
+                visual appearance of the Valo theme. In addition to the ones given here,
+                component styles have their own parameters, listed in the sections
+                describing the components in the other chapters.
+            </para>
+
+            <section xml:id="themes.valo.variables.general">
+                <title>General Settings</title>
+
+                <variablelist>
+                    <varlistentry>
+                        <term><varname>$v-background-color</varname> (default: <literal>hsl(210, 0%, 98%)</literal>)</term>
+                        <listitem>
+                            <para>
+                                The background color is the main control parameter for the
+                                Valo theme and it is used for computing all other colors
+                                in the theme. If the color is dark (has low luminance),
+                                light foreground colors that give high contrast with the
+                                background are automatically used.
+                            </para>
+
+                            <para>
+                                You can specify the color in any way allowed in CSS:
+                                hexadecimal RGB color code, RGB/A value specified with
+                                <methodname>rgb()</methodname> or
+                                <methodname>rgba()</methodname>, HSL/A value specified
+                                with <methodname>hsl()</methodname> or
+                                <methodname>hsla()</methodname>. You can also use color
+                                names, but it should be avoided, as not all CSS color
+                                names are currently supported.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>$v-app-background-color</varname> (default: <varname>$v-background-color</varname>)</term>
+                        <listitem>
+                            <para>
+                                Background color of the UI's root element. You can specify
+                                the color in any way allowed in CSS.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>$v-app-loading-text</varname> (default: <literal>""</literal>)</term>
+                        <listitem>
+                            <para>
+                                A static text that is shown under the loading spinned
+                                while the client-side engine is being loaded and
+                                started. The text must be given in quotes. The text can
+                                not be localized currently.
+                            </para>
+
+                            <programlisting><![CDATA[$v-app-loading-text: "Loading Resources...";]]></programlisting>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>$v-line-height</varname> (default: <literal>1.55</literal>)</term>
+                        <listitem>
+                            <para>
+                                Base line height for all widgets. It must be given a
+                                unitless number.
+                            </para>
+
+                            <programlisting><![CDATA[$v-line-height: 1.6;]]></programlisting>
+                        </listitem>
+                    </varlistentry>
+                </variablelist>
+            </section>
+
+            <section xml:id="themes.valo.variables.fonts">
+                <title>Font Settings</title>
+
+                <variablelist>
+                    <varlistentry>
+                        <term><varname>$v-font-size</varname> (default: <literal>16px</literal>)</term>
+                        <listitem>
+                            <para>
+                                Base font size. It should be specified in pixels.
+                            </para>
+
+                            <programlisting><![CDATA[$v-font-size: 18px;]]></programlisting>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>$v-font-weight</varname> (default: <literal>300</literal>)</term>
+                        <listitem>
+                            <para>
+                                Font weight for normal fonts. The size should be given as
+                                a numeric value, not symbolic.
+                            </para>
+
+                            <programlisting><![CDATA[$v-font-weight: 400;]]></programlisting>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>$v-font-color</varname> (default: computed)</term>
+                        <listitem>
+                            <para>
+                                Foreground text color, specified as any CSS color
+                                value. The default is computed from the background color
+                                so that it gives a high contrast with the background.
+                            </para>
+                        </listitem>
+
+                        <programlisting><![CDATA[$v-font-color: green;]]></programlisting>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>$v-font-family</varname> (default: <literal>"Open Sans", sans-serif</literal>)</term>
+                        <listitem>
+                            <para>
+                                Font family and fallback fonts as a comma-separated
+                                list. Font names containing spaces must be quoted. The
+                                default font Open Sans is a web font included in the Valo
+                                theme. Other used Valo fonts must be specified in the list
+                                to enable them. See <xref linkend="themes.valo.fonts"/>.
+                            </para>
+                            
+                            <programlisting><![CDATA[$v-font-family: "Source Sans Pro", sans-serif;]]></programlisting>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>$v-caption-font-size</varname> (default: <literal>round($v-font-size * 0.9)</literal>)</term>
+                        <listitem>
+                            <para>
+                                Font size for component captions. The value should be a pixel
+                                value.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>$v-caption-font-weight</varname> (default: <literal>max(400, $v-font-weight)</literal>)</term>
+                        <listitem>
+                            <para>
+                                Font weight for captions. It should be defined with a numeric
+                                value instead of symbolic.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                </variablelist>
+            </section>
+
+            <section xml:id="themes.valo.variables.layout">
+                <title>Layout Settings</title>
+
+                <variablelist>
+                    <varlistentry>
+                        <term><varname>$v-unit-size</varname> (default: <literal>round(2.3 * $v-font-size)</literal>)</term>
+                        <listitem>
+                            <para>
+                                This is the base size for various layout measures. It is
+                                directly used in some measures, such as button height and
+                                layout margins, while other measures are derived from
+                                it. The value must be specified in pixels, with a suitable
+                                range of 18-50.
+                            </para>
+
+                            <programlisting><![CDATA[$v-unit-size: 40px;]]></programlisting>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>$v-layout-margin-top</varname></term>
+                        <term><varname>$v-layout-margin-right</varname></term>
+                        <term><varname>$v-layout-margin-bottom</varname></term>
+                        <term><varname>$v-layout-margin-left</varname> (default: <literal>$v-unit-size</literal>)</term>
+                        <listitem>
+                            <para>
+                                Layout margin sizes for all built-in layout components,
+                                when the margin is enabled with
+                                <methodname>setMargin()</methodname>, as described in
+                                <xref linkend="layout.settings.margins"/>.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>$v-layout-spacing-vertical</varname> and
+                            <varname>$v-layout-spacing-horizontal</varname> (default:
+                            <literal>round($v-unit-size/3)</literal>)</term>
+                        <listitem>
+                            <para>
+                                Amount of vertical or horizontal space when spacing is enabled
+                                for a layout with <methodname>setSpacing()</methodname>, as
+                                described in <xref linkend="layout.settings.spacing"/>.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                </variablelist>
+            </section>
+
+            <section xml:id="themes.valo.variables.component">
+                <title>Component Features</title>
+
+                <para>
+                    The following settings apply to various graphical features of some
+                    components.
+                </para>
+
+                <variablelist>
+                    <varlistentry>
+                        <term><varname>$v-border</varname> (default: <literal>1px solid (v-shade 0.7)</literal>)</term>
+                        <listitem>
+                            <para>
+                                Border specification for the components that have a
+                                border. The thickness measure must be specified in
+                                pixels. For the border color, you can specify any CSS
+                                color or one of the <literal>v-tint</literal>,
+                                <literal>v-shade</literal>, and <literal>v-tone</literal>
+                                keywords described later in this section.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>$v-border-radius</varname> (default: <literal>4px</literal>)</term>
+                        <listitem>
+                            <para>
+                                Corner radius for components that have a border. The measure
+                                must be specified in pixels.
+                            </para>
+
+                            <programlisting><![CDATA[$v-border-radius: 8px;]]></programlisting>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>$v-gradient</varname> (default: <literal>v-linear 8%</literal>)</term>
+                        <listitem>
+                            <para>
+                                Color gradient style for components that have a
+                                gradient. The gradient style may use the following
+                                keywords: <literal>v-linear</literal> and
+                                <literal>v-linear-reverse</literal>. The opacity must be
+                                given as percentage between 0% and 100%.
+                            </para>
+
+                            <programlisting><![CDATA[$v-gradient: v-linear 20%;]]></programlisting>
+                        </listitem>
+                    </varlistentry>
+                    <!-- TODO Check if this still exists, it was in 7.3.0.alpha1
+                    <varlistentry>
+                        <term><varname>$v-gradient-depth</varname> (default: <literal>8%</literal>)</term>
+                        <listitem>
+                            <para>
+                                Gradient depth.
+                            </para>
+                        </listitem>
+                    </varlistentry> -->
+                    <varlistentry>
+                        <term><varname>$v-bevel</varname> (default: <literal>inset 0 1px 0 v-tint, inset 0 -1px 0 v-shade</literal>)</term>
+                        <listitem>
+                            <para>
+                                Inset shadow style to define how some components are
+                                "raised" from the background. The value follows the syntax
+                                of CSS box-shadow, and should be a list of insets. For the
+                                bevel color, you can specify any CSS color or one of the
+                                <literal>v-tint</literal>, <literal>v-shade</literal>, and
+                                <literal>v-tone</literal> keywords described later in this
+                                section.
+                            </para>
+                            <!-- TODO Check the meaning of v-tone -->
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>$v-bevel-depth</varname> (default: <literal>30%</literal>)</term>
+                        <listitem>
+                            <para>
+                                Specifies the "depth" of the bevel shadow, as applied to
+                                one of the color keywords for the bevel style. The actual
+                                amount of tint, shade, or tone is computed from the depth.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>$v-shadow</varname> (default: <literal>0 2px 3px v-shade</literal>)</term>
+                        <listitem>
+                            <para>
+                                Default shadow style for all components. As with
+                                <varname>$v-bevel</varname>, the value follows the syntax
+                                of CSS box-shadow, but without the
+                                <literal>inset</literal>. For the shadow color, you can
+                                specify any CSS color or one of the
+                                <literal>v-tint</literal> or <literal>v-shade</literal>
+                                keywords described later in this section.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>$v-shadow-opacity</varname> (default: <literal>5%</literal>)</term>
+                        <listitem>
+                            <para>
+                                Specifies the opacity of the shadow, as applied to one of
+                                the color keywords for the shadow style. The actual amount
+                                of tint or shade is computed from the depth.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>$v-focus-style</varname> (default: <literal>0 0 0 2px rgba($v-focus-color, .5)</literal>)</term>
+                        <listitem>
+                            <para>
+                                Box-shadow specification for the field focus
+                                indicator. The space-separated values are the horizontal
+                                shadow position in pixels, vertical shadow position in
+                                pixels, blur distance in pixels, spread distance in
+                                pixels, and the color. The color can be any CSS color. You
+                                can only specify the color, in which case defaults for the
+                                position are used. <methodname>rgba()</methodname> or
+                                <methodname>hsla()</methodname> can be used to enable
+                                transparency.
+                            </para>
+
+                            <para>
+                                For example, the following creates a 2 pixels wide orange
+                                outline around the field:
+                            </para>
+
+                            <programlisting><![CDATA[$v-focus-style: 0 0 0 2px orange;]]></programlisting>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>$v-focus-color</varname> (default: <literal>valo-focus-color()</literal>)</term>
+                        <listitem>
+                            <para>
+                                Color for the field focus indicator. The
+                                <methodname>valo-focus-color()</methodname> function
+                                computes a high-contrast color from the context, which is
+                                usually the background color. The color can be any CSS
+                                color.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>$v-animations-enabled</varname> (default: <literal>true</literal>)</term>
+                        <listitem>
+                            <para>
+                                Specifies whether various CSS animations are used.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>$v-hover-styles-enabled</varname> (default: <literal>true</literal>)</term>
+                        <listitem>
+                            <para>
+                                Specifies whether various <literal>:hover</literal> styles
+                                are used for indicating that mouse pointer hovers over an
+                                element.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>$v-disabled-opacity</varname> (default: <literal>0.5</literal>)</term>
+                        <listitem>
+                            <para>
+                                Opacity of disabled components, as described in <xref
+                                linkend="components.features.enabled"/>.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>$v-selection-color</varname> (default: <literal>$v-focus-color</literal>)</term>
+                        <listitem>
+                            <para>
+                                Color for indicating selection in selection components.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>$v-default-field-width</varname> (default: <literal>$v-unit-size * 5</literal>)</term>
+                        <listitem>
+                            <para>
+                                Default width of certain field components, unless
+                                overridden with <methodname>setWidth()</methodname>.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>$v-error-indicator-color</varname> (default: <literal>#ed473b</literal>)</term>
+                        <listitem>
+                            <para>
+                                Color of the component error indicator, as described in <xref linkend="application.errors.error-indicator"/>.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>$v-required-field-indicator-color</varname> (default: <literal>$v-error-indicator-color</literal>)</term>
+                        <listitem>
+                            <para>
+                                Color of the required indicator in field components, as
+                                described in <xref
+                                linkend="components.fields.field"/>.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                </variablelist>
+
+                <para>
+                    Color specifications for <varname>$v-border</varname>,
+                    <varname>$v-bevel</varname>, and <varname>$v-shadow</varname> may use,
+                    in addition to CSS colors, the following keywords:
+                </para>
+
+                <variablelist>
+                    <varlistentry>
+                        <term><varname>v-tint</varname></term>
+                        <listitem>
+                            <para>
+                                Lighter than the background color.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>v-shade</varname></term>
+                        <listitem>
+                            <para>
+                                Darker than the background color.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>v-tone</varname></term>
+                        <listitem>
+                            <para>
+                                Adaptive color specification: darker on light background
+                                and lighter on dark background. Not usable in
+                                <varname>$v-shadow</varname>.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                </variablelist>
+
+                <para>
+                    For example:
+                </para>
+
+                <programlisting><![CDATA[$v-border: 1px solid v-shade;]]></programlisting>
+
+                <para>
+                    You can fine-tune the contrast by giving a weight parameter in
+                    parentheses:
+                </para>
+
+                <programlisting><![CDATA[$v-border: 1px solid (v-tint 2);]]></programlisting>
+                <programlisting><![CDATA[$v-border: 1px solid (v-tone 0.5);]]></programlisting>
+            </section>
+
+            <section xml:id="themes.valo.variables.optimization">
+                <title>Theme Compilation and Optimization</title>
+
+                <variablelist>
+                    <varlistentry>
+                        <!-- TODO Set to true when Vaadin compiler supports the theme. -->
+                        <term><varname>$v-relative-paths</varname> (default: <literal>true</literal>)</term>
+                        <listitem>
+                            <para>
+                                This flags specifies whether relative URL paths are
+                                relative to the currently parsed SCSS file or to the
+                                compilation root file, so that paths are correct for
+                                different resources.  Vaadin theme compiler parses URL
+                                paths differently from the regular Sass compiler (Vaadin
+                                modifies relative URL paths). Use <literal>false</literal>
+                                for Ruby compiler and <literal>true</literal> for Vaadin
+                                Sass compiler.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+
+                    <varlistentry>
+                        <term><varname>$v-included-components</varname> (default: component list)</term>
+                        <listitem>
+                            <para>
+                                Theme optimization parameter to specify the included
+                                component themes, as described in <xref
+                                linkend="themes.valo.optimization"/>.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+
+                    <varlistentry>
+                        <term><varname>$v-included-additional-styles</varname> (default: <literal>$v-included-components</literal>)</term>
+                        <listitem>
+                            <para>
+                                Theme optimization parameter that lists the components for
+                                which the additional component stylenames should be
+                                included. See <xref linkend="themes.valo.component"/> for
+                                more details.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                </variablelist>
+            </section>
+        </section>
+
+        <section xml:id="themes.valo.mixins">
+            <title>Valo Mixins and Functions</title>
+
+            <para>
+                Valo uses Sass mixins and functions heavily to compute various theme
+                features, such as colors and shades. Also, all component styles are
+                mixins. You can use the built-in mixins or override them. For detailed
+                documentation of the mixins and functions, please refer to the Valo API
+                documentation available at <link
+                xlink:href="http://vaadin.com/valo/api">http://vaadin.com/valo/api</link>.
+            </para>
+        </section>
+
+        <section xml:id="themes.valo.fonts">
+            <title>Valo Fonts</title>
+
+            <para>
+                Valo includes the following custom fonts:
+            </para>
+
+            <itemizedlist>
+                <listitem>Open Sans</listitem>
+                <listitem>Source Sans Pro</listitem>
+                <listitem>Roboto</listitem>
+                <listitem>Lato</listitem>
+                <listitem>Lora</listitem>
+            </itemizedlist>
+
+            <para>
+                The used fonts must be specified with the
+                <varname>$v-font-family</varname> parameter for Valo, in a fallback
+                order. A font family is used in decreasing order of preference, in case a
+                font with higher preference is not available in the browser. You can
+                specify any font families and generic families that browsers may
+                support. In addition to the primary font family, you can use also others
+                in your application. To enable using the fonts included in Valo, you need
+                to list them in the variable.
+            </para>
+
+            <programlisting><?pocket-size 70% ?><![CDATA[$v-font-family: 'Open Sans', sans-serif, 'Source Sans Pro';]]></programlisting>
+
+            <para>
+                Above, we specify Open Sans as the preferred primary font, with any
+                sans-serif font that the browser supports as a fallback. In addition, we
+                include the Source Sans Pro as an auxiliary font that we can use in custom
+                rules as follows:
+            </para>
+
+            <programlisting><?pocket-size 75% ?><![CDATA[.v-label pre {
+  font-family: 'Source Sans Pro', monospace;
+}]]></programlisting>
+
+            <para>
+                This would specify using the font in any <classname>Label</classname>
+                component with the <literal>PREFORMATTED</literal> content mode.
+            </para>
+        </section>
+
+        <section xml:id="themes.valo.component">
+            <title>Component Styles</title>
+
+            <para>
+                Many components have component-specific styles to make them smaller,
+                bigger, and so forth. You can specify the component styles with
+                <methodname>addStyleName()</methodname> using the constants defined in the
+                <classname>ValoTheme</classname> enum.
+            </para>
+
+            <programlisting><![CDATA[table.addStyleName(ValoTheme.TABLE_COMPACT);]]></programlisting>
+
+            <para>
+                For a complete up-to-date list of component-specific styles, please refer
+                to Vaadin API documentation on the <classname>ValoTheme</classname>
+                enum. Some are also described in the component-specific styling sections.
+            </para>
+
+            <section xml:id="themes.valo.component.disabling">
+                <title>Disabling Component Styles</title>
+
+                <para>
+                    Component styles are optional, but all are enabled by default. They
+                    can be enabled on per-component basis with the
+                    <varname>$v-included-additional-styles</varname> parameter. It
+                    defaults to <varname>$v-included-components</varname> and can be
+                    customized in the same way, as described in <xref
+                    linkend="themes.valo.optimization"/>.
+                </para>
+            </section>
+
+            <section xml:id="themes.valo.component.parameters">
+                <title>Configuration Parameters</title>
+
+                <para>
+                    The following variables control some common component styles:
+                </para>
+
+                <variablelist>
+                    <varlistentry>
+                        <term><varname>$v-scaling-factor--tiny</varname> (default: <literal>0.75</literal>)</term>
+                        <listitem>
+                            <para>
+                                A scaling multiplier for <literal>TINY</literal> component styles.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>$v-scaling-factor--small</varname> (default: <literal>0.85</literal>)</term>
+                        <listitem>
+                            <para>
+                                A scaling multiplier for <literal>SMALL</literal>
+                                component styles.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>$v-scaling-factor--large</varname> (default: <literal>1.2</literal>)</term>
+                        <listitem>
+                            <para>
+                                A scaling multiplier for <literal>LARGE</literal> component styles.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                    <varlistentry>
+                        <term><varname>$v-scaling-factor--huge</varname> (default: <literal>1.6</literal>)</term>
+                        <listitem>
+                            <para>
+                                A scaling multiplier for <literal>HUGE</literal> component
+                                styles.
+                            </para>
+                        </listitem>
+                    </varlistentry>
+                </variablelist>
+            </section>
+        </section>
+
+        <section xml:id="themes.valo.optimization">
+            <title>Theme Optimization</title>
+
+            <para>
+                Valo theme allows optimizing the size of the compiled theme CSS by
+                including the rules for only the components actually used in the
+                application.  The included component styles can be specified in the
+                <literal>$v-included-components</literal> variable, which by default
+                includes all components. The variable should include a comma-separated
+                list of component names in lower-case letters. Likewise, you can specify
+                which additional component styles, as described in <xref
+                linkend="themes.valo.component"/>, should be included using the
+                <varname>$v-included-additional-styles</varname> parameter and the same
+                format. The list of additional styles defaults to
+                <varname>$v-included-components</varname>.
+            </para>
+
+            <para>
+                For example, if your UI contains just
+                <classname>VerticalLayout</classname>, <classname>TextField</classname>,
+                and <classname>Button</classname> components, you could define the
+                variable as follows:
+            </para>
+
+            <programlisting><?pocket-size 75% ?><![CDATA[$v-included-components:
+    verticallayout,
+    textfield,
+    button;]]></programlisting>
+
+            <para>
+                You can use the <methodname>remove()</methodname> function reversely to
+                remove just some component themes from the standard selection.
+            </para>
+
+            <para>
+                For example, with the following you can remove the theme definitions for
+                the <classname>Calendar</classname> component:
+            </para>
+
+            <programlisting><?pocket-size 75% ?><![CDATA[$v-included-components: remove($v-included-components, calendar);]]></programlisting>
+
+            <para>
+                Note that in this case, you need to give the statement
+                <emphasis>after</emphasis> the <literal>@import</literal> statement for
+                the Valo theme, because it overrides a variable by using its value that
+                is defined in the theme.
+            </para>
+        </section>
+    </section>
+
+    <section xml:id="themes.fonticon">
+        <title>Font Icons</title>
+        
+        <para>
+            Font icons are icons included in a font. Fonts have many advantages over
+            bitmap images. Browsers are usually faster in rendering fonts than loading
+            image files. Web fonts are vector graphics, so they are scalable. As font
+            icons are text characters, you can define their color in CSS by the regular
+            foreground color property.
+        </para>
+
+        <section xml:id="themes.fonticon.enabling">
+            <title>Loading Icon Fonts</title>
+
+            <para>
+                Vaadin currently comes with one custom icon font: FontAwesome. It is
+                automatically enabled in the Valo theme. For other themes, you need to
+                include it with the following line in your project theme, after importing
+                the base theme:
+            </para>
+
+            <programlisting><?pocket-size 75% ?><![CDATA[@include fonticons;]]></programlisting>
+
+            <para>
+                If you use other icon fonts, as described in <xref
+                linkend="themes.fonticon.custom"/>, and the font is not loaded by a base
+                theme, you need to load it with a <literal>font</literal> mixin in Sass,
+                as described in <xref linkend="themes.fonts.loading"/>.
+            </para>
+        </section>
+
+        <section xml:id="themes.fonticon.using">
+            <title>Basic Use</title>
+
+            <para>
+                Font icons are resources of type <classname>FontIcon</classname>, which
+                implements the <interfacename>Resource</interfacename> interface. You can
+                use these special resources for component icons and such, but not as
+                embedded images, for example.
+            </para>
+
+            <para>
+                Each icon has a Unicode codepoint, by which you can use it. Vaadin
+                includes an awesome icon font, <literal>FontAwesome</literal>, which comes
+                with an enumeration of all the icons included in the font.
+            </para>
+
+            <para>
+                Most typically, you set a component icon as follows:
+            </para>
+
+            <book-example eid="themes.fonticon.basic"></book-example>
+            <programlisting><?pocket-size 75% ?><![CDATA[TextField name = new TextField("Name");
+name.setIcon(FontAwesome.USER);
+layout.addComponent(name);
+
+// Button allows specifying icon resource in constructor
+Button ok = new Button("OK", FontAwesome.CHECK);
+layout.addComponent(ok);]]></programlisting>
+
+            <para>
+                The result is illustrated in <xref
+                linkend="figure.themes.fonticon.using"/>, with the color styling
+                described next.
+            </para>
+
+            <figure xml:id="figure.themes.fonticon.using">
+                <title>Basic Use of Font Icons</title>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata smallscale="40%" align="center" fileref="img/themes/fonticons-basic.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+
+            <section xml:id="themes.fonticon.using.css">
+                <title>Styling the Icons</title>
+
+                <para>
+                    As font icons are regular text, you can specify their color with the
+                    <literal>color</literal> attribute in CSS to specify the foreground
+                    text color. All HTML elements that display icons in Vaadin have the
+                    <literal>v-icon</literal> style name.
+                </para>
+
+                <programlisting><?pocket-size 75% ?><![CDATA[.v-icon {
+    color: blue;
+}]]></programlisting>
+
+                <para>
+                    If you use the font icon resources in other ways, such as in an
+                    <classname>Image</classname> component, the style name will be
+                    different.
+                </para>
+            </section>
+        </section>
+
+        <section xml:id="themes.fonticon.html">
+            <title>Using Font icons in HTML</title>
+
+            <para>
+                You can use font icons in HTML code, such as in a
+                <classname>Label</classname>, by generating the HTML to display the
+                icon with the <methodname>getHtml()</methodname> method.
+            </para>
+
+            <book-example eid="themes.fonticon.html"></book-example>
+            <programlisting><?pocket-size 75% ?><![CDATA[Label label = new Label("I " +
+    FontAwesome.HEART.getHtml() + " Vaadin",
+    ContentMode.HTML);
+label.addStyleName("redicon");
+layout.addComponent(label);]]></programlisting>
+
+            <para>
+                The HTML code has the <literal>v-icon</literal> style, which you can
+                modify in CSS:
+            </para>
+
+            <programlisting><?pocket-size 75% ?><![CDATA[.redicon .v-icon {
+    color: red;
+}]]></programlisting>
+
+            <para>
+                The result is illustrated in <xref
+                linkend="figure.themes.fonticon.html"/>, with the color styling
+                described next.
+            </para>
+
+            <figure xml:id="figure.themes.fonticon.html">
+                <title>Using Font Icons in Label</title>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata smallscale="30%" align="center" fileref="img/themes/fonticons-html.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+
+            <para>
+                You could have set the font color in the label's HTML code as well, or for
+                all icons in the UI.
+            </para>
+
+            <para>
+                You can easily use font icons in HTML code in other ways as well. You
+                just need to use the correct font family and then use the hex-formatted
+                Unicode codepoint for the icon. See for example the implementation of the
+                <methodname>getHtml()</methodname> method in
+                <classname>FontAwesome</classname>:
+            </para>
+
+            <programlisting><?pocket-size 70% ?><![CDATA[@Override
+public String getHtml() {
+    return "<span class=\"v-icon\" style=\"font-family: " +
+           getFontFamily() + ";\">&#x" +
+           Integer.toHexString(codepoint) + ";</span>";
+}]]></programlisting>
+        </section>
+        
+        <section xml:id="themes.fonticon.anywhere">
+            <title>Using Font Icons in Other Text</title>
+
+            <para>
+                You can include a font icon in any text by its Unicode codepoint, which
+                you can get with the <methodname>getCodePoint()</methodname> method. In
+                such case, however, you need to use the same font for other text in the
+                same string as well. The FontAwesome provided in Vaadin includes a basic
+                character set.
+            </para>
+
+            <book-example eid="themes.fonticon.intext"></book-example>
+            <programlisting><?pocket-size 75% ?><![CDATA[TextField amount = new TextField("Amount (in " +
+   new String(Character.toChars(
+           FontAwesome.BTC.getCodepoint())) +
+   ")");
+amount.addStyleName("awesomecaption");
+layout.addComponent(amount);]]></programlisting>
+
+            <para>
+                You need to set the font family in CSS.
+            </para>
+
+            <programlisting><?pocket-size 75% ?><![CDATA[.v-caption-awesomecaption .v-captiontext {
+    font-family: FontAwesome;
+}]]></programlisting>
+        </section>
+
+        <section xml:id="themes.fonticon.custom">
+            <title>Custom Font Icons</title>
+
+            <para>
+                You can easily use glyphs in existing fonts as icons, or create your own.
+            </para>
+
+            <section xml:id="themes.fonticon.custom.creating">
+                <title>Creating New Icon Fonts With IcoMoon</title>
+
+                <para>
+                    You are free to use any of the many ways to create icons and embed
+                    them into fonts. Here, we give basic instructions for using the <link
+                    xlink:href="http://icomoon.io/app/">IcoMoon</link> service, where you
+                    can pick icons from a large library of well-designed icons.
+                </para>
+
+                <para>
+                    Font Awesome is included in IcoMoon's selection of icon
+                    libraries. Note that the codepoints of the icons are not fixed, so the
+                    <classname>FontAwesome</classname> enum is not compatible with such
+                    custom icon fonts.
+                </para>
+
+                <para>
+                    After you have selected the icons that you want in your font, you can
+                    download them in a ZIP package. The package contains the icons in
+                    multiple formats, including WOFF, TTF, EOT, and SVG. Not all browsers
+                    support any one of them, so all are needed to support all the common
+                    browsers. Extract the <filename>fonts</filename> folder from the
+                    package to under your theme.
+                </para>
+
+                <para>
+                    See <xref linkend="themes.fonts.loading"/> for instructions for
+                    loading a custom font.
+                </para>
+            </section>
+
+            <section xml:id="themes.fonticon.custom.implementing">
+                <title>Implementing FontIcon</title>
+
+                <para>
+                    You can define a font icon for any font available in the browser by
+                    implementing the <interfacename>FontIcon</interfacename>
+                    interface. The normal pattern for implementing it is to implement an
+                    enumeration for all the symbols available in the font. See the
+                    implementation of <classname>FontAwesome</classname> for more details.
+                </para>
+
+                <para>
+                    You need a FontIcon API for the icons. In the following, we define a
+                    font icon using a normal sans-serif font built-in in the browser.
+                </para>
+
+                <book-example eid="themes.fonticon.custom"></book-example>
+                <programlisting><?pocket-size 65% ?><![CDATA[// Font icon definition with a single symbol
+public enum MyFontIcon implements FontIcon {
+    EURO(0x20AC);
+    
+    private int codepoint;
+    
+    MyFontIcon(int codepoint) {
+        this.codepoint = codepoint;
+    }
+    
+    @Override
+    public String getMIMEType() {
+        throw new UnsupportedOperationException(
+            FontIcon.class.getSimpleName()
+            + " should not be used where a MIME type is needed.");
+    }
+    
+    @Override
+    public String getFontFamily() {
+        return "sans-serif";
+    }
+    
+    @Override
+    public int getCodepoint() {
+        return codepoint;
+    }
+    
+    @Override
+    public String getHtml() {
+        return "<span class=\"v-icon\" style=\"font-family: " +
+                getFontFamily() + ";\">&#x" +
+                Integer.toHexString(codepoint) + ";</span>";
+    }
+}]]></programlisting>
+
+                <para>
+                    Then you can use it as usual:
+                </para>
+
+                <programlisting><?pocket-size 75% ?><![CDATA[TextField name = new TextField("Amount");
+name.setIcon(MyFontIcon.EURO);
+layout.addComponent(name);]]></programlisting>
+
+                <para>
+                    You could make the implementation a class as well, instead of an
+                    enumeration, to allow other ways to specify the icons.
+                </para>
+            </section>
+        </section>
+    </section>
+
+	<section xml:id="themes.fonts">
+		<title>Custom Fonts</title>
+
+        <para>
+            In addition to using the built-in fonts of the browser and the web fonts
+            included in the Vaadin themes, you can use custom web fonts.
+        </para>
+
+        <section xml:id="themes.fonts.loading">
+            <title>Loading Fonts</title>
+
+            <para>
+                You can load web fonts with the <literal>font</literal> mixin as follows:
+            </para>
+
+            <programlisting><?pocket-size 75% ?><![CDATA[@include font(MyFontFamily,
+              '../../mytheme/fonts/myfontfamily');]]></programlisting>
+
+            <para>
+                The statement must be given in the <filename>styles.scss</filename> file
+                <emphasis>outside</emphasis> the <literal>.mytheme {}</literal> block.
+            </para>
+
+            <para>
+                The first parameter is the name of the font family, which is used to
+                identify the font.  If the font family name contains spaces, you need to
+                use single or double quotes around the name.
+            </para>
+
+            <para>
+                The second parameter is the base name of the font files without an
+                extension, including a relative path. Notice that the path is relative to
+                the base theme, where the mixin is defined, not the used theme. We
+                recommend placing custom font files under a <filename>fonts</filename>
+                folder in a theme.
+            </para>
+
+            <para>
+                Not all browsers support any single font file format, so the base name is
+                appended with <filename>.ttf</filename>, <filename>.eot</filename>,
+                <filename>.woff</filename>, or <filename>.svg</filename> suffix for the
+                font file suitable for a user's browser.
+            </para>
+        </section>
+
+        <section xml:id="themes.fonts.using">
+            <title>Using Custom Fonts</title>
+
+            <para>
+                After loaded, you can use a custom font, or actually font family, by its
+                name in CSS and otherwise.
+            </para>
+
+            <programlisting><?pocket-size 75% ?><![CDATA[.mystyle {
+    font-family: MyFontFamily;
+}]]></programlisting>
+
+            <para>
+                Again, if the font family name contains spaces, you need to use single or
+                double quotes around the name.
+            </para>
+        </section>
+    </section>
+
+	<section xml:id="themes.responsive">
+		<title>Responsive Themes</title>
+
+        <indexterm xml:id="term.themes.responsive" class="startofrange">
+            <primary><classname>responsive</classname> extension</primary>
+        </indexterm>
+
+        <indexterm zone="themes.responsive">
+            <primary>CSS selections</primary>
+        </indexterm>
+
+        <para>
+            <indexterm><primary>extension</primary></indexterm>
+            
+            Vaadin includes support for responsive design which enables size range
+            conditions in CSS selectors, allowing conditional CSS rules that respond to
+            size changes in the browser window on the client-side.
+
+            <phrase condition="web">See the <link
+            xlink:href="https://vaadin.com/blog/-/blogs/3126636">Vaadin Blog article on
+            Responsive design</link> for some additional information.</phrase>
+        </para>
+
+        <para>
+            You can use the <classname>Responsive</classname> extension to extend either a
+            component, typically a layout, or the entire UI. You specify the component by
+            the static <methodname>makeResponsive()</methodname> method.
+        </para>
+
+        <book-example eid="themes.responsive.basic" style="float: right"></book-example>
+        <programlisting><?pocket-size 75% ?><![CDATA[// Have some component with an appropriate style name
+Label c = new Label("Here be text");
+c.addStyleName("myresponsive");
+content.addComponent(c);
+        
+// Enable Responsive CSS selectors for the component
+Responsive.makeResponsive(c);]]></programlisting>
+
+        <para>
+            You can now use <literal>width-range</literal> and
+            <literal>height-range</literal> conditions in CSS selectors as follows:
+        </para>
+
+        <book-example eid="themes.responsive.basic" style="float: right"></book-example>
+        <programlisting><?pocket-size 75% ?><![CDATA[/* Basic settings for all sizes */
+.myresponsive {
+    padding: 5px;
+    line-height: 36pt;
+}
+    
+/* Small size */
+.myresponsive[width-range~="0-300px"] {
+    background: orange;
+    font-size: 16pt;
+}
+
+/* Medium size */
+.myresponsive[width-range~="301px-600px"] {
+    background: azure;
+    font-size: 24pt;
+}
+
+/* Anything bigger */
+.myresponsive[width-range~="601px-"] {
+    background: palegreen;
+    font-size: 36pt;
+}]]></programlisting>
+
+        <para>
+            You can have overlapping size ranges, in which case all the selectors matching
+            the current size are enabled.
+        </para>
+
+        <simplesect xml:id="themes.responsive.wrap" condition="web">
+            <title>Flexible Wrapping</title>
+
+            <para>
+                You can use the <classname>CssLayout</classname> to have automatic
+                wrap-around when the components in the layout would go off right side of
+                the layout. Components that wrap must, however, have either undefined or
+                fixed width, and thereby can not utilize the full area of the screen. With
+                the <classname>Responsive</classname> extension, you can have more
+                flexible wrap-around that gives the component tiles maximum width.
+            </para>
+
+            <para>
+                In the following, we have a text and image box, which are laid out
+                horizontally with 50-50 sizing if the screen is wide enough, but wrap to a
+                vertical layout if the screen is narrow.
+            </para>
+
+            <book-example eid="themes.responsive.flexwrap" style="float: right"></book-example>
+            <programlisting><?pocket-size 75% ?><![CDATA[CssLayout layout = new CssLayout();
+layout.setWidth("100%");
+layout.addStyleName("flexwrap");
+content.addComponent(layout);
+        
+// Enable Responsive CSS selectors for the layout
+Responsive.makeResponsive(layout);
+
+Label title = new Label("Space is big, really big");
+title.addStyleName("title");
+layout.addComponent(title);
+
+Label description = new Label("This is a " +
+    "long description of the image shown " +
+    "on the right or below, depending on the " +
+    "screen width. The text here could continue long.");
+description.addStyleName("itembox");
+description.setSizeUndefined();
+layout.addComponent(description);
+        
+Image image = new Image(null,
+        new ThemeResource("img/planets/Earth.jpg"));
+image.addStyleName("itembox");
+layout.addComponent(image);]]></programlisting>
+
+            <para>
+                The SCSS could be as follows:
+            </para>
+
+            <book-example eid="themes.responsive.flexwrap" style="float: right"></book-example>
+            <programlisting><?pocket-size 75% ?><![CDATA[/* Various general settings */
+.flexwrap {
+    background: black;
+    color: white;
+
+    .title {
+        font-weight: bold;
+        font-size: 20px;
+        line-height: 30px;
+        padding: 5px;
+    }
+    
+    .itembox {
+        white-space: normal;
+        vertical-align: top;
+    }
+    
+    .itembox.v-label {padding: 5px}
+}
+    
+.flexwrap[width-range~="0-499px"] {
+    .itembox {width: 100%}
+}
+    
+.flexwrap[width-range~="500px-"] {
+    .itembox {width: 50%}
+}]]></programlisting>
+            
+            <para>
+                The layout in the wide mode is shown in <xref
+                linkend="figure.theme.responsive.flexwrap"/>.
+            </para>
+
+            <figure xml:id="figure.theme.responsive.flexwrap">
+                <title>Flexible Wrapping</title>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata smallscale="100%" align="center" fileref="img/themes/addon-responsive-flexwrap.png"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+
+            <para>
+                You could also play with the <literal>display: block</literal> vs
+                <literal>display: inline-block</literal> properties.
+            </para>
+
+            <para>
+                Notice that, while the <classname>Responsive</classname> extension makes
+                it possible to do various CSS trickery with component sizes, the normal
+                rules for component and layout sizes apply, as described in <xref
+                linkend="layout.settings.size"/> and elsewhere, and you should always
+                check the size behaviour of the components. In the above example, we set
+                the label to have undefined width, which disables word wrap, so we had to
+                re-enable it.
+            </para>
+        </simplesect>
+
+        <simplesect xml:id="themes.responsive.display" condition="web">
+            <title>Toggling the Display Property</title>
+
+            <para>
+                <indexterm><primary>display (CSS property)</primary></indexterm>
+
+                The <literal>display</literal> property allows especially powerful ways to
+                offer radically different UIs for different screen sizes by enabling and
+                disabling UI elements as needed. For example, you could disable some parts of
+                the UI when the space gets too small, but bring forth navigation buttons that,
+                when clicked, add component styles to switch to the hidden parts.
+            </para>
+
+            <para>
+                In the following, we simply show alternative components based on screen
+                width:
+            </para>
+
+            <book-example eid="themes.responsive.display" style="float: right"></book-example>
+            <programlisting><?pocket-size 75% ?><![CDATA[CssLayout layout = new CssLayout();
+layout.setWidth("100%");
+layout.addStyleName("toggledisplay");
+content.addComponent(layout);
+        
+// Enable Responsive CSS selectors for the layout
+Responsive.makeResponsive(layout);
+
+Label enoughspace =
+    new Label("This space is big, mindbogglingly big");
+enoughspace.addStyleName("enoughspace");
+layout.addComponent(enoughspace);
+        
+Label notenoughspace = new Label("Quite small space");
+notenoughspace.addStyleName("notenoughspace");
+layout.addComponent(notenoughspace);]]></programlisting>
+
+            <para>
+                The SCSS could be as follows:
+            </para>
+
+            <book-example eid="themes.responsive.display" style="float: right"></book-example>
+            <programlisting><?pocket-size 75% ?><![CDATA[/* Common settings */
+.toggledisplay {
+    .enoughspace, .notenoughspace {
+        color: white;
+        padding: 5px;
+    }
+    
+    .notenoughspace { /* Really small */
+        background: red;
+        font-weight: normal;
+        font-size: 10px;
+        line-height: 15px;
+    }
+
+    .enoughspace { /* Really big */
+        background: darkgreen;
+        font-weight: bold;
+        font-size: 20px;
+        line-height: 30px;
+    }
+}
+    
+/* Quite little space */
+.toggledisplay[width-range~="0-499px"] {
+    .enoughspace    {display: none}
+}
+    
+/* Plenty of space */
+.toggledisplay[width-range~="500px-"] {
+    .notenoughspace {display: none}
+}]]></programlisting>
+        </simplesect>
+
+        <simplesect xml:id="themes.responsive.demos" condition="web">
+            <title>Responsive Demos</title>
+
+            <para>
+                You can find a simple responsive demo at <link
+                xlink:href="http://demo.vaadin.com/responsive/">demo.vaadin.com/responsive</link>. It
+                demonstrates the flexible wrapping technique described in <xref
+                linkend="themes.responsive.wrap"/>.
+            </para>
+
+            <para>
+                The <link
+                xlink:href="http://demo.vaadin.com/book-examples-vaadin7/book/#themes.responsive.basic">Book
+                Examples</link> demo provides the examples given in this chapter, as well
+                as some others.
+            </para>
+
+            <para>
+                <indexterm><primary>Parking demo</primary></indexterm>
+                <indexterm><primary>TouchKit</primary><secondary>Parking demo</secondary></indexterm>
+
+                The Parking demo for TouchKit, mentioned in <xref linkend="mobile"/>, uses
+                a responsive theme to adapt to mobile devices with different screen sizes
+                and when the screen orientation changes.
+            </para>
+        </simplesect>
+
+        <indexterm startref="term.themes.responsive" class="endofrange"/>
+    </section>
+
+    <indexterm startref="term.themes" class="endofrange"/>
+    <indexterm startref="term.themes-css" class="endofrange"/>
+</chapter>
+
+	
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: xml
+sgml-omittag:nil
+sgml-shorttag:nil
+sgml-namecase-general:nil
+sgml-general-insert-case:lower
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:4
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-exposed-tags:nil
+sgml-local-catalogs:("/etc/sgml/catalog" "/usr/share/xemacs21/xemacs-packages/etc/psgml-dtds/CATALOG")
+sgml-local-ecat-files:("ECAT" "~/sgml/ECAT" "/usr/share/sgml/ECAT" "/usr/local/share/sgml/ECAT" "/usr/local/lib/sgml/ECAT")
+End:
+-->
+
